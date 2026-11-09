@@ -1,14 +1,43 @@
+import { useEffect, useState } from 'react'
 import PageHeader from '../components/PageHeader'
-import { site } from '../data/site'
+
+type Experience = {
+  id: number
+  company: string
+  role: string
+  startDate: string
+  endDate: string
+  location: string
+  highlights: string
+}
+
+function splitHighlights(value: string | null | undefined): string[] {
+  if (!value) return []
+  return value.split('|||').map((part) => part.trim()).filter(Boolean)
+}
 
 export default function ExperiencePage() {
+  const [experience, setExperience] = useState<Experience[]>([])
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetch('http://localhost:8080/api/experience')
+      .then((r) => {
+        if (!r.ok) throw new Error('Failed to load experience')
+        return r.json()
+      })
+      .then(setExperience)
+      .catch((e) => setError(e.message))
+  }, [])
+
   return (
     <section>
       <PageHeader title="Experience" subtitle="My work experience." />
+      {error && <p className="mt-4 text-red-600">{error}</p>}
 
       <ul className="space-y-0">
-        {site.experience.map((item) => (
-          <li key={item.company} className="timeline-item">
+        {experience.map((item) => (
+          <li key={item.id} className="timeline-item">
             <p className="font-display text-xl font-bold tracking-tight text-ink">
               {item.role}
             </p>
@@ -17,7 +46,7 @@ export default function ExperiencePage() {
               {item.location} · {item.startDate} – {item.endDate}
             </p>
             <ul className="mt-4 space-y-2 text-[0.95rem] leading-relaxed text-ink-soft">
-              {item.highlights.map((highlight) => (
+              {splitHighlights(item.highlights).map((highlight) => (
                 <li key={highlight} className="flex gap-2">
                   <span className="mt-[0.55em] h-1 w-1 shrink-0 rounded-sm bg-accent" aria-hidden />
                   <span>{highlight}</span>
