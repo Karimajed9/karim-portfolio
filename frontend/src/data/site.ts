@@ -48,5 +48,13 @@ export const site = {
         'Technology',
         'Programming'
       ]
-  }
+  },
+  skills: [
+    { category: 'Programming Languages', items: ['C#', 'Java', 'TypeScript', 'JavaScript', 'SQL'] },
+    { category: 'Frontend', items: ['React', 'HTML', 'CSS', 'Tailwind'] },
+    { category: 'Backend', items: ['ASP.NET', 'Spring Boot', 'REST APIs'] },
+    { category: 'Databases', items: ['PostgreSQL', 'SQL Server'] },
+    { category: 'Cloud & DevOps', items: ['Azure', 'Docker', 'GitHub Actions'] },
+    { category: 'Tools', items: ['Git', 'Maven', 'Vite'] },
+  ],
 };
