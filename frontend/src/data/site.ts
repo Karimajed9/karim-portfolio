@@ -98,4 +98,10 @@ export const site = {
         },
       ],
     },
+    contact: {
+      title: 'Contact',
+      subtitle: 'Say hello',
+      email: 'karim_majed@outlook.com',
+      blurb: 'Open to roles and collaborations. Reach me by email or the form below.',
+    }
 };
