@@ -1,0 +1,7 @@
+CREATE TABLE project (
+  id BIGSERIAL PRIMARY KEY,
+  name VARCHAR(200) NOT NULL,
+  summary TEXT NOT NULL,
+  tags VARCHAR(500),
+  href VARCHAR(500)
+);
