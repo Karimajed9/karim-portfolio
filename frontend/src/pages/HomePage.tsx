@@ -3,31 +3,19 @@ import { site } from '../data/site'
 
 export default function HomePage() {
   return (
-    <section className="space-y-6">
-      <p className="text-sm font-medium uppercase tracking-wide text-slate-500">
-        {site.title}
-      </p>
-      <h1 className="text-4xl font-semibold tracking-tight text-slate-900">
-        {site.name}
-      </h1>
-      <p className="max-w-2xl text-lg text-slate-600">
-        {site.description}
-      </p>
-      <div className="flex flex-wrap gap-3">
-        <Link
-          to="/projects"
-          className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
-        >
+    <section className="hero" aria-label="Introduction">
+      <p className="hero-role">{site.title}</p>
+      <h1 className="hero-name">{site.name}</h1>
+      <p className="hero-lede">{site.description}</p>
+      <div className="hero-actions">
+        <Link to="/projects" className="btn btn-primary">
           View projects
         </Link>
-        <Link
-          to="/contact"
-          className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-800 hover:bg-white"
-        >
+        <Link to="/contact" className="btn btn-secondary">
           Contact me
         </Link>
       </div>
-      <div className="flex gap-4 text-sm text-slate-600">
+      <div className="hero-social">
         <a href={site.githubUrl} target="_blank" rel="noreferrer">
           GitHub
         </a>

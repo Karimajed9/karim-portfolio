@@ -1,17 +1,38 @@
-import { Link, Outlet } from 'react-router-dom'
+import { NavLink, Outlet } from 'react-router-dom'
+import { site } from '../data/site'
+
+const links = [
+  { to: '/', label: 'Home', end: true },
+  { to: '/about', label: 'About' },
+  { to: '/skills', label: 'Skills' },
+  { to: '/experience', label: 'Experience' },
+  { to: '/projects', label: 'Projects' },
+  { to: '/contact', label: 'Contact' },
+] as const
 
 export default function Layout() {
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      <nav className="flex flex-wrap gap-4 border-b border-slate-200 bg-white px-6 py-4">
-        <Link className="font-medium text-slate-700 hover:text-slate-900" to="/">Home</Link>
-        <Link className="font-medium text-slate-700 hover:text-slate-900" to="/about">About</Link>
-        <Link className="font-medium text-slate-700 hover:text-slate-900" to="/skills">Skills</Link>
-        <Link className="font-medium text-slate-700 hover:text-slate-900" to="/experience">Experience</Link>
-        <Link className="font-medium text-slate-700 hover:text-slate-900" to="/projects">Projects</Link>
-        <Link className="font-medium text-slate-700 hover:text-slate-900" to="/contact">Contact</Link>
+    <div className="site-shell">
+      <nav className="site-nav" aria-label="Primary">
+        <NavLink to="/" className="site-brand" end>
+          {site.name}
+        </NavLink>
+        <div className="site-nav-links">
+          {links.map((link) => (
+            <NavLink
+              key={link.to}
+              to={link.to}
+              end={'end' in link ? link.end : false}
+              className={({ isActive }) =>
+                `site-nav-link${isActive ? ' is-active' : ''}`
+              }
+            >
+              {link.label}
+            </NavLink>
+          ))}
+        </div>
       </nav>
-      <main className="mx-auto max-w-5xl px-6 py-10">
+      <main className="site-main">
         <Outlet />
       </main>
     </div>

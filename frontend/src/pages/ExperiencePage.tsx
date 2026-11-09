@@ -6,27 +6,27 @@ export default function ExperiencePage() {
     <section>
       <PageHeader title="Experience" subtitle="My work experience." />
 
-      <div className="space-y-10">
-        <div>
-          <ul className="space-y-3">
-            {site.experience.map((item) => (
-              <li key={item.company} className="border-l-2 border-slate-200 pl-4">
-                <p className="font-medium text-slate-900">
-                  {item.role} at {item.company}
-                </p>
-                <p className="text-sm text-slate-600">
-                  {item.location} · {item.startDate} - {item.endDate}
-                </p>
-                <ul className="mt-3 list-disc space-y-1 pl-5 text-slate-700">
-                  {item.highlights.map((highlight) => (
-                    <li key={highlight}>{highlight}</li>
-                  ))}
-                </ul>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
+      <ul className="space-y-0">
+        {site.experience.map((item) => (
+          <li key={item.company} className="timeline-item">
+            <p className="font-display text-xl font-bold tracking-tight text-ink">
+              {item.role}
+            </p>
+            <p className="mt-1 font-medium text-accent">{item.company}</p>
+            <p className="mt-1 text-sm text-muted">
+              {item.location} · {item.startDate} – {item.endDate}
+            </p>
+            <ul className="mt-4 space-y-2 text-[0.95rem] leading-relaxed text-ink-soft">
+              {item.highlights.map((highlight) => (
+                <li key={highlight} className="flex gap-2">
+                  <span className="mt-[0.55em] h-1 w-1 shrink-0 rounded-sm bg-accent" aria-hidden />
+                  <span>{highlight}</span>
+                </li>
+              ))}
+            </ul>
+          </li>
+        ))}
+      </ul>
     </section>
   )
 }

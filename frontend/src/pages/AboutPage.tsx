@@ -6,19 +6,17 @@ export default function AboutPage() {
     <section>
       <PageHeader title="About" subtitle={site.about.summary} />
 
-      <div className="space-y-10">
+      <div className="space-y-12">
         <div>
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-500">
-            Education
-          </h2>
-          <ul className="space-y-3">
+          <h2 className="section-label">Education</h2>
+          <ul className="space-y-0">
             {site.about.education.map((item) => (
-              <li key={item.school} className="border-l-2 border-slate-200 pl-4">
-                <p className="font-medium text-slate-900">{item.degree}</p>
-                <p className="text-sm text-slate-600">
-                  {item.school} · {item.startDate} - {item.endDate}
+              <li key={item.school} className="timeline-item">
+                <p className="font-semibold text-ink">{item.degree}</p>
+                <p className="mt-1 text-sm text-ink-soft">
+                  {item.school} · {item.startDate} – {item.endDate}
                 </p>
-                <p className="text-sm text-slate-600">
+                <p className="text-sm text-muted">
                   {item.city}, {item.country}
                 </p>
               </li>
@@ -27,22 +25,15 @@ export default function AboutPage() {
         </div>
 
         <div>
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-500">
-            Goals
-          </h2>
-          <p className="max-w-2xl leading-relaxed text-slate-700">{site.about.goals}</p>
+          <h2 className="section-label">Goals</h2>
+          <p className="prose-quiet">{site.about.goals}</p>
         </div>
 
         <div>
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-500">
-            Personal Interests
-          </h2>
+          <h2 className="section-label">Personal Interests</h2>
           <ul className="flex flex-wrap gap-2">
             {site.about.personalInterests.map((interest) => (
-              <li
-                key={interest}
-                className="rounded-full border border-slate-200 bg-white px-3 py-1 text-sm text-slate-700"
-              >
+              <li key={interest} className="chip">
                 {interest}
               </li>
             ))}
@@ -50,15 +41,10 @@ export default function AboutPage() {
         </div>
 
         <div>
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-500">
-            Professional Interests
-          </h2>
+          <h2 className="section-label">Professional Interests</h2>
           <ul className="flex flex-wrap gap-2">
             {site.about.professionalInterests.map((interest) => (
-              <li
-                key={interest}
-                className="rounded-full border border-slate-200 bg-white px-3 py-1 text-sm text-slate-700"
-              >
+              <li key={interest} className="chip">
                 {interest}
               </li>
             ))}

@@ -9,15 +9,10 @@ export default function SkillsPage() {
       <div className="space-y-10">
         {site.skills.map((skill) => (
           <div key={skill.category}>
-            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-500">
-              {skill.category}
-            </h2>
+            <h2 className="section-label">{skill.category}</h2>
             <ul className="flex flex-wrap gap-2">
               {skill.items.map((item) => (
-                <li
-                  key={item}
-                  className="rounded-full border border-slate-200 bg-white px-3 py-1 text-sm text-slate-700"
-                >
+                <li key={item} className="chip">
                   {item}
                 </li>
               ))}
