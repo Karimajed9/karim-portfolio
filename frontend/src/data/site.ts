@@ -48,13 +48,42 @@ export const site = {
         'Technology',
         'Programming'
       ]
-  },
-  skills: [
-    { category: 'Programming Languages', items: ['C#', 'Java', 'TypeScript', 'JavaScript', 'SQL'] },
-    { category: 'Frontend', items: ['React', 'HTML', 'CSS', 'Tailwind'] },
-    { category: 'Backend', items: ['ASP.NET', 'Spring Boot', 'REST APIs'] },
-    { category: 'Databases', items: ['PostgreSQL', 'SQL Server'] },
-    { category: 'Cloud & DevOps', items: ['Azure', 'Docker', 'GitHub Actions'] },
-    { category: 'Tools', items: ['Git', 'Maven', 'Vite'] },
-  ],
+    },
+    skills: [
+      { category: 'Programming Languages', items: ['C#', 'Java', 'TypeScript', 'JavaScript', 'SQL'] },
+      { category: 'Frontend', items: ['React', 'HTML', 'CSS', 'Tailwind'] },
+      { category: 'Backend', items: ['ASP.NET', 'Spring Boot', 'REST APIs'] },
+      { category: 'Databases', items: ['PostgreSQL', 'SQL Server'] },
+      { category: 'Cloud & DevOps', items: ['Azure', 'Docker', 'GitHub Actions'] },
+      { category: 'Tools', items: ['Git', 'Maven', 'Vite'] },
+    ],
+    experience: [
+      {
+        company: 'Redmane Technology',
+        role: 'Software Developer',
+        startDate: 'November 2022',
+        endDate: 'Present',
+        location: 'Montreal, Canada',
+        highlights: [
+          'Develop and maintain enterprise web applications using C#, ASP.NET, JavaScript, and SQL.',
+          'Implement custom features and integrate external services such as Azure Logic Apps, Azure Functions, and Sage.',
+          'Develop and maintain REST APIs to support application integrations and business requirements.',
+          'Manage deployments across 10+ production environments.',
+          'Troubleshoot production issues, monitor application performance, and improve system reliability using Datadog.',
+          'Collaborate with clients and team members to understand requirements and deliver effective solutions.',
+        ],
+      },
+      {
+        company: 'Wilet Edge - Contractor to National Bank of Canada',
+        role: 'Java Developer',
+        startDate: 'September 2021',
+        endDate: 'September 2022',
+        location: 'Montreal, Canada',
+        highlights: [
+          'Contributed to enterprise software development using Java.',
+          'Worked on application development and maintenance in a financial services environment.',
+          'Collaborated with development teams to implement solutions and support business requirements.',
+        ],
+      },
+    ],
 };
