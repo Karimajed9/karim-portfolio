@@ -86,4 +86,16 @@ export const site = {
         ],
       },
     ],
+    projects: {
+      title: 'Projects',
+      subtitle: 'Selected work',
+      items: [
+        {
+          name: 'Portfolio',
+          summary: 'Personal site built with React, TypeScript, and Vite.',
+          tags: ['React', 'TypeScript', 'Vite'],
+          href: 'https://github.com/YOUR_USER/karim-portfolio',
+        },
+      ],
+    },
 };
