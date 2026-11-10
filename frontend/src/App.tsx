@@ -5,6 +5,7 @@ import SkillsPage from './pages/SkillsPage'
 import ExperiencePage from './pages/ExperiencePage'
 import ProjectsPage from './pages/ProjectsPage'
 import ContactPage from './pages/ContactPage'
+import AdminPage from './pages/AdminPage'
 import Layout from './components/Layout'
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
           <Route path="experience" element={<ExperiencePage />} />
           <Route path="projects" element={<ProjectsPage />} />
           <Route path="contact" element={<ContactPage />} />
+          <Route path="admin" element={<AdminPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
