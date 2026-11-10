@@ -55,27 +55,78 @@ export function writeApiCache<T>(path: string, data: T): void {
   }
 }
 
+/** Default wait before treating a cold API as "slow" (free-tier wake). */
+export const SLOW_FETCH_MS = 4000
+
+export type FetchJsonCachedOptions = {
+  /** Fired once when the network is still pending after `slowAfterMs` and there was no cache. */
+  onSlow?: () => void
+  /** Override for tests; defaults to {@link SLOW_FETCH_MS}. */
+  slowAfterMs?: number
+}
+
 /**
  * Stale-while-revalidate GET helper.
  * Calls `onData` with sessionStorage cache immediately (if any), then fetches
  * the network and calls `onData` again on success (and refreshes the cache).
+ * When there is no cache and the fetch exceeds `slowAfterMs`, optionally calls
+ * `onSlow` so the UI can show static content while the request continues.
  */
 export async function fetchJsonCached<T>(
   path: string,
   onData: (data: T) => void,
+  options?: FetchJsonCachedOptions,
 ): Promise<void> {
   const cached = readApiCache<T>(path)
   if (cached != null) {
     onData(cached)
   }
 
-  const res = await fetch(apiUrl(path))
-  if (!res.ok) {
-    throw new Error(`Failed to load ${path}`)
+  const slowAfterMs = options?.slowAfterMs ?? SLOW_FETCH_MS
+  let slowTimer: ReturnType<typeof setTimeout> | undefined
+  if (cached == null && options?.onSlow) {
+    slowTimer = setTimeout(() => {
+      options.onSlow?.()
+    }, slowAfterMs)
   }
-  const data = (await res.json()) as T
-  writeApiCache(path, data)
-  onData(data)
+
+  try {
+    const res = await fetch(apiUrl(path))
+    if (!res.ok) {
+      throw new Error(`Failed to load ${path}`)
+    }
+    const data = (await res.json()) as T
+    writeApiCache(path, data)
+    onData(data)
+  } finally {
+    if (slowTimer != null) clearTimeout(slowTimer)
+  }
+}
+
+/**
+ * Page-loader helper: serve live/cached API data, or `site.ts` static fallback.
+ * - No cache + slow network → `onUpdate(staticFallback, true)` while fetch continues
+ * - Success → `onUpdate(live, false)` and writes cache
+ * - Failure → `onUpdate(staticFallback, true)` (same as today's error fallback)
+ */
+export async function loadWithStaticFallback<T>(
+  path: string,
+  staticFallback: T,
+  onUpdate: (data: T, usingStatic: boolean) => void,
+  options?: Pick<FetchJsonCachedOptions, 'slowAfterMs'>,
+): Promise<void> {
+  try {
+    await fetchJsonCached(
+      path,
+      (data) => onUpdate(data, false),
+      {
+        slowAfterMs: options?.slowAfterMs,
+        onSlow: () => onUpdate(staticFallback, true),
+      },
+    )
+  } catch {
+    onUpdate(staticFallback, true)
+  }
 }
 
 /** Exported for tests. */

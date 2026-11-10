@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { fetchJsonCached } from '../api'
+import { loadWithStaticFallback } from '../api'
 import PageHeader from '../components/PageHeader'
 import { site } from '../data/site'
 
@@ -34,17 +34,16 @@ export default function ExperiencePage() {
 
   useEffect(() => {
     let cancelled = false
-    fetchJsonCached<Experience[]>('/api/experience', (data) => {
-      if (!cancelled) {
-        setExperience(data)
-        setUsingStatic(false)
-      }
-    }).catch(() => {
-      if (!cancelled) {
-        setExperience(staticExperience)
-        setUsingStatic(true)
-      }
-    })
+    void loadWithStaticFallback<Experience[]>(
+      '/api/experience',
+      staticExperience,
+      (data, staticMode) => {
+        if (!cancelled) {
+          setExperience(data)
+          setUsingStatic(staticMode)
+        }
+      },
+    )
     return () => {
       cancelled = true
     }

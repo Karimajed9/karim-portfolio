@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { fetchJsonCached } from '../api'
+import { loadWithStaticFallback } from '../api'
 import PageHeader from '../components/PageHeader'
 import { site } from '../data/site'
 
@@ -43,15 +43,10 @@ export default function AboutPage() {
 
   useEffect(() => {
     let cancelled = false
-    fetchJsonCached<About>('/api/about', (data) => {
+    void loadWithStaticFallback<About>('/api/about', staticAbout, (data, staticMode) => {
       if (!cancelled) {
         setAbout(data)
-        setUsingStatic(false)
-      }
-    }).catch(() => {
-      if (!cancelled) {
-        setAbout(staticAbout)
-        setUsingStatic(true)
+        setUsingStatic(staticMode)
       }
     })
     return () => {

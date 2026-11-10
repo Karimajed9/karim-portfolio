@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { fetchJsonCached } from '../api'
+import { loadWithStaticFallback } from '../api'
 import PageHeader from '../components/PageHeader'
 import { site } from '../data/site'
 
@@ -30,15 +30,10 @@ export default function SkillsPage() {
 
   useEffect(() => {
     let cancelled = false
-    fetchJsonCached<Skill[]>('/api/skills', (data) => {
+    void loadWithStaticFallback<Skill[]>('/api/skills', staticSkills, (data, staticMode) => {
       if (!cancelled) {
         setSkills(data)
-        setUsingStatic(false)
-      }
-    }).catch(() => {
-      if (!cancelled) {
-        setSkills(staticSkills)
-        setUsingStatic(true)
+        setUsingStatic(staticMode)
       }
     })
     return () => {
