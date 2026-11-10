@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { fetchJsonCached } from '../api'
+import { loadWithStaticFallback } from '../api'
 import PageHeader from '../components/PageHeader'
 import { site } from '../data/site'
 
@@ -25,15 +25,10 @@ export default function ProjectsPage() {
 
   useEffect(() => {
     let cancelled = false
-    fetchJsonCached<Project[]>('/api/projects', (data) => {
+    void loadWithStaticFallback<Project[]>('/api/projects', staticProjects, (data, staticMode) => {
       if (!cancelled) {
         setProjects(data)
-        setUsingStatic(false)
-      }
-    }).catch(() => {
-      if (!cancelled) {
-        setProjects(staticProjects)
-        setUsingStatic(true)
+        setUsingStatic(staticMode)
       }
     })
     return () => {
