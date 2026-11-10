@@ -13,8 +13,25 @@ export default function ContactPage() {
       </p>
       <form
         className="mt-10 max-w-md space-y-5"
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault()
+          const form = e.currentTarget
+          const data = new FormData(form)
+          const res = await fetch('http://localhost:8080/api/contact', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: data.get('name'),
+              email: data.get('email'),
+              message: data.get('message'),
+            }),
+          })
+          if (!res.ok) {
+            alert('Send failed')
+            return
+          }
+          form.reset()
+          alert('Sent!')
         }}
       >
         <label className="field">
