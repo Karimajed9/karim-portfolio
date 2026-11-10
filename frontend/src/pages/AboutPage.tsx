@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { apiUrl } from '../api'
 import PageHeader from '../components/PageHeader'
+import { site } from '../data/site'
 
 type Education = {
   id: number
@@ -20,6 +21,17 @@ type About = {
   education: Education[]
 }
 
+const staticAbout: About = {
+  summary: site.about.summary,
+  goals: site.about.goals,
+  professionalInterests: site.about.professionalInterests.join(','),
+  personalInterests: site.about.personalInterests.join(','),
+  education: site.about.education.map((item, index) => ({
+    id: index + 1,
+    ...item,
+  })),
+}
+
 function splitCsv(value: string | null | undefined): string[] {
   if (!value) return []
   return value.split(',').map((part) => part.trim()).filter(Boolean)
@@ -27,7 +39,7 @@ function splitCsv(value: string | null | undefined): string[] {
 
 export default function AboutPage() {
   const [about, setAbout] = useState<About | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [usingStatic, setUsingStatic] = useState(false)
 
   useEffect(() => {
     fetch(apiUrl('/api/about'))
@@ -35,8 +47,14 @@ export default function AboutPage() {
         if (!r.ok) throw new Error('Failed to load about')
         return r.json()
       })
-      .then(setAbout)
-      .catch((e) => setError(e.message))
+      .then((data: About) => {
+        setAbout(data)
+        setUsingStatic(false)
+      })
+      .catch(() => {
+        setAbout(staticAbout)
+        setUsingStatic(true)
+      })
   }, [])
 
   const professionalInterests = splitCsv(about?.professionalInterests)
@@ -45,7 +63,11 @@ export default function AboutPage() {
   return (
     <section className="page-wrap">
       <PageHeader index="01" title="About" subtitle={about?.summary ?? 'Loading…'} />
-      {error && <p className="mt-4 text-red-600">{error}</p>}
+      {usingStatic && (
+        <p className="mt-4 text-sm text-muted">
+          Showing static portfolio copy (API offline). Connect a free backend to load live data.
+        </p>
+      )}
 
       {about && (
         <div className="space-y-12">

@@ -14,7 +14,7 @@ Full-stack portfolio site for **Karim Majed** — recruiter-ready pages (Home, A
 | **Backend** | Java 21, Spring Boot, Spring Security (Basic auth), Spring Data JPA, Flyway, Maven |
 | **Database** | PostgreSQL 16 |
 | **Azure (code-ready)** | Blob Storage, Key Vault references, Application Insights — wired with **local fallbacks**; no paid resources required |
-| **DevOps** | Docker Compose, GitHub Actions CI (build + test). **Azure deploy deferred** |
+| **DevOps** | Docker Compose, GitHub Actions CI + **GitHub Pages** deploy. Free API host: **Render** (`render.yaml`). **Azure deploy deferred** |
 
 ---
 
@@ -27,7 +27,8 @@ Full-stack portfolio site for **Karim Majed** — recruiter-ready pages (Home, A
 | Docker Compose (Postgres + API + nginx frontend) | Done |
 | Automated tests (Vitest + JUnit/Testcontainers) | Done |
 | GitHub Actions CI on `main` | Done (free build/test only) |
-| Public / Azure hosting | **Deferred** — stay local until you opt in to spend or free credit |
+| Public hosting (free) | **GitHub Pages** workflow ready; **Render** Blueprint scaffolded — see [docs/DEPLOY-FREE.md](docs/DEPLOY-FREE.md) |
+| Azure hosting | **Deferred** — stay free; no paid Azure |
 
 ---
 
@@ -37,7 +38,9 @@ Full-stack portfolio site for **Karim Majed** — recruiter-ready pages (Home, A
 karim-portfolio/
 ├── frontend/              # Vite + React + TypeScript SPA
 ├── backend/               # Spring Boot API (Maven Wrapper included)
-├── .github/workflows/     # CI: npm test/build + mvnw test
+├── docs/DEPLOY-FREE.md    # GitHub Pages + Render click-through guide
+├── render.yaml            # Render Blueprint (free web + Postgres)
+├── .github/workflows/     # CI + Deploy GitHub Pages
 ├── docker-compose.yml     # Postgres + backend + frontend
 ├── .env.example           # Copy to .env for Compose secrets/ports
 └── README.md
@@ -131,7 +134,16 @@ npm test
 
 ### CI (free)
 
-On every push and pull request to `main`, [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs frontend `npm ci` → `npm test` → `npm run build` and backend `./mvnw test`. No Azure login, no deploy jobs.
+On every push and pull request to `main`, [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs frontend `npm ci` → `npm test` → `npm run build` and backend `./mvnw test`. No Azure login.
+
+### Public URL (free)
+
+1. Enable **Settings → Pages → Source = GitHub Actions**.
+2. Merge/push so **Deploy GitHub Pages** runs (or run it manually).
+3. Open **https://karimajed9.github.io/karim-portfolio/** — static content works without an API.
+4. Optional API: create a free **Render** Blueprint from `render.yaml`, set `ADMIN_PASSWORD`, then set Actions variable `VITE_API_BASE_URL` and redeploy Pages.
+
+Full click-through: [docs/DEPLOY-FREE.md](docs/DEPLOY-FREE.md).
 
 ---
 
@@ -151,7 +163,7 @@ Restart the backend after changing `ADMIN_PASSWORD` (BCrypt-encoded at startup).
 
 ## Azure (deferred deploy)
 
-Leave Azure env vars unset: uploads go under `./data/uploads`, secrets stay in `.env`, App Insights does not attach. Production profile hints live in `backend/src/main/resources/application-prod.properties`. Provision App Service / Postgres / Blob / Key Vault / Insights only when you are ready to spend or use free credit — this repo does not create those resources.
+Leave Azure env vars unset: uploads go under `./data/uploads`, secrets stay in `.env`, App Insights does not attach. Production profile hints live in `backend/src/main/resources/application-prod.properties`. Prefer free GitHub Pages + Render for a public recruiter URL; provision Azure only when you opt in to spend.
 
 ---
 

@@ -1,0 +1,65 @@
+# Free static hosting: build the Vite SPA and publish to GitHub Pages.
+# Enable once: Repo Settings → Pages → Source = GitHub Actions.
+# Optional repo Variable: VITE_API_BASE_URL = https://<your-render-api>.onrender.com
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/deploy-pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+
+      - name: Build for GitHub Pages
+        run: npm run build
+        env:
+          GITHUB_PAGES: "true"
+          # Empty → relative /api/... (fails until Render is wired; SPA falls back to static site.ts)
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+
+      # Client-side routes (e.g. /about) need a 404.html that serves the SPA shell.
+      - name: Add SPA 404 fallback
+        run: cp dist/index.html dist/404.html
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: frontend/dist
+
+  deploy:
+    name: Deploy to Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
