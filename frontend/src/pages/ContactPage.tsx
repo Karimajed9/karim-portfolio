@@ -1,3 +1,4 @@
+import { apiUrl } from '../api'
 import PageHeader from '../components/PageHeader'
 import { site } from '../data/site'
 
@@ -17,7 +18,7 @@ export default function ContactPage() {
           e.preventDefault()
           const form = e.currentTarget
           const data = new FormData(form)
-          const res = await fetch('http://localhost:8080/api/contact', {
+          const res = await fetch(apiUrl('/api/contact'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

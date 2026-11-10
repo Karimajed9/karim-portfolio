@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { apiUrl } from '../api'
 import PageHeader from '../components/PageHeader'
 
 type Skill = {
@@ -18,7 +19,7 @@ export default function SkillsPage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch('http://localhost:8080/api/skills')
+    fetch(apiUrl('/api/skills'))
       .then((r) => {
         if (!r.ok) throw new Error('Failed to load skills')
         return r.json()

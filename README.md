@@ -118,7 +118,34 @@ npm run preview  # serve the production build locally
 npm run lint     # run the configured linter
 ```
 
-Backend, database, and Docker steps will be documented here when those phases start.
+---
+
+## Run the full stack with Docker
+
+Requires [Docker Desktop](https://www.docker.com/products/docker-desktop/) running (`docker version` shows Client + Server).
+
+From the repository root:
+
+```bash
+copy .env.example .env
+# Edit .env — set DB_PASSWORD and ADMIN_PASSWORD (placeholders only in the example)
+
+docker compose up --build
+```
+
+Then open:
+
+| Service | URL |
+|---------|-----|
+| Frontend (nginx) | [http://localhost:3000](http://localhost:3000) |
+| Backend API | [http://localhost:8080/api/health](http://localhost:8080/api/health) |
+| Postgres | `localhost:5432` (db `portfolio`, user `postgres`) |
+
+Compose starts Postgres (healthcheck), then the Spring Boot API (Flyway migrations on startup), then the React static build behind nginx. Nginx proxies `/api` to the backend so the browser can use same-origin API calls.
+
+Stop with `Ctrl+C`, or `docker compose down`. Add `-v` to also remove the Postgres volume.
+
+Ports and secrets come from `.env` (see `.env.example`). Never commit real passwords.
 
 ---
 
