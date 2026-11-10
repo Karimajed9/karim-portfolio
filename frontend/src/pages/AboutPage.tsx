@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { apiUrl } from '../api'
 import PageHeader from '../components/PageHeader'
 
 type Education = {
@@ -29,7 +30,7 @@ export default function AboutPage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch('http://localhost:8080/api/about')
+    fetch(apiUrl('/api/about'))
       .then((r) => {
         if (!r.ok) throw new Error('Failed to load about')
         return r.json()

@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { apiUrl } from '../api'
 import PageHeader from '../components/PageHeader'
 
 type ContactMessage = {
@@ -34,7 +35,7 @@ export default function AdminPage() {
     setLoading(true)
 
     try {
-      const res = await fetch('http://localhost:8080/api/admin/messages', {
+      const res = await fetch(apiUrl('/api/admin/messages'), {
         headers: {
           Authorization: basicAuthHeader(user, pass),
         },

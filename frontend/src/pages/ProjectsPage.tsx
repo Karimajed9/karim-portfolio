@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { apiUrl } from '../api'
 import PageHeader from '../components/PageHeader'
 import { site } from '../data/site'
 
@@ -15,7 +16,7 @@ export default function ProjectsPage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch('http://localhost:8080/api/projects')
+    fetch(apiUrl('/api/projects'))
       .then((r) => {
         if (!r.ok) throw new Error('Failed to load projects')
         return r.json()

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { apiUrl } from '../api'
 import PageHeader from '../components/PageHeader'
 
 type Experience = {
@@ -21,7 +22,7 @@ export default function ExperiencePage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch('http://localhost:8080/api/experience')
+    fetch(apiUrl('/api/experience'))
       .then((r) => {
         if (!r.ok) throw new Error('Failed to load experience')
         return r.json()
