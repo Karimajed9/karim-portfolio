@@ -44,7 +44,7 @@ export default function AboutPage() {
 
   return (
     <section className="page-wrap">
-      <PageHeader title="About" subtitle={about?.summary ?? 'Loading…'} />
+      <PageHeader index="01" title="About" subtitle={about?.summary ?? 'Loading…'} />
       {error && <p className="mt-4 text-red-600">{error}</p>}
 
       {about && (

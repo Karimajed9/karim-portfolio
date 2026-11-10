@@ -33,7 +33,7 @@ export default function ExperiencePage() {
 
   return (
     <section className="page-wrap">
-      <PageHeader title="Experience" subtitle="Roles where I build and ship software." />
+      <PageHeader index="03" title="Experience" subtitle="Roles where I build and ship software." />
       {error && <p className="mt-4 text-red-600">{error}</p>}
 
       <ul className="space-y-0">

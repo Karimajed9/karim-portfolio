@@ -71,7 +71,8 @@ export default function AdminPage() {
   return (
     <section className="page-wrap">
       <PageHeader
-        title="Admin"
+        index="Admin"
+        title="Messages"
         subtitle={
           authenticated
             ? 'Contact messages from the site.'

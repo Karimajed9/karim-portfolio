@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { site } from '../data/site'
 
 const links = [
@@ -11,11 +11,16 @@ const links = [
 ] as const
 
 export default function Layout() {
+  const location = useLocation()
+
   return (
     <div className="site-shell">
       <nav className="site-nav" aria-label="Primary">
         <NavLink to="/" className="site-brand" end>
-          {site.name}
+          <span className="site-brand-mark" aria-hidden="true">
+            KM
+          </span>
+          <span className="site-brand-name">{site.name}</span>
         </NavLink>
         <div className="site-nav-links">
           {links.map((link) => (
@@ -32,7 +37,7 @@ export default function Layout() {
           ))}
         </div>
       </nav>
-      <main className="site-main">
+      <main key={location.pathname} className="site-main">
         <Outlet />
       </main>
     </div>

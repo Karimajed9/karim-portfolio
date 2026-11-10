@@ -27,21 +27,30 @@ export default function ProjectsPage() {
 
   return (
     <section className="page-wrap">
-      <PageHeader title={site.projects.title} subtitle={site.projects.subtitle} />
+      <PageHeader
+        index="04"
+        title={site.projects.title}
+        subtitle={site.projects.subtitle}
+      />
       {error && <p className="mt-4 text-red-600">{error}</p>}
-      <ul className="project-list mt-2">
-        {projects.map((project) => (
+      <ul className="project-list">
+        {projects.map((project, i) => (
           <li key={project.id} className="project-item">
-            <a
-              href={project.href}
-              target="_blank"
-              rel="noreferrer"
-              className="project-name"
-            >
-              {project.name}
-            </a>
-            <p className="project-summary">{project.summary}</p>
-            <p className="project-tags">{project.tags.split(',').join(' · ')}</p>
+            <span className="project-index" aria-hidden="true">
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <div className="project-body">
+              <a
+                href={project.href}
+                target="_blank"
+                rel="noreferrer"
+                className="project-name"
+              >
+                {project.name}
+              </a>
+              <p className="project-summary">{project.summary}</p>
+              <p className="project-tags">{project.tags.split(',').join(' · ')}</p>
+            </div>
           </li>
         ))}
       </ul>
