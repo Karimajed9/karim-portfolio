@@ -20,7 +20,7 @@ This repository is also a deliberate upskilling track: stronger **Java**, **Type
 | **Backend (planned)** | Java 21, Spring Boot, Spring Security, Spring Data JPA, Hibernate, Maven, REST |
 | **Database (planned)** | PostgreSQL, Flyway |
 | **Azure** | App Service, Azure Database for PostgreSQL, Blob Storage, Key Vault, Application Insights (code-ready; deploy in later phase) |
-| **DevOps** | Git / GitHub, Docker, GitHub Actions CI/CD (later) |
+| **DevOps** | Git / GitHub, Docker, GitHub Actions CI (build/test; deploy deferred) |
 
 ---
 
@@ -168,6 +168,15 @@ npm test
 
 Covers: `apiUrl()` path joining and a smoke render of `HomePage`.
 
+### GitHub Actions CI (free)
+
+On every push and pull request to `main`, [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs:
+
+- **Frontend:** `npm ci` → `npm test` → `npm run build`
+- **Backend:** `./mvnw test` (Testcontainers Postgres on the Ubuntu runner’s Docker)
+
+**Azure deploy is deferred** until you are ready to spend or use free credit — this workflow has no Azure login, no deploy jobs, and no resource provisioning.
+
 ---
 
 ## Azure wiring (local-first, no spend required)
@@ -207,9 +216,9 @@ Production profile hints live in `backend/src/main/resources/application-prod.pr
 
 On **Azure App Service**, use [Key Vault references](https://learn.microsoft.com/en-us/azure/app-service/app-service-key-vault-references) so `DB_PASSWORD`, `ADMIN_PASSWORD`, and (if needed) blob credentials are injected as **environment variables**. Existing Spring/`SecurityConfig` code already reads those names — you do not need an in-process Key Vault client for the first deploy.
 
-### Rough Azure checklist (deploy phase / PW-10 — create only when ready)
+### Rough Azure checklist (deploy phase — create only when ready)
 
-Do **not** run these yet if you are cost-conscious; this is a future shopping list:
+Do **not** run these yet if you are cost-conscious; this is a future shopping list (CI build/test is already free via GitHub Actions):
 
 1. Resource group + App Service (Java 21) for the API (and static frontend or same app)
 2. Azure Database for PostgreSQL Flexible Server
@@ -232,7 +241,7 @@ Do **not** run these yet if you are cost-conscious; this is a future shopping li
 6. **Auth + admin dashboard** — Spring Security, RBAC, protected admin CRUD  
 7. **Azure Blob, Key Vault, monitoring** — code + local fallbacks (this phase)  
 8. **Docker + automated testing** — Compose, unit/integration tests  
-9. **Azure deploy + GitHub Actions** — App Service, managed Postgres, CI/CD  
+9. **GitHub Actions CI** — free build/test on push/PR (done); **Azure deploy** later when ready to spend
 10. **Docs, polish, launch** — README accuracy, recruiter polish, go-live checklist  
 
 ---
