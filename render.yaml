@@ -1,0 +1,54 @@
+# Render Blueprint — free-tier API + Postgres (when free plans are available).
+# Karim must connect the repo in the Render dashboard (this file alone does not create resources).
+# Dashboard: New → Blueprint → select this repo → apply.
+#
+# Caveats (free):
+# - Web Service sleeps after ~15 min idle; first request can take 30–60s.
+# - Free Postgres may be unavailable or expire; if so, use Neon free Postgres and
+#   paste JDBC env vars manually (see docs/DEPLOY-FREE.md).
+# - Do NOT upgrade to paid plans for this portfolio unless you opt in.
+
+databases:
+  - name: karim-portfolio-db
+    plan: free
+    databaseName: portfolio
+    user: portfolio
+
+services:
+  - type: web
+    name: karim-portfolio-api
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /api/health
+    envVars:
+      - key: PORT
+        value: "8080"
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://karimajed9.github.io,http://localhost:5173,http://localhost:3000
+      - key: APP_STORAGE_MODE
+        value: local
+      - key: DB_HOST
+        fromDatabase:
+          name: karim-portfolio-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: karim-portfolio-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: karim-portfolio-db
+          property: database
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase:
+          name: karim-portfolio-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: karim-portfolio-db
+          property: password

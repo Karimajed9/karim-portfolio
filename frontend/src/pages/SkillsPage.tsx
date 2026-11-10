@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { apiUrl } from '../api'
 import PageHeader from '../components/PageHeader'
+import { site } from '../data/site'
 
 type Skill = {
   id: number
@@ -14,9 +15,18 @@ type SkillGroup = {
   items: Skill[]
 }
 
+const staticSkills: Skill[] = site.skills.flatMap((group, groupIndex) =>
+  group.items.map((name, itemIndex) => ({
+    id: groupIndex * 100 + itemIndex + 1,
+    category: group.category,
+    name,
+    sortOrder: itemIndex + 1,
+  })),
+)
+
 export default function SkillsPage() {
   const [skills, setSkills] = useState<Skill[]>([])
-  const [error, setError] = useState<string | null>(null)
+  const [usingStatic, setUsingStatic] = useState(false)
 
   useEffect(() => {
     fetch(apiUrl('/api/skills'))
@@ -24,8 +34,14 @@ export default function SkillsPage() {
         if (!r.ok) throw new Error('Failed to load skills')
         return r.json()
       })
-      .then(setSkills)
-      .catch((e) => setError(e.message))
+      .then((data: Skill[]) => {
+        setSkills(data)
+        setUsingStatic(false)
+      })
+      .catch(() => {
+        setSkills(staticSkills)
+        setUsingStatic(true)
+      })
   }, [])
 
   const byCategory = new Map<string, Skill[]>()
@@ -42,7 +58,11 @@ export default function SkillsPage() {
   return (
     <section className="page-wrap">
       <PageHeader index="02" title="Skills" subtitle="Tools and technologies I work with." />
-      {error && <p className="mt-4 text-red-600">{error}</p>}
+      {usingStatic && (
+        <p className="mt-4 text-sm text-muted">
+          Showing static portfolio copy (API offline). Connect a free backend to load live data.
+        </p>
+      )}
 
       <div className="space-y-10">
         {groups.map((group) => (

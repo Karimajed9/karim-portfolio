@@ -11,9 +11,17 @@ type Project = {
   href: string
 }
 
+const staticProjects: Project[] = site.projects.items.map((item, index) => ({
+  id: index + 1,
+  name: item.name,
+  summary: item.summary,
+  tags: item.tags.join(','),
+  href: item.href,
+}))
+
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([])
-  const [error, setError] = useState<string | null>(null)
+  const [usingStatic, setUsingStatic] = useState(false)
 
   useEffect(() => {
     fetch(apiUrl('/api/projects'))
@@ -21,8 +29,14 @@ export default function ProjectsPage() {
         if (!r.ok) throw new Error('Failed to load projects')
         return r.json()
       })
-      .then(setProjects)
-      .catch((e) => setError(e.message))
+      .then((data: Project[]) => {
+        setProjects(data)
+        setUsingStatic(false)
+      })
+      .catch(() => {
+        setProjects(staticProjects)
+        setUsingStatic(true)
+      })
   }, [])
 
   return (
@@ -32,7 +46,11 @@ export default function ProjectsPage() {
         title={site.projects.title}
         subtitle={site.projects.subtitle}
       />
-      {error && <p className="mt-4 text-red-600">{error}</p>}
+      {usingStatic && (
+        <p className="mt-4 text-sm text-muted">
+          Showing static portfolio copy (API offline). Connect a free backend to load live data.
+        </p>
+      )}
       <ul className="project-list">
         {projects.map((project, i) => (
           <li key={project.id} className="project-item">

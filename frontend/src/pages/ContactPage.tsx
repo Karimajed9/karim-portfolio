@@ -18,21 +18,27 @@ export default function ContactPage() {
           e.preventDefault()
           const form = e.currentTarget
           const data = new FormData(form)
-          const res = await fetch(apiUrl('/api/contact'), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              name: data.get('name'),
-              email: data.get('email'),
-              message: data.get('message'),
-            }),
-          })
-          if (!res.ok) {
-            alert('Send failed')
-            return
+          try {
+            const res = await fetch(apiUrl('/api/contact'), {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                name: data.get('name'),
+                email: data.get('email'),
+                message: data.get('message'),
+              }),
+            })
+            if (!res.ok) {
+              alert('Send failed. Email me directly if the API is offline.')
+              return
+            }
+            form.reset()
+            alert('Sent!')
+          } catch {
+            alert(
+              `Could not reach the API. Email me at ${site.contact.email} instead, or connect the free Render backend.`,
+            )
           }
-          form.reset()
-          alert('Sent!')
         }}
       >
         <label className="field">

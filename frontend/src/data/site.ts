@@ -94,7 +94,7 @@ export const site = {
           name: 'Portfolio',
           summary: 'Personal site built with React, TypeScript, and Vite.',
           tags: ['React', 'TypeScript', 'Vite'],
-          href: 'https://github.com/YOUR_USER/karim-portfolio',
+          href: 'https://github.com/Karimajed9/karim-portfolio',
         },
       ],
     },

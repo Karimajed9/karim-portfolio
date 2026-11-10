@@ -8,9 +8,12 @@ import ContactPage from './pages/ContactPage'
 import AdminPage from './pages/AdminPage'
 import Layout from './components/Layout'
 
+// Vite BASE_URL is "/" locally and "/karim-portfolio/" on GitHub Pages builds.
+const routerBasename = import.meta.env.BASE_URL.replace(/\/$/, '') || '/'
+
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={routerBasename}>
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<HomePage />} />
