@@ -149,6 +149,30 @@ Ports and secrets come from `.env` (see `.env.example`). Never commit real passw
 
 ---
 
+## Automated tests
+
+Small learning-friendly suite — not a full coverage goal yet.
+
+**Backend** (JUnit 5 + MockMvc + Testcontainers Postgres; Docker Desktop required):
+
+```bash
+cd backend
+./mvnw test
+```
+
+Covers: context load, `GET /api/health`, public `GET /api/projects`, and `GET /api/admin/messages` (401 without auth / 200 with Basic `admin` / default `password`).
+
+**Frontend** (Vitest + Testing Library):
+
+```bash
+cd frontend
+npm test
+```
+
+Covers: `apiUrl()` path joining and a smoke render of `HomePage`.
+
+---
+
 ## Roadmap
 
 1. **Project init and local environment** — tooling, folder layout, Vite React + TypeScript scaffold  
