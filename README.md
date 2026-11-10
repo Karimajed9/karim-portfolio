@@ -140,8 +140,9 @@ On every push and pull request to `main`, [`.github/workflows/ci.yml`](.github/w
 
 1. Enable **Settings → Pages → Source = GitHub Actions**.
 2. Merge/push so **Deploy GitHub Pages** runs (or run it manually).
-3. Open **https://karimajed9.github.io/karim-portfolio/** — static content works without an API.
+3. Open **https://karimmajed.com** — Vite `base` is `/` for the custom domain (re-run **Deploy GitHub Pages** after base changes).
 4. Optional API: create a free **Render** Blueprint from `render.yaml`, set `ADMIN_PASSWORD`, then set Actions variable `VITE_API_BASE_URL` and redeploy Pages.
+5. Optional: for github.io project path only, set Actions variable `VITE_BASE_PATH=/karim-portfolio/` (prefer apex).
 
 Full click-through: [docs/DEPLOY-FREE.md](docs/DEPLOY-FREE.md).
 

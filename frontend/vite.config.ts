@@ -3,9 +3,9 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
-// GitHub project Pages: https://karimajed9.github.io/karim-portfolio/
-// Local / Docker / custom domain at root: leave GITHUB_PAGES unset.
-const base = process.env.GITHUB_PAGES === 'true' ? '/karim-portfolio/' : '/'
+// Prefer apex custom domain (https://karimmajed.com) → base "/".
+// Project Pages without custom domain: set VITE_BASE_PATH=/karim-portfolio/
+const base = process.env.VITE_BASE_PATH || '/'
 
 export default defineConfig({
   base,
