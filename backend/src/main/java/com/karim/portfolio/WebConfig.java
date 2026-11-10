@@ -15,7 +15,7 @@ public class WebConfig {
   CorsConfigurationSource corsConfigurationSource(
       // Default mirrors application.properties — required because
       // src/test/resources/application.properties shadows main and omits most keys.
-      @Value("${app.cors.allowed-origins:http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:3000,https://karimajed9.github.io}")
+      @Value("${app.cors.allowed-origins:http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:3000,https://karimmajed.com,https://www.karimmajed.com,https://karimajed9.github.io}")
       String allowedOrigins) {
     CorsConfiguration config = new CorsConfiguration();
     List<String> origins = Arrays.stream(allowedOrigins.split(","))

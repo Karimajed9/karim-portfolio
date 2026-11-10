@@ -1,6 +1,9 @@
 # Free static hosting: build the Vite SPA and publish to GitHub Pages.
 # Enable once: Repo Settings → Pages → Source = GitHub Actions.
-# Optional repo Variable: VITE_API_BASE_URL = https://<your-render-api>.onrender.com
+# Custom domain (preferred): https://karimmajed.com — Vite base defaults to "/".
+# Optional repo Variables:
+#   VITE_API_BASE_URL = https://<your-render-api>.onrender.com
+#   VITE_BASE_PATH    = /karim-portfolio/   # only if you need github.io/project path without CNAME
 name: Deploy GitHub Pages
 
 on:
@@ -41,7 +44,8 @@ jobs:
       - name: Build for GitHub Pages
         run: npm run build
         env:
-          GITHUB_PAGES: "true"
+          # Default "/" for karimmajed.com. Set Actions var VITE_BASE_PATH=/karim-portfolio/ for project-path-only github.io.
+          VITE_BASE_PATH: ${{ vars.VITE_BASE_PATH }}
           # Empty → relative /api/... (fails until Render is wired; SPA falls back to static site.ts)
           VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
 

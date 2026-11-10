@@ -4,25 +4,29 @@ Stay on **free** tiers only. No paid Azure.
 
 | Layer | Host | Public URL (expected) |
 |-------|------|------------------------|
-| Frontend SPA | GitHub Pages | https://karimajed9.github.io/karim-portfolio/ |
+| Frontend SPA | GitHub Pages + custom domain | **https://karimmajed.com** |
+| Fallback (optional) | Project Pages path | https://karimajed9.github.io/karim-portfolio/ (needs `VITE_BASE_PATH=/karim-portfolio/`) |
 | API + Postgres | Render free (or Neon free DB) | https://\<name\>.onrender.com |
 
 ---
 
-## A. Frontend — GitHub Pages (do this first)
+## A. Frontend — GitHub Pages (custom domain)
 
-1. Merge the PR that adds `.github/workflows/deploy-pages.yml` (or push it to `main`).
-2. Open the repo on GitHub → **Settings** → **Pages**.
-3. Under **Build and deployment** → **Source**, choose **GitHub Actions**.
-4. Open **Actions** → run workflow **Deploy GitHub Pages** (**Run workflow**), or push any change under `frontend/`.
-5. When the workflow is green, open:  
-   **https://karimajed9.github.io/karim-portfolio/**
+Vite `base` defaults to **`/`** for the apex domain. After changing base/docs, **re-run Actions → Deploy GitHub Pages** (or push to `main` under `frontend/`).
+
+1. Confirm **Settings → Pages → Source = GitHub Actions**.
+2. Custom domain **karimmajed.com** (TLS already done).
+3. **Actions → Deploy GitHub Pages → Run workflow** after this change merges.
+4. Open **https://karimmajed.com**
 
 Without a live API, Home still works; About / Skills / Experience / Projects show **static copy** from `frontend/src/data/site.ts`. Contact mailto works; the form needs the API.
 
-Optional later: **Settings** → **Secrets and variables** → **Actions** → **Variables** → add  
-`VITE_API_BASE_URL` = `https://<your-api>.onrender.com`  
-then re-run **Deploy GitHub Pages**.
+### Optional Actions variables
+
+| Variable | When |
+|----------|------|
+| `VITE_API_BASE_URL` | Public API URL (e.g. `https://<api>.onrender.com`) |
+| `VITE_BASE_PATH` | Only if you must serve the **github.io/karim-portfolio/** path without relying on the custom domain — set to `/karim-portfolio/`. Prefer apex; leave unset for `/`. |
 
 ---
 
@@ -32,7 +36,7 @@ then re-run **Deploy GitHub Pages**.
 
 1. Create a free account at [https://render.com](https://render.com) (GitHub login is fine).
 2. **Dashboard** → **New** → **Blueprint**.
-3. Connect **Karimajed9/karim-portfolio** and select branch `main` (after merge).
+3. Connect **Karimajed9/karim-portfolio** and select branch `main`.
 4. Confirm it reads root `render.yaml`.
 5. When prompted for `ADMIN_PASSWORD`, set a strong password (not committed).
 6. Apply. Wait for the first deploy.
@@ -55,7 +59,7 @@ If free **Postgres** is missing or blocked, skip to **Option 2**.
 | `SPRING_DATASOURCE_USERNAME` | db user |
 | `DB_PASSWORD` | db password |
 | `ADMIN_PASSWORD` | your admin password |
-| `CORS_ALLOWED_ORIGINS` | `https://karimajed9.github.io,http://localhost:5173,http://localhost:3000` |
+| `CORS_ALLOWED_ORIGINS` | `https://karimmajed.com,https://www.karimmajed.com,https://karimajed9.github.io,http://localhost:5173,http://localhost:3000` |
 | `APP_STORAGE_MODE` | `local` |
 
 5. Health check path: `/api/health`.
@@ -66,7 +70,7 @@ If free **Postgres** is missing or blocked, skip to **Option 2**.
 1. Set GitHub Actions variable `VITE_API_BASE_URL` to the Render URL (no trailing slash).
 2. Re-run **Deploy GitHub Pages**.
 3. Confirm Projects/About load from the API and Contact form posts succeed.
-4. Admin: `https://karimajed9.github.io/karim-portfolio/admin` — user `admin`, password = `ADMIN_PASSWORD`.
+4. Admin: `https://karimmajed.com/admin` — user `admin`, password = `ADMIN_PASSWORD`.
 
 ### Free-tier caveats
 
@@ -78,7 +82,7 @@ If free **Postgres** is missing or blocked, skip to **Option 2**.
 
 ## C. CORS
 
-Backend reads `CORS_ALLOWED_ORIGINS` (comma-separated). Default includes local Vite/Compose and `https://karimajed9.github.io` (Pages origin has **no** path).
+Backend reads `CORS_ALLOWED_ORIGINS` (comma-separated). Default includes local Vite/Compose, **https://karimmajed.com**, **https://www.karimmajed.com**, and `https://karimajed9.github.io` (origins have **no** path).
 
 ---
 
@@ -86,8 +90,8 @@ Backend reads `CORS_ALLOWED_ORIGINS` (comma-separated). Default includes local V
 
 | Done in repo | Needs your click |
 |--------------|------------------|
-| Pages build + deploy workflow | Enable Pages source = Actions |
-| `base` `/karim-portfolio/` when `GITHUB_PAGES=true` | — |
+| Pages build + deploy workflow | Enable Pages + custom domain / TLS |
+| Vite `base` `/` (override via `VITE_BASE_PATH`) | Re-run **Deploy GitHub Pages** after merge |
 | Static fallbacks when API is down | — |
 | `render.yaml` + env docs | Create Render account + Blueprint/service |
 | Configurable CORS + `PORT` | Paste `ADMIN_PASSWORD` / DB secrets on Render |
