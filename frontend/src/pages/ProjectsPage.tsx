@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { apiUrl } from '../api'
+import { fetchJsonCached } from '../api'
 import PageHeader from '../components/PageHeader'
 import { site } from '../data/site'
 
@@ -24,19 +24,21 @@ export default function ProjectsPage() {
   const [usingStatic, setUsingStatic] = useState(false)
 
   useEffect(() => {
-    fetch(apiUrl('/api/projects'))
-      .then((r) => {
-        if (!r.ok) throw new Error('Failed to load projects')
-        return r.json()
-      })
-      .then((data: Project[]) => {
+    let cancelled = false
+    fetchJsonCached<Project[]>('/api/projects', (data) => {
+      if (!cancelled) {
         setProjects(data)
         setUsingStatic(false)
-      })
-      .catch(() => {
+      }
+    }).catch(() => {
+      if (!cancelled) {
         setProjects(staticProjects)
         setUsingStatic(true)
-      })
+      }
+    })
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   return (
