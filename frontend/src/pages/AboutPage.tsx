@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { apiUrl } from '../api'
+import { fetchJsonCached } from '../api'
 import PageHeader from '../components/PageHeader'
 import { site } from '../data/site'
 
@@ -42,19 +42,21 @@ export default function AboutPage() {
   const [usingStatic, setUsingStatic] = useState(false)
 
   useEffect(() => {
-    fetch(apiUrl('/api/about'))
-      .then((r) => {
-        if (!r.ok) throw new Error('Failed to load about')
-        return r.json()
-      })
-      .then((data: About) => {
+    let cancelled = false
+    fetchJsonCached<About>('/api/about', (data) => {
+      if (!cancelled) {
         setAbout(data)
         setUsingStatic(false)
-      })
-      .catch(() => {
+      }
+    }).catch(() => {
+      if (!cancelled) {
         setAbout(staticAbout)
         setUsingStatic(true)
-      })
+      }
+    })
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   const professionalInterests = splitCsv(about?.professionalInterests)
@@ -103,7 +105,7 @@ export default function AboutPage() {
               ))}
             </ul>
           </div>
-          
+
           <div>
             <h2 className="section-label">Personal Interests</h2>
             <ul className="flex flex-wrap gap-2">

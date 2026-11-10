@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { apiUrl } from '../api'
+import { fetchJsonCached } from '../api'
 import PageHeader from '../components/PageHeader'
 import { site } from '../data/site'
 
@@ -33,19 +33,21 @@ export default function ExperiencePage() {
   const [usingStatic, setUsingStatic] = useState(false)
 
   useEffect(() => {
-    fetch(apiUrl('/api/experience'))
-      .then((r) => {
-        if (!r.ok) throw new Error('Failed to load experience')
-        return r.json()
-      })
-      .then((data: Experience[]) => {
+    let cancelled = false
+    fetchJsonCached<Experience[]>('/api/experience', (data) => {
+      if (!cancelled) {
         setExperience(data)
         setUsingStatic(false)
-      })
-      .catch(() => {
+      }
+    }).catch(() => {
+      if (!cancelled) {
         setExperience(staticExperience)
         setUsingStatic(true)
-      })
+      }
+    })
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   return (

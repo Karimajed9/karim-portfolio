@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { apiUrl } from '../api'
+import { fetchJsonCached } from '../api'
 import PageHeader from '../components/PageHeader'
 import { site } from '../data/site'
 
@@ -29,19 +29,21 @@ export default function SkillsPage() {
   const [usingStatic, setUsingStatic] = useState(false)
 
   useEffect(() => {
-    fetch(apiUrl('/api/skills'))
-      .then((r) => {
-        if (!r.ok) throw new Error('Failed to load skills')
-        return r.json()
-      })
-      .then((data: Skill[]) => {
+    let cancelled = false
+    fetchJsonCached<Skill[]>('/api/skills', (data) => {
+      if (!cancelled) {
         setSkills(data)
         setUsingStatic(false)
-      })
-      .catch(() => {
+      }
+    }).catch(() => {
+      if (!cancelled) {
         setSkills(staticSkills)
         setUsingStatic(true)
-      })
+      }
+    })
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   const byCategory = new Map<string, Skill[]>()
