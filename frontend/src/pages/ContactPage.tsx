@@ -4,7 +4,7 @@ import { site } from '../data/site'
 
 export default function ContactPage() {
   return (
-    <section>
+    <section className="page-wrap">
       <PageHeader title={site.contact.title} subtitle={site.contact.subtitle} />
       <p className="prose-quiet">{site.contact.blurb}</p>
       <p className="mt-4">

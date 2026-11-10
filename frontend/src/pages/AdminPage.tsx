@@ -69,7 +69,7 @@ export default function AdminPage() {
   }
 
   return (
-    <section>
+    <section className="page-wrap">
       <PageHeader
         title="Admin"
         subtitle={
