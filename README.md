@@ -167,6 +167,7 @@ Exact shapes and auth details will land with the Spring Boot and security phases
 - Use **`.env`** (local) and **Azure Key Vault** (cloud) when configuration becomes sensitive.
 - Root `.gitignore` already ignores `.env` / `.env.*` (with an optional `.env.example` pattern kept allowed).
 - Prefer example env files with placeholders only; real values stay on the machine or in Key Vault.
+- Admin Basic auth: user `admin`, password from env `ADMIN_PASSWORD` (default `password`). The value is BCrypt-encoded at startup — **restart the backend after changing `ADMIN_PASSWORD`**. Example: `curl -u admin:password http://localhost:8080/api/admin/messages`.
 
 ---
 
