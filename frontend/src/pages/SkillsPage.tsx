@@ -40,8 +40,8 @@ export default function SkillsPage() {
   }
 
   return (
-    <section>
-      <PageHeader title="Skills" subtitle="Tools and technologies I work with." />
+    <section className="page-wrap">
+      <PageHeader index="02" title="Skills" subtitle="Tools and technologies I work with." />
       {error && <p className="mt-4 text-red-600">{error}</p>}
 
       <div className="space-y-10">
