@@ -3,7 +3,7 @@ SELECT
   'Portfolio',
   'Personal site built with React, TypeScript, and Vite.',
   'React,TypeScript,Vite',
-  'https://github.com/YOUR_USER/karim-portfolio'
+  'https://github.com/Karimajed9/karim-portfolio'
 WHERE NOT EXISTS (SELECT 1 FROM project WHERE name = 'Portfolio');
 
 INSERT INTO about_profile (summary, goals, professional_interests, personal_interests) VALUES

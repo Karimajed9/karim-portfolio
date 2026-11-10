@@ -72,20 +72,20 @@ export default function AboutPage() {
           </div>
 
           <div>
-            <h2 className="section-label">Personal Interests</h2>
+            <h2 className="section-label">Professional Interests</h2>
             <ul className="flex flex-wrap gap-2">
-              {personalInterests.map((interest) => (
+              {professionalInterests.map((interest) => (
                 <li key={interest} className="chip">
                   {interest}
                 </li>
               ))}
             </ul>
           </div>
-
+          
           <div>
-            <h2 className="section-label">Professional Interests</h2>
+            <h2 className="section-label">Personal Interests</h2>
             <ul className="flex flex-wrap gap-2">
-              {professionalInterests.map((interest) => (
+              {personalInterests.map((interest) => (
                 <li key={interest} className="chip">
                   {interest}
                 </li>
