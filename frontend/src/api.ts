@@ -116,7 +116,7 @@ export async function loadWithStaticFallback<T>(
   options?: Pick<FetchJsonCachedOptions, 'slowAfterMs'>,
 ): Promise<void> {
   try {
-    await fetchJsonCached(
+    await fetchJsonCached<T>(
       path,
       (data) => onUpdate(data, false),
       {
