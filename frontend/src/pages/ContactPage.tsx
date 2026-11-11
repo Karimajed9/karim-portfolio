@@ -3,11 +3,15 @@ import { apiUrl } from '../api'
 import PageHeader from '../components/PageHeader'
 import { site } from '../data/site'
 
+type FormStatus =
+  | { kind: 'idle' }
+  | { kind: 'submitting' }
+  | { kind: 'success' }
+  | { kind: 'error'; message: string }
+
 export default function ContactPage() {
   const formId = useId()
-  const [status, setStatus] = useState<{ kind: 'idle' | 'submitting' | 'success' | 'error'; message: string }>({
-    kind: 'idle',
-  })
+  const [status, setStatus] = useState<FormStatus>({ kind: 'idle' })
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
