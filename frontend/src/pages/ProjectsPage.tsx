@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { loadWithStaticFallback } from '../api'
 import PageHeader from '../components/PageHeader'
+import ProjectList, { type ProjectListItem } from '../components/ProjectList'
+import StatusBanner from '../components/StatusBanner'
 import { site } from '../data/site'
 
 type Project = {
@@ -18,6 +20,19 @@ const staticProjects: Project[] = site.projects.items.map((item, index) => ({
   tags: item.tags.join(','),
   href: item.href,
 }))
+
+function toListItems(projects: Project[]): ProjectListItem[] {
+  return projects.map((project) => ({
+    id: project.id,
+    name: project.name,
+    summary: project.summary,
+    tags: project.tags
+      .split(',')
+      .map((tag) => tag.trim())
+      .filter(Boolean),
+    href: project.href,
+  }))
+}
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([])
@@ -41,34 +56,19 @@ export default function ProjectsPage() {
       <PageHeader
         index="04"
         title={site.projects.title}
-        subtitle={site.projects.subtitle}
+        subtitle="Editorial showcase of selected work. Case studies can expand as project fields grow."
       />
       {usingStatic && (
-        <p className="mt-4 text-sm text-muted">
+        <StatusBanner>
           Showing static portfolio copy (API offline). Connect a free backend to load live data.
-        </p>
+        </StatusBanner>
       )}
-      <ul className="project-list">
-        {projects.map((project, i) => (
-          <li key={project.id} className="project-item">
-            <span className="project-index" aria-hidden="true">
-              {String(i + 1).padStart(2, '0')}
-            </span>
-            <div className="project-body">
-              <a
-                href={project.href}
-                target="_blank"
-                rel="noreferrer"
-                className="project-name"
-              >
-                {project.name}
-              </a>
-              <p className="project-summary">{project.summary}</p>
-              <p className="project-tags">{project.tags.split(',').join(' · ')}</p>
-            </div>
-          </li>
-        ))}
-      </ul>
+
+      {projects.length === 0 ? (
+        <p className="prose-quiet">Loading projects…</p>
+      ) : (
+        <ProjectList projects={toListItems(projects)} />
+      )}
     </section>
   )
 }

@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { apiUrl } from '../api'
 import PageHeader from '../components/PageHeader'
+import StatusBanner from '../components/StatusBanner'
 
 type ContactMessage = {
   id: number
@@ -112,13 +113,19 @@ export default function AdminPage() {
         </form>
       )}
 
-      {error && <p className="mt-6 text-red-600">{error}</p>}
+      {error && (
+        <div className="mt-6">
+          <StatusBanner tone="error" role="alert">
+            {error}
+          </StatusBanner>
+        </div>
+      )}
 
       {authenticated && messages && (
         <div className="mt-2">
           <button
             type="button"
-            className="btn btn-primary"
+            className="btn btn-secondary"
             onClick={handleRefresh}
             disabled={loading}
           >
@@ -132,15 +139,15 @@ export default function AdminPage() {
             ) : (
               <ul className="mt-4 space-y-6">
                 {messages.map((msg) => (
-                  <li key={msg.id} className="timeline-item">
+                  <li key={msg.id} className="border border-line bg-surface p-5">
                     <p className="font-semibold text-ink">
                       {msg.name}{' '}
                       <span className="font-normal text-muted">· {msg.email}</span>
                     </p>
-                    <p className="mt-1 text-sm text-muted">
+                    <p className="mt-1 font-mono text-xs tracking-wide text-muted">
                       {new Date(msg.createdAt).toLocaleString()}
                     </p>
-                    <p className="mt-2 prose-quiet">{msg.message}</p>
+                    <p className="mt-3 prose-quiet">{msg.message}</p>
                   </li>
                 ))}
               </ul>

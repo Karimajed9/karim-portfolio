@@ -6,16 +6,22 @@ import ExperiencePage from './pages/ExperiencePage'
 import ProjectsPage from './pages/ProjectsPage'
 import ContactPage from './pages/ContactPage'
 import AdminPage from './pages/AdminPage'
+import NotFoundPage from './pages/NotFoundPage'
 import Layout from './components/Layout'
 
 // Vite BASE_URL is "/" locally and "/karim-portfolio/" on GitHub Pages builds.
-const routerBasename = import.meta.env.BASE_URL.replace(/\/$/, '') || '/'
+// React Router basename must omit a trailing slash; root deploys omit basename.
+const trimmedBase = import.meta.env.BASE_URL.replace(/\/$/, '')
+const routerBasename = trimmedBase.length > 0 ? trimmedBase : undefined
 
 function App() {
   return (
-    <BrowserRouter basename={routerBasename}>
+    // useTransitions={false}: RR7 defaults to startTransition for history
+    // updates, which keeps the outgoing page painted until the destination
+    // commits — that reads as a Home flash when leaving `/`.
+    <BrowserRouter basename={routerBasename} useTransitions={false}>
       <Routes>
-        <Route path="/" element={<Layout />}>
+        <Route element={<Layout />}>
           <Route index element={<HomePage />} />
           <Route path="about" element={<AboutPage />} />
           <Route path="skills" element={<SkillsPage />} />
@@ -23,6 +29,7 @@ function App() {
           <Route path="projects" element={<ProjectsPage />} />
           <Route path="contact" element={<ContactPage />} />
           <Route path="admin" element={<AdminPage />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

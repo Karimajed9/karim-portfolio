@@ -28,7 +28,7 @@ describe('ContactPage spam protection', () => {
     fireEvent.change(screen.getByLabelText('Website'), {
       target: { value: 'https://spam.example' },
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Send' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Send message' }))
 
     expect(
       await screen.findByRole('alert'),
@@ -56,7 +56,7 @@ describe('ContactPage spam protection', () => {
     fireEvent.change(screen.getByLabelText('Message'), {
       target: { value: 'Hello there friend' },
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Send' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Send message' }))
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent(/only one message per minute/i)

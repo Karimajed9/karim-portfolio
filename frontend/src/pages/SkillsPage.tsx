@@ -1,18 +1,15 @@
 import { useEffect, useState } from 'react'
 import { loadWithStaticFallback } from '../api'
 import PageHeader from '../components/PageHeader'
+import StatusBanner from '../components/StatusBanner'
 import { site } from '../data/site'
+import { groupSkillsByDomain } from '../lib/skills'
 
 type Skill = {
   id: number
   category: string
   name: string
   sortOrder: number
-}
-
-type SkillGroup = {
-  category: string
-  items: Skill[]
 }
 
 const staticSkills: Skill[] = site.skills.flatMap((group, groupIndex) =>
@@ -41,40 +38,56 @@ export default function SkillsPage() {
     }
   }, [])
 
-  const byCategory = new Map<string, Skill[]>()
-  for (const skill of skills) {
-    const existing = byCategory.get(skill.category) ?? []
-    existing.push(skill)
-    byCategory.set(skill.category, existing)
-  }
-  const groups: SkillGroup[] = []
-  for (const [category, items] of byCategory) {
-    groups.push({ category, items })
-  }
+  const groups = groupSkillsByDomain(skills)
 
   return (
     <section className="page-wrap">
-      <PageHeader index="02" title="Skills" subtitle="Tools and technologies I work with." />
+      <PageHeader
+        index="02"
+        title="Skills"
+        subtitle="Organized by domain — primary tools first, supporting craft second."
+      />
       {usingStatic && (
-        <p className="mt-4 text-sm text-muted">
+        <StatusBanner>
           Showing static portfolio copy (API offline). Connect a free backend to load live data.
-        </p>
+        </StatusBanner>
       )}
 
-      <div className="space-y-10">
-        {groups.map((group) => (
-          <div key={group.category}>
-            <h2 className="section-label">{group.category}</h2>
-            <ul className="flex flex-wrap gap-2">
-              {group.items.map((item) => (
-                <li key={item.id} className="chip">
-                  {item.name}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
+      {skills.length === 0 ? (
+        <p className="prose-quiet">Loading skills…</p>
+      ) : (
+        <div className="domain-grid">
+          {groups.map((group) => (
+            <article key={group.domain} className="domain-card">
+              <h2 className="domain-title">{group.domain}</h2>
+              {group.primary.length > 0 ? (
+                <div className="mb-4">
+                  <p className="section-label !mb-2">Primary</p>
+                  <ul className="domain-list">
+                    {group.primary.map((item) => (
+                      <li key={item.id} className="chip chip--primary">
+                        {item.name}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+              {group.supporting.length > 0 ? (
+                <div>
+                  <p className="section-label !mb-2">Supporting</p>
+                  <ul className="domain-list">
+                    {group.supporting.map((item) => (
+                      <li key={item.id} className="chip">
+                        {item.name}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </article>
+          ))}
+        </div>
+      )}
     </section>
   )
 }

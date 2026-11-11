@@ -5,6 +5,7 @@ import {
   fetchJsonCached,
   loadWithStaticFallback,
   readApiCache,
+  SLOW_FETCH_MS,
   writeApiCache,
 } from './api'
 
@@ -20,6 +21,7 @@ describe('apiUrl', () => {
 
 describe('api cache', () => {
   beforeEach(() => {
+    localStorage.clear()
     sessionStorage.clear()
     vi.restoreAllMocks()
   })
@@ -28,9 +30,18 @@ describe('api cache', () => {
     vi.useRealTimers()
   })
 
-  it('round-trips sessionStorage cache', () => {
+  it('round-trips localStorage cache', () => {
     writeApiCache('/api/projects', [{ id: 1 }])
     expect(readApiCache('/api/projects')).toEqual([{ id: 1 }])
+  })
+
+  it('migrates matching portfolio-api keys from sessionStorage when local is empty', () => {
+    const key = 'portfolio-api:/api/projects'
+    const entry = JSON.stringify({ at: Date.now(), data: [{ id: 7 }] })
+    sessionStorage.setItem(key, entry)
+
+    expect(readApiCache('/api/projects')).toEqual([{ id: 7 }])
+    expect(localStorage.getItem(key)).toBe(entry)
   })
 
   it('serves cache then network via fetchJsonCached', async () => {
@@ -70,11 +81,11 @@ describe('api cache', () => {
 
     const pending = fetchJsonCached('/api/skills', onData, {
       onSlow,
-      slowAfterMs: 4000,
+      slowAfterMs: SLOW_FETCH_MS,
     })
 
     expect(onSlow).not.toHaveBeenCalled()
-    await vi.advanceTimersByTimeAsync(3999)
+    await vi.advanceTimersByTimeAsync(SLOW_FETCH_MS - 1)
     expect(onSlow).not.toHaveBeenCalled()
 
     await vi.advanceTimersByTimeAsync(1)
@@ -90,7 +101,7 @@ describe('api cache', () => {
     expect(readApiCache('/api/skills')).toEqual([{ id: 3, name: 'live' }])
   })
 
-  it('does not call onSlow when sessionStorage cache exists', async () => {
+  it('does not call onSlow when localStorage cache exists', async () => {
     vi.useFakeTimers()
     writeApiCache('/api/skills', [{ id: 1, name: 'cached' }])
     const onData = vi.fn()
@@ -109,10 +120,10 @@ describe('api cache', () => {
 
     const pending = fetchJsonCached('/api/skills', onData, {
       onSlow,
-      slowAfterMs: 4000,
+      slowAfterMs: SLOW_FETCH_MS,
     })
 
-    await vi.advanceTimersByTimeAsync(5000)
+    await vi.advanceTimersByTimeAsync(SLOW_FETCH_MS + 1000)
     expect(onSlow).not.toHaveBeenCalled()
     expect(onData).toHaveBeenCalledWith([{ id: 1, name: 'cached' }])
 
@@ -143,10 +154,10 @@ describe('api cache', () => {
       '/api/skills',
       staticFallback,
       (data, usingStatic) => updates.push({ data, usingStatic }),
-      { slowAfterMs: 4000 },
+      { slowAfterMs: SLOW_FETCH_MS },
     )
 
-    await vi.advanceTimersByTimeAsync(4000)
+    await vi.advanceTimersByTimeAsync(SLOW_FETCH_MS)
     expect(updates).toEqual([{ data: staticFallback, usingStatic: true }])
 
     resolveFetch({

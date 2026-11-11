@@ -10,7 +10,7 @@
 export const apiBase = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080'
 
 const CACHE_PREFIX = 'portfolio-api:'
-/** Keep cached payloads for the browser tab session window (10 minutes). */
+/** Keep cached payloads fresh for 10 minutes (stale entries still served for SWR). */
 const CACHE_TTL_MS = 10 * 60 * 1000
 
 type CacheEntry<T> = {
@@ -33,10 +33,38 @@ function cacheKey(path: string): string {
   return `${CACHE_PREFIX}${path}`
 }
 
+/**
+ * Copy matching portfolio-api keys from sessionStorage into localStorage when
+ * local is still empty (one-time upgrade path from the old tab-scoped cache).
+ */
+function migrateSessionCacheToLocal(): void {
+  try {
+    const keys: string[] = []
+    for (let i = 0; i < sessionStorage.length; i++) {
+      const key = sessionStorage.key(i)
+      if (key?.startsWith(CACHE_PREFIX)) keys.push(key)
+    }
+    if (keys.length === 0) return
+
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i)
+      if (key?.startsWith(CACHE_PREFIX)) return
+    }
+
+    for (const key of keys) {
+      const value = sessionStorage.getItem(key)
+      if (value != null) localStorage.setItem(key, value)
+    }
+  } catch {
+    // Quota / private mode — ignore.
+  }
+}
+
 /** Read a cached GET payload if present (even if slightly stale). */
 export function readApiCache<T>(path: string): T | null {
   try {
-    const raw = sessionStorage.getItem(cacheKey(path))
+    migrateSessionCacheToLocal()
+    const raw = localStorage.getItem(cacheKey(path))
     if (!raw) return null
     const entry = JSON.parse(raw) as CacheEntry<T>
     if (!entry || typeof entry.at !== 'number') return null
@@ -48,15 +76,16 @@ export function readApiCache<T>(path: string): T | null {
 
 export function writeApiCache<T>(path: string, data: T): void {
   try {
+    migrateSessionCacheToLocal()
     const entry: CacheEntry<T> = { at: Date.now(), data }
-    sessionStorage.setItem(cacheKey(path), JSON.stringify(entry))
+    localStorage.setItem(cacheKey(path), JSON.stringify(entry))
   } catch {
     // Quota / private mode — ignore.
   }
 }
 
 /** Default wait before treating a cold API as "slow" (free-tier wake). */
-export const SLOW_FETCH_MS = 4000
+export const SLOW_FETCH_MS = 1500
 
 export type FetchJsonCachedOptions = {
   /** Fired once when the network is still pending after `slowAfterMs` and there was no cache. */
@@ -67,7 +96,7 @@ export type FetchJsonCachedOptions = {
 
 /**
  * Stale-while-revalidate GET helper.
- * Calls `onData` with sessionStorage cache immediately (if any), then fetches
+ * Calls `onData` with localStorage cache immediately (if any), then fetches
  * the network and calls `onData` again on success (and refreshes the cache).
  * When there is no cache and the fetch exceeds `slowAfterMs`, optionally calls
  * `onSlow` so the UI can show static content while the request continues.
@@ -132,7 +161,8 @@ export async function loadWithStaticFallback<T>(
 /** Exported for tests. */
 export function isCacheFresh(path: string, now = Date.now()): boolean {
   try {
-    const raw = sessionStorage.getItem(cacheKey(path))
+    migrateSessionCacheToLocal()
+    const raw = localStorage.getItem(cacheKey(path))
     if (!raw) return false
     const entry = JSON.parse(raw) as CacheEntry<unknown>
     return typeof entry.at === 'number' && now - entry.at < CACHE_TTL_MS
