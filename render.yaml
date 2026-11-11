@@ -32,6 +32,9 @@ services:
         value: https://karimmajed.com,https://www.karimmajed.com,https://karimajed9.github.io,http://localhost:5173,http://localhost:3000
       - key: APP_STORAGE_MODE
         value: local
+      # Optional: paste Azure Application Insights connection string in the dashboard (never commit it).
+      - key: APPLICATIONINSIGHTS_CONNECTION_STRING
+        sync: false
       - key: DB_HOST
         fromDatabase:
           name: karim-portfolio-db
