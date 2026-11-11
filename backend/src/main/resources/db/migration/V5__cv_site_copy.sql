@@ -1,5 +1,5 @@
 -- Refresh portfolio content from verified CV copy (no schema changes).
--- Fresh installs also get this via updated V3__seed.sql; this migration updates existing DBs.
+-- V3__seed.sql must stay unchanged after apply (Flyway checksum). All CV copy updates live here.
 
 UPDATE about_profile SET
   summary = 'Backend-focused Software Engineer with 5+ years building C#/.NET enterprise systems, Azure integrations, and large-scale SQL data workflows. Experience includes reusable backend frameworks, REST APIs, asynchronous messaging, idempotent financial processing, production troubleshooting, and performance optimization. Fluent in English, French, and Arabic.',
