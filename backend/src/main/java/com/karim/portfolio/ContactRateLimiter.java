@@ -19,7 +19,7 @@ public class ContactRateLimiter {
   private final Map<String, Deque<Long>> hitsByClient = new ConcurrentHashMap<>();
 
   public ContactRateLimiter(
-      @Value("${contact.rate-limit.requests:5}") int maxRequests,
+      @Value("${contact.rate-limit.requests:1}") int maxRequests,
       @Value("${contact.rate-limit.window-ms:60000}") long windowMs) {
     this.maxRequests = maxRequests;
     this.windowMs = windowMs;

@@ -40,7 +40,7 @@ export default function ContactPage() {
       if (res.status === 429) {
         setStatus({
           kind: 'error',
-          message: 'Too many messages from this network. Please wait a minute and try again.',
+          message: 'Only one message per minute from this network. Please wait a minute and try again.',
         })
         return
       }

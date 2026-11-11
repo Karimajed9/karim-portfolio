@@ -59,7 +59,7 @@ describe('ContactPage spam protection', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Send' }))
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent(/too many messages/i)
+      expect(screen.getByRole('alert')).toHaveTextContent(/only one message per minute/i)
     })
   })
 })

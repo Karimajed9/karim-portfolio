@@ -8,13 +8,11 @@ import org.junit.jupiter.api.Test;
 class ContactRateLimiterTest {
 
   @Test
-  void allowsUpToLimitThenBlocks() {
-    ContactRateLimiter limiter = new ContactRateLimiter(5, 60_000);
+  void allowsOneThenBlocksWithinWindow() {
+    ContactRateLimiter limiter = new ContactRateLimiter(1, 60_000);
 
-    for (int i = 0; i < 5; i++) {
-      assertTrue(limiter.tryAcquire("1.2.3.4"), "request " + (i + 1) + " should pass");
-    }
-    assertFalse(limiter.tryAcquire("1.2.3.4"), "6th request should be rate-limited");
+    assertTrue(limiter.tryAcquire("1.2.3.4"), "first request should pass");
+    assertFalse(limiter.tryAcquire("1.2.3.4"), "second request should be rate-limited");
   }
 
   @Test

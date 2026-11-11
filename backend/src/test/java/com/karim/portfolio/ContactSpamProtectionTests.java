@@ -30,7 +30,7 @@ class ContactSpamProtectionTests {
     messages = mock(ContactMessageRepository.class);
     when(messages.save(any(ContactMessage.class)))
         .thenAnswer(invocation -> invocation.getArgument(0));
-    rateLimiter = new ContactRateLimiter(5, 60_000);
+    rateLimiter = new ContactRateLimiter(1, 60_000);
     mockMvc =
         MockMvcBuilders.standaloneSetup(new ContactController(messages))
             .addFilters(new ContactRateLimitFilter(rateLimiter))
@@ -69,21 +69,19 @@ class ContactSpamProtectionTests {
   }
 
   @Test
-  void rateLimitsSixthRequestFromSameIp() throws Exception {
+  void rateLimitsSecondRequestFromSameIpWithinMinute() throws Exception {
     String body =
         """
         {"name":"Karim","email":"karim@example.com","message":"Hello from a real form"}
         """;
 
-    for (int i = 0; i < 5; i++) {
-      mockMvc
-          .perform(
-              post("/api/contact")
-                  .contentType(MediaType.APPLICATION_JSON)
-                  .header("X-Forwarded-For", "203.0.113.50")
-                  .content(body))
-          .andExpect(status().isCreated());
-    }
+    mockMvc
+        .perform(
+            post("/api/contact")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("X-Forwarded-For", "203.0.113.50")
+                .content(body))
+        .andExpect(status().isCreated());
 
     mockMvc
         .perform(

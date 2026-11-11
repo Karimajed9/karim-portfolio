@@ -37,7 +37,7 @@ public class ContactRateLimitFilter extends OncePerRequestFilter {
       response.setStatus(429);
       response.setHeader("Retry-After", "60");
       response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-      response.getWriter().write("{\"error\":\"Too many contact requests. Try again in a minute.\"}");
+      response.getWriter().write("{\"error\":\"Only one contact message per minute. Try again shortly.\"}");
       return;
     }
     filterChain.doFilter(request, response);
