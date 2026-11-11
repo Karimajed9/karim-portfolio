@@ -1,18 +1,15 @@
 import { useEffect, useState } from 'react'
-import { loadWithStaticFallback } from '../api'
+import { loadWithStaticFallback, type ApiFallbackReason } from '../api'
+import ApiFallbackBanner from '../components/ApiFallbackBanner'
 import PageHeader from '../components/PageHeader'
 import { site } from '../data/site'
+import { groupSkillsByDomain } from '../lib/skills'
 
 type Skill = {
   id: number
   category: string
   name: string
   sortOrder: number
-}
-
-type SkillGroup = {
-  category: string
-  items: Skill[]
 }
 
 const staticSkills: Skill[] = site.skills.flatMap((group, groupIndex) =>
@@ -26,14 +23,14 @@ const staticSkills: Skill[] = site.skills.flatMap((group, groupIndex) =>
 
 export default function SkillsPage() {
   const [skills, setSkills] = useState<Skill[]>([])
-  const [usingStatic, setUsingStatic] = useState(false)
+  const [fallbackReason, setFallbackReason] = useState<ApiFallbackReason | null>(null)
 
   useEffect(() => {
     let cancelled = false
-    void loadWithStaticFallback<Skill[]>('/api/skills', staticSkills, (data, staticMode) => {
+    void loadWithStaticFallback<Skill[]>('/api/skills', staticSkills, (data, meta) => {
       if (!cancelled) {
         setSkills(data)
-        setUsingStatic(staticMode)
+        setFallbackReason(meta.usingStatic ? (meta.reason ?? 'offline') : null)
       }
     })
     return () => {
@@ -41,40 +38,52 @@ export default function SkillsPage() {
     }
   }, [])
 
-  const byCategory = new Map<string, Skill[]>()
-  for (const skill of skills) {
-    const existing = byCategory.get(skill.category) ?? []
-    existing.push(skill)
-    byCategory.set(skill.category, existing)
-  }
-  const groups: SkillGroup[] = []
-  for (const [category, items] of byCategory) {
-    groups.push({ category, items })
-  }
+  const groups = groupSkillsByDomain(skills)
 
   return (
     <section className="page-wrap">
-      <PageHeader index="02" title="Skills" subtitle="Tools and technologies I work with." />
-      {usingStatic && (
-        <p className="mt-4 text-sm text-muted">
-          Showing static portfolio copy (API offline). Connect a free backend to load live data.
-        </p>
-      )}
+      <PageHeader
+        index="02"
+        title="Skills"
+        subtitle="Organized by domain — primary tools first, supporting craft second."
+      />
+      {fallbackReason ? <ApiFallbackBanner reason={fallbackReason} /> : null}
 
-      <div className="space-y-10">
-        {groups.map((group) => (
-          <div key={group.category}>
-            <h2 className="section-label">{group.category}</h2>
-            <ul className="flex flex-wrap gap-2">
-              {group.items.map((item) => (
-                <li key={item.id} className="chip">
-                  {item.name}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
+      {skills.length === 0 ? (
+        <p className="prose-quiet">Loading skills…</p>
+      ) : (
+        <div className="domain-grid">
+          {groups.map((group) => (
+            <article key={group.domain} className="domain-card">
+              <h2 className="domain-title">{group.domain}</h2>
+              {group.primary.length > 0 ? (
+                <div className="mb-4">
+                  <p className="section-label !mb-2">Primary</p>
+                  <ul className="domain-list">
+                    {group.primary.map((item) => (
+                      <li key={item.id} className="chip chip--primary">
+                        {item.name}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+              {group.supporting.length > 0 ? (
+                <div>
+                  <p className="section-label !mb-2">Supporting</p>
+                  <ul className="domain-list">
+                    {group.supporting.map((item) => (
+                      <li key={item.id} className="chip">
+                        {item.name}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </article>
+          ))}
+        </div>
+      )}
     </section>
   )
 }

@@ -1,7 +1,14 @@
 import { useId, useState, type FormEvent } from 'react'
 import { apiUrl } from '../api'
 import PageHeader from '../components/PageHeader'
+import StatusBanner from '../components/StatusBanner'
 import { site } from '../data/site'
+
+type FieldErrors = {
+  name?: string
+  email?: string
+  message?: string
+}
 
 type FormStatus =
   | { kind: 'idle' }
@@ -9,19 +16,46 @@ type FormStatus =
   | { kind: 'success' }
   | { kind: 'error'; message: string }
 
+function validateEmail(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+}
+
+function validate(fields: { name: string; email: string; message: string }): FieldErrors {
+  const errors: FieldErrors = {}
+  if (fields.name.trim().length < 2) {
+    errors.name = 'Enter at least 2 characters.'
+  }
+  if (!validateEmail(fields.email.trim())) {
+    errors.email = 'Enter a valid email address.'
+  }
+  if (fields.message.trim().length < 10) {
+    errors.message = 'Message should be at least 10 characters.'
+  }
+  return errors
+}
+
 export default function ContactPage() {
   const formId = useId()
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [message, setMessage] = useState('')
+  const [website, setWebsite] = useState('')
+  const [errors, setErrors] = useState<FieldErrors>({})
   const [status, setStatus] = useState<FormStatus>({ kind: 'idle' })
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const form = event.currentTarget
-    const data = new FormData(form)
-    const honeypot = String(data.get('website') ?? '').trim()
 
     // Bots that fill the hidden honeypot field are rejected client-side.
-    if (honeypot.length > 0) {
+    if (website.trim().length > 0) {
       setStatus({ kind: 'error', message: 'Could not send message. Please try again.' })
+      return
+    }
+
+    const nextErrors = validate({ name, email, message })
+    setErrors(nextErrors)
+    if (Object.keys(nextErrors).length > 0) {
+      setStatus({ kind: 'idle' })
       return
     }
 
@@ -31,16 +65,17 @@ export default function ContactPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: data.get('name'),
-          email: data.get('email'),
-          message: data.get('message'),
+          name: name.trim(),
+          email: email.trim(),
+          message: message.trim(),
           website: '',
         }),
       })
       if (res.status === 429) {
         setStatus({
           kind: 'error',
-          message: 'Only one message per minute from this network. Please wait a minute and try again.',
+          message:
+            'Only one message per minute from this network. Please wait a minute and try again.',
         })
         return
       }
@@ -51,7 +86,11 @@ export default function ContactPage() {
         })
         return
       }
-      form.reset()
+      setName('')
+      setEmail('')
+      setMessage('')
+      setWebsite('')
+      setErrors({})
       setStatus({ kind: 'success' })
     } catch {
       setStatus({
@@ -65,21 +104,29 @@ export default function ContactPage() {
     <section className="page-wrap">
       <PageHeader index="05" title={site.contact.title} subtitle={site.contact.subtitle} />
       <p className="prose-quiet">{site.contact.blurb}</p>
-      <p className="mt-4">
+
+      <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 font-mono text-sm tracking-wide">
         <a href={`mailto:${site.contact.email}`} className="text-link">
           {site.contact.email}
         </a>
-      </p>
-      <form className="mt-10 max-w-md space-y-5" onSubmit={handleSubmit} noValidate>
+        <a href={site.githubUrl} target="_blank" rel="noreferrer" className="text-link">
+          GitHub
+        </a>
+        <a href={site.linkedInUrl} target="_blank" rel="noreferrer" className="text-link">
+          LinkedIn
+        </a>
+      </div>
+
+      <form className="mt-10 max-w-lg space-y-5" onSubmit={handleSubmit} noValidate>
         {status.kind === 'success' ? (
-          <p className="status-banner status-banner--success" role="status">
+          <StatusBanner tone="success" role="status">
             Message sent. Thanks for reaching out.
-          </p>
+          </StatusBanner>
         ) : null}
         {status.kind === 'error' ? (
-          <p className="status-banner status-banner--error" role="alert">
+          <StatusBanner tone="error" role="alert">
             {status.message}
-          </p>
+          </StatusBanner>
         ) : null}
 
         {/* Honeypot: hidden from people; bots often autofill it. */}
@@ -91,23 +138,79 @@ export default function ContactPage() {
             type="text"
             tabIndex={-1}
             autoComplete="off"
+            value={website}
+            onChange={(e) => setWebsite(e.target.value)}
           />
         </div>
 
-        <label className="field">
+        <label className="field" htmlFor={`${formId}-name`}>
           <span className="field-label">Name</span>
-          <input name="name" type="text" className="field-control" required />
+          <input
+            id={`${formId}-name`}
+            name="name"
+            type="text"
+            autoComplete="name"
+            className="field-control"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            aria-invalid={errors.name ? true : undefined}
+            aria-describedby={errors.name ? `${formId}-name-error` : undefined}
+            required
+          />
+          {errors.name ? (
+            <p id={`${formId}-name-error`} className="field-error" role="alert">
+              {errors.name}
+            </p>
+          ) : null}
         </label>
-        <label className="field">
+
+        <label className="field" htmlFor={`${formId}-email`}>
           <span className="field-label">Email</span>
-          <input name="email" type="email" className="field-control" required />
+          <input
+            id={`${formId}-email`}
+            name="email"
+            type="email"
+            autoComplete="email"
+            className="field-control"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            aria-invalid={errors.email ? true : undefined}
+            aria-describedby={errors.email ? `${formId}-email-error` : undefined}
+            required
+          />
+          {errors.email ? (
+            <p id={`${formId}-email-error`} className="field-error" role="alert">
+              {errors.email}
+            </p>
+          ) : null}
         </label>
-        <label className="field">
+
+        <label className="field" htmlFor={`${formId}-message`}>
           <span className="field-label">Message</span>
-          <textarea name="message" rows={4} className="field-control" required />
+          <textarea
+            id={`${formId}-message`}
+            name="message"
+            rows={5}
+            className="field-control"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            aria-invalid={errors.message ? true : undefined}
+            aria-describedby={errors.message ? `${formId}-message-error` : undefined}
+            required
+          />
+          {errors.message ? (
+            <p id={`${formId}-message-error`} className="field-error" role="alert">
+              {errors.message}
+            </p>
+          ) : null}
         </label>
-        <button type="submit" className="btn btn-primary" disabled={status.kind === 'submitting'}>
-          {status.kind === 'submitting' ? 'Sending…' : 'Send'}
+
+        <button
+          type="submit"
+          className="btn btn-primary"
+          disabled={status.kind === 'submitting'}
+        >
+          {status.kind === 'submitting' ? 'Sending…' : 'Send message'}
         </button>
       </form>
     </section>

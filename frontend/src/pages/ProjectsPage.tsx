@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
-import { loadWithStaticFallback } from '../api'
+import { loadWithStaticFallback, type ApiFallbackReason } from '../api'
+import ApiFallbackBanner from '../components/ApiFallbackBanner'
 import PageHeader from '../components/PageHeader'
+import ProjectList, { type ProjectListItem } from '../components/ProjectList'
 import { site } from '../data/site'
 
 type Project = {
@@ -19,16 +21,29 @@ const staticProjects: Project[] = site.projects.items.map((item, index) => ({
   href: item.href,
 }))
 
+function toListItems(projects: Project[]): ProjectListItem[] {
+  return projects.map((project) => ({
+    id: project.id,
+    name: project.name,
+    summary: project.summary,
+    tags: project.tags
+      .split(',')
+      .map((tag) => tag.trim())
+      .filter(Boolean),
+    href: project.href,
+  }))
+}
+
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([])
-  const [usingStatic, setUsingStatic] = useState(false)
+  const [fallbackReason, setFallbackReason] = useState<ApiFallbackReason | null>(null)
 
   useEffect(() => {
     let cancelled = false
-    void loadWithStaticFallback<Project[]>('/api/projects', staticProjects, (data, staticMode) => {
+    void loadWithStaticFallback<Project[]>('/api/projects', staticProjects, (data, meta) => {
       if (!cancelled) {
         setProjects(data)
-        setUsingStatic(staticMode)
+        setFallbackReason(meta.usingStatic ? (meta.reason ?? 'offline') : null)
       }
     })
     return () => {
@@ -41,34 +56,15 @@ export default function ProjectsPage() {
       <PageHeader
         index="04"
         title={site.projects.title}
-        subtitle={site.projects.subtitle}
+        subtitle="Editorial showcase of selected work. Case studies can expand as project fields grow."
       />
-      {usingStatic && (
-        <p className="mt-4 text-sm text-muted">
-          Showing static portfolio copy (API offline). Connect a free backend to load live data.
-        </p>
+      {fallbackReason ? <ApiFallbackBanner reason={fallbackReason} /> : null}
+
+      {projects.length === 0 ? (
+        <p className="prose-quiet">Loading projects…</p>
+      ) : (
+        <ProjectList projects={toListItems(projects)} />
       )}
-      <ul className="project-list">
-        {projects.map((project, i) => (
-          <li key={project.id} className="project-item">
-            <span className="project-index" aria-hidden="true">
-              {String(i + 1).padStart(2, '0')}
-            </span>
-            <div className="project-body">
-              <a
-                href={project.href}
-                target="_blank"
-                rel="noreferrer"
-                className="project-name"
-              >
-                {project.name}
-              </a>
-              <p className="project-summary">{project.summary}</p>
-              <p className="project-tags">{project.tags.split(',').join(' · ')}</p>
-            </div>
-          </li>
-        ))}
-      </ul>
     </section>
   )
 }
