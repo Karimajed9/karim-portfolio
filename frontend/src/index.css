@@ -69,6 +69,35 @@
     outline: 2px solid var(--color-accent);
     outline-offset: 3px;
   }
+
+  /* Contact honeypot — off-screen, ignored by assistive tech via aria-hidden */
+  .hp-field {
+    position: absolute;
+    left: -10000px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .status-banner {
+    margin: 0;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--color-line);
+    background: var(--color-surface);
+    font-size: 0.875rem;
+    color: var(--color-ink-soft);
+  }
+
+  .status-banner--error {
+    border-color: color-mix(in srgb, #b33a3a 40%, var(--color-line));
+    color: #8a2f2f;
+  }
+
+  .status-banner--success {
+    border-color: color-mix(in srgb, var(--color-accent) 40%, var(--color-line));
+    color: var(--color-accent-deep);
+  }
 }
 
 @layer components {
