@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!-- KM — teal mark on dark tile -->
+  <rect width="32" height="32" fill="#0B1117"/>
+  <rect x="1" y="1" width="30" height="30" stroke="#293943" stroke-width="1"/>
+  <!-- K -->
+  <path d="M4.5 8h2.6v6.4L12.6 8H16l-5.4 7.2L16.2 24h-3.5l-5.6-7.8V24H4.5V8Z" fill="#55B7B1"/>
+  <!-- M -->
+  <path d="M17.2 24V8h2.7l2.9 7.6L25.7 8H28.5v16h-2.4V12.1L23.6 20h-1.7l-2.3-7.9V24h-2.4Z" fill="#55B7B1"/>
+  <line x1="4" y1="28" x2="28" y2="28" stroke="#0A6468" stroke-width="1"/>
+</svg>
