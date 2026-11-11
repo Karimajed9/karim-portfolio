@@ -5,8 +5,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.filter.CommonsRequestLoggingFilter;
 
 /**
- * Basic HTTP request logging (method, URI, query). Always on locally;
- * in Azure, Application Insights captures richer telemetry when configured.
+ * Basic HTTP request logging (method, URI, query). Always on locally.
+ * When {@code APPLICATIONINSIGHTS_CONNECTION_STRING} is set, the Java agent
+ * also ships request/dependency telemetry (see {@code applicationinsights.json}).
  */
 @Configuration
 public class RequestLoggingConfig {

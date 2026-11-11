@@ -1,0 +1,26 @@
+{
+  "role": {
+    "name": "karim-portfolio-api"
+  },
+  "sampling": {
+    "percentage": 25,
+    "overrides": [
+      {
+        "telemetryType": "request",
+        "attributes": [
+          {
+            "key": "url.path",
+            "value": "/api/health",
+            "matchType": "strict"
+          }
+        ],
+        "percentage": 0
+      }
+    ]
+  },
+  "instrumentation": {
+    "logging": {
+      "level": "INFO"
+    }
+  }
+}

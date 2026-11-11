@@ -61,6 +61,7 @@ If free **Postgres** is missing or blocked, skip to **Option 2**.
 | `ADMIN_PASSWORD` | your admin password |
 | `CORS_ALLOWED_ORIGINS` | `https://karimmajed.com,https://www.karimmajed.com,https://karimajed9.github.io,http://localhost:5173,http://localhost:3000` |
 | `APP_STORAGE_MODE` | `local` |
+| `APPLICATIONINSIGHTS_CONNECTION_STRING` | Optional — Azure App Insights connection string (see [application-insights.md](application-insights.md)) |
 
 5. Health check path: `/api/health`.
 6. Deploy. Smoke: `GET https://<service>.onrender.com/api/health`.
@@ -86,7 +87,15 @@ Backend reads `CORS_ALLOWED_ORIGINS` (comma-separated). Default includes local V
 
 ---
 
-## D. What this repo does / does not do
+## D. Optional — Application Insights (backend only)
+
+Code is ready: the API attaches the Java agent when `APPLICATIONINSIGHTS_CONNECTION_STRING` is set. Leave it unset on Render if you want zero Azure monitoring cost.
+
+Portal create + paste steps: [application-insights.md](application-insights.md). No frontend SDK.
+
+---
+
+## E. What this repo does / does not do
 
 | Done in repo | Needs your click |
 |--------------|------------------|
@@ -95,3 +104,4 @@ Backend reads `CORS_ALLOWED_ORIGINS` (comma-separated). Default includes local V
 | Static fallbacks when API is down | — |
 | `render.yaml` + env docs | Create Render account + Blueprint/service |
 | Configurable CORS + `PORT` | Paste `ADMIN_PASSWORD` / DB secrets on Render |
+| App Insights runtime attach + sampling | Create Insights resource + paste connection string |

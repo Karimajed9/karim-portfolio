@@ -10,9 +10,11 @@ public class PortfolioApplication {
 	public static void main(String[] args) {
 		// Attach only when a connection string is present — otherwise local/Docker stay quiet
 		// and no App Insights resource is required. Must run before SpringApplication.run.
+		// Secret stays in env (Render / .env / Compose). See docs/application-insights.md.
 		String ai = System.getenv("APPLICATIONINSIGHTS_CONNECTION_STRING");
 		if (ai != null && !ai.isBlank()) {
 			ApplicationInsights.attach();
+			System.out.println("Application Insights runtime attach enabled.");
 		}
 		SpringApplication.run(PortfolioApplication.class, args);
 	}

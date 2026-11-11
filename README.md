@@ -38,7 +38,8 @@ Full-stack portfolio site for **Karim Majed** — recruiter-ready pages (Home, A
 karim-portfolio/
 ├── frontend/              # Vite + React + TypeScript SPA
 ├── backend/               # Spring Boot API (Maven Wrapper included)
-├── docs/DEPLOY-FREE.md    # GitHub Pages + Render click-through guide
+├── docs/DEPLOY-FREE.md           # GitHub Pages + Render click-through guide
+├── docs/application-insights.md  # Azure App Insights portal + env wiring
 ├── render.yaml            # Render Blueprint (free web + Postgres)
 ├── .github/workflows/     # CI + Deploy GitHub Pages
 ├── docker-compose.yml     # Postgres + backend + frontend
@@ -165,6 +166,8 @@ Restart the backend after changing `ADMIN_PASSWORD` (BCrypt-encoded at startup).
 ## Azure (deferred deploy)
 
 Leave Azure env vars unset: uploads go under `./data/uploads`, secrets stay in `.env`, App Insights does not attach. Production profile hints live in `backend/src/main/resources/application-prod.properties`. Prefer free GitHub Pages + Render for a public recruiter URL; provision Azure only when you opt in to spend.
+
+**Application Insights (optional):** backend Java agent + sampling — set `APPLICATIONINSIGHTS_CONNECTION_STRING` on Render or locally. Portal steps: [docs/application-insights.md](docs/application-insights.md). No browser SDK.
 
 ---
 
