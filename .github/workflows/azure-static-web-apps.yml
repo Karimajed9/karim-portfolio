@@ -1,0 +1,42 @@
+# Azure Static Web Apps: build the Vite SPA and deploy.
+# GitHub Pages (deploy-pages.yml) stays as backup — do not remove it.
+#
+# Setup (recommended): create the SWA in Azure Portal with deployment source
+# "Other" so this workflow owns deploys. Copy the deployment token into the
+# repo secret AZURE_STATIC_WEB_APPS_API_TOKEN.
+#
+# Optional repo Variables (same as Pages):
+#   VITE_API_BASE_URL = https://<your-render-api>.onrender.com
+name: Deploy Azure Static Web Apps
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/azure-static-web-apps.yml"
+  workflow_dispatch:
+
+jobs:
+  build_and_deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+          lfs: false
+
+      - name: Build And Deploy
+        id: builddeploy
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          action: upload
+          app_location: frontend
+          api_location: ""
+          output_location: dist
+        env:
+          # Prefer Actions variable (same pattern as deploy-pages.yml).
+          # Empty → relative /api/... until Render URL is set.
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
