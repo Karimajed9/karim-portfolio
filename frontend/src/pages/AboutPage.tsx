@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { loadWithStaticFallback } from '../api'
+import { loadWithStaticFallback, type ApiFallbackReason } from '../api'
+import ApiFallbackBanner from '../components/ApiFallbackBanner'
 import PageHeader from '../components/PageHeader'
-import StatusBanner from '../components/StatusBanner'
 import { site } from '../data/site'
 
 type Education = {
@@ -47,14 +47,14 @@ function formatEducationRange(startDate: string, endDate: string): string {
 
 export default function AboutPage() {
   const [about, setAbout] = useState<About | null>(null)
-  const [usingStatic, setUsingStatic] = useState(false)
+  const [fallbackReason, setFallbackReason] = useState<ApiFallbackReason | null>(null)
 
   useEffect(() => {
     let cancelled = false
-    void loadWithStaticFallback<About>('/api/about', staticAbout, (data, staticMode) => {
+    void loadWithStaticFallback<About>('/api/about', staticAbout, (data, meta) => {
       if (!cancelled) {
         setAbout(data)
-        setUsingStatic(staticMode)
+        setFallbackReason(meta.usingStatic ? (meta.reason ?? 'offline') : null)
       }
     })
     return () => {
@@ -72,11 +72,7 @@ export default function AboutPage() {
         title="About"
         subtitle="A concise look at background, education, and what drives the work."
       />
-      {usingStatic && (
-        <StatusBanner>
-          Showing static portfolio copy (API offline). Connect a free backend to load live data.
-        </StatusBanner>
-      )}
+      {fallbackReason ? <ApiFallbackBanner reason={fallbackReason} /> : null}
 
       {!about ? (
         <p className="prose-quiet">Loading profile…</p>

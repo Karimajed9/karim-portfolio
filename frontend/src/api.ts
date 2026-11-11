@@ -87,11 +87,61 @@ export function writeApiCache<T>(path: string, data: T): void {
 /** Default wait before treating a cold API as "slow" (free-tier wake). */
 export const SLOW_FETCH_MS = 1500
 
+/** Short probe window for /api/health to tell warming vs offline. */
+export const HEALTH_PROBE_MS = 800
+
 export type FetchJsonCachedOptions = {
   /** Fired once when the network is still pending after `slowAfterMs` and there was no cache. */
   onSlow?: () => void
   /** Override for tests; defaults to {@link SLOW_FETCH_MS}. */
   slowAfterMs?: number
+}
+
+export type ApiFallbackReason = 'warming' | 'offline' | 'loading'
+
+export type StaticLoadMeta = {
+  usingStatic: boolean
+  /** Present when usingStatic is true. */
+  reason?: ApiFallbackReason
+}
+
+export type HealthProbeResult = 'ok' | 'timeout' | 'unreachable'
+
+/**
+ * Quick /api/health check used to distinguish cold-start vs unreachable API.
+ */
+export async function probeApiHealth(
+  timeoutMs = HEALTH_PROBE_MS,
+): Promise<HealthProbeResult> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    const res = await fetch(apiUrl('/api/health'), { signal: controller.signal })
+    if (!res.ok) return 'unreachable'
+    return 'ok'
+  } catch (err) {
+    if (err instanceof Error && err.name === 'AbortError') return 'timeout'
+    return 'unreachable'
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+export function fallbackReasonFromHealth(result: HealthProbeResult): ApiFallbackReason {
+  if (result === 'ok') return 'loading'
+  if (result === 'timeout') return 'warming'
+  return 'offline'
+}
+
+export function messageForFallbackReason(reason: ApiFallbackReason): string {
+  switch (reason) {
+    case 'warming':
+      return 'API is warming up (cold start). Showing static portfolio copy meanwhile…'
+    case 'offline':
+      return "Can't reach the API right now. Showing static portfolio copy."
+    case 'loading':
+      return 'Loading live data… showing static copy for a moment.'
+  }
 }
 
 /**
@@ -132,29 +182,54 @@ export async function fetchJsonCached<T>(
   }
 }
 
+export type LoadWithStaticFallbackOptions = Pick<FetchJsonCachedOptions, 'slowAfterMs'> & {
+  healthProbeMs?: number
+}
+
 /**
  * Page-loader helper: serve live/cached API data, or `site.ts` static fallback.
- * - No cache + slow network → `onUpdate(staticFallback, true)` while fetch continues
- * - Success → `onUpdate(live, false)` and writes cache
- * - Failure → `onUpdate(staticFallback, true)` (same as today's error fallback)
+ * - No cache + slow network → static + reason refined via /api/health probe
+ * - Success → live meta
+ * - Failure → static + offline/warming/loading from health probe
  */
 export async function loadWithStaticFallback<T>(
   path: string,
   staticFallback: T,
-  onUpdate: (data: T, usingStatic: boolean) => void,
-  options?: Pick<FetchJsonCachedOptions, 'slowAfterMs'>,
+  onUpdate: (data: T, meta: StaticLoadMeta) => void,
+  options?: LoadWithStaticFallbackOptions,
 ): Promise<void> {
+  const healthProbeMs = options?.healthProbeMs ?? HEALTH_PROBE_MS
+  let liveSettled = false
+
+  const publishStatic = async (preliminary: ApiFallbackReason) => {
+    onUpdate(staticFallback, { usingStatic: true, reason: preliminary })
+    const health = await probeApiHealth(healthProbeMs)
+    if (!liveSettled) {
+      onUpdate(staticFallback, {
+        usingStatic: true,
+        reason: fallbackReasonFromHealth(health),
+      })
+    }
+  }
+
   try {
     await fetchJsonCached<T>(
       path,
-      (data) => onUpdate(data, false),
+      (data) => {
+        liveSettled = true
+        onUpdate(data, { usingStatic: false })
+      },
       {
         slowAfterMs: options?.slowAfterMs,
-        onSlow: () => onUpdate(staticFallback, true),
+        onSlow: () => {
+          void publishStatic('warming')
+        },
       },
     )
   } catch {
-    onUpdate(staticFallback, true)
+    if (!liveSettled) {
+      await publishStatic('offline')
+    }
   }
 }
 

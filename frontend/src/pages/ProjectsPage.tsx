@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { loadWithStaticFallback } from '../api'
+import { loadWithStaticFallback, type ApiFallbackReason } from '../api'
+import ApiFallbackBanner from '../components/ApiFallbackBanner'
 import PageHeader from '../components/PageHeader'
 import ProjectList, { type ProjectListItem } from '../components/ProjectList'
-import StatusBanner from '../components/StatusBanner'
 import { site } from '../data/site'
 
 type Project = {
@@ -36,14 +36,14 @@ function toListItems(projects: Project[]): ProjectListItem[] {
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([])
-  const [usingStatic, setUsingStatic] = useState(false)
+  const [fallbackReason, setFallbackReason] = useState<ApiFallbackReason | null>(null)
 
   useEffect(() => {
     let cancelled = false
-    void loadWithStaticFallback<Project[]>('/api/projects', staticProjects, (data, staticMode) => {
+    void loadWithStaticFallback<Project[]>('/api/projects', staticProjects, (data, meta) => {
       if (!cancelled) {
         setProjects(data)
-        setUsingStatic(staticMode)
+        setFallbackReason(meta.usingStatic ? (meta.reason ?? 'offline') : null)
       }
     })
     return () => {
@@ -58,11 +58,7 @@ export default function ProjectsPage() {
         title={site.projects.title}
         subtitle="Editorial showcase of selected work. Case studies can expand as project fields grow."
       />
-      {usingStatic && (
-        <StatusBanner>
-          Showing static portfolio copy (API offline). Connect a free backend to load live data.
-        </StatusBanner>
-      )}
+      {fallbackReason ? <ApiFallbackBanner reason={fallbackReason} /> : null}
 
       {projects.length === 0 ? (
         <p className="prose-quiet">Loading projects…</p>

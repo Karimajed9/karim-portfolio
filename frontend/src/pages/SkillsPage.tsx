@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { loadWithStaticFallback } from '../api'
+import { loadWithStaticFallback, type ApiFallbackReason } from '../api'
+import ApiFallbackBanner from '../components/ApiFallbackBanner'
 import PageHeader from '../components/PageHeader'
-import StatusBanner from '../components/StatusBanner'
 import { site } from '../data/site'
 import { groupSkillsByDomain } from '../lib/skills'
 
@@ -23,14 +23,14 @@ const staticSkills: Skill[] = site.skills.flatMap((group, groupIndex) =>
 
 export default function SkillsPage() {
   const [skills, setSkills] = useState<Skill[]>([])
-  const [usingStatic, setUsingStatic] = useState(false)
+  const [fallbackReason, setFallbackReason] = useState<ApiFallbackReason | null>(null)
 
   useEffect(() => {
     let cancelled = false
-    void loadWithStaticFallback<Skill[]>('/api/skills', staticSkills, (data, staticMode) => {
+    void loadWithStaticFallback<Skill[]>('/api/skills', staticSkills, (data, meta) => {
       if (!cancelled) {
         setSkills(data)
-        setUsingStatic(staticMode)
+        setFallbackReason(meta.usingStatic ? (meta.reason ?? 'offline') : null)
       }
     })
     return () => {
@@ -47,11 +47,7 @@ export default function SkillsPage() {
         title="Skills"
         subtitle="Organized by domain — primary tools first, supporting craft second."
       />
-      {usingStatic && (
-        <StatusBanner>
-          Showing static portfolio copy (API offline). Connect a free backend to load live data.
-        </StatusBanner>
-      )}
+      {fallbackReason ? <ApiFallbackBanner reason={fallbackReason} /> : null}
 
       {skills.length === 0 ? (
         <p className="prose-quiet">Loading skills…</p>

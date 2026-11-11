@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { loadWithStaticFallback } from '../api'
+import { loadWithStaticFallback, type ApiFallbackReason } from '../api'
+import ApiFallbackBanner from '../components/ApiFallbackBanner'
 import PageHeader from '../components/PageHeader'
-import StatusBanner from '../components/StatusBanner'
 import { site } from '../data/site'
 
 type Experience = {
@@ -31,17 +31,17 @@ function splitHighlights(value: string | null | undefined): string[] {
 
 export default function ExperiencePage() {
   const [experience, setExperience] = useState<Experience[]>([])
-  const [usingStatic, setUsingStatic] = useState(false)
+  const [fallbackReason, setFallbackReason] = useState<ApiFallbackReason | null>(null)
 
   useEffect(() => {
     let cancelled = false
     void loadWithStaticFallback<Experience[]>(
       '/api/experience',
       staticExperience,
-      (data, staticMode) => {
+      (data, meta) => {
         if (!cancelled) {
           setExperience(data)
-          setUsingStatic(staticMode)
+          setFallbackReason(meta.usingStatic ? (meta.reason ?? 'offline') : null)
         }
       },
     )
@@ -57,11 +57,7 @@ export default function ExperiencePage() {
         title="Experience"
         subtitle="Roles where systems, integrations, and reliability mattered."
       />
-      {usingStatic && (
-        <StatusBanner>
-          Showing static portfolio copy (API offline). Connect a free backend to load live data.
-        </StatusBanner>
-      )}
+      {fallbackReason ? <ApiFallbackBanner reason={fallbackReason} /> : null}
 
       {experience.length === 0 ? (
         <p className="prose-quiet">Loading experience…</p>
