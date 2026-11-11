@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import PageHeader from '../components/PageHeader'
+import SectionHeading from '../components/SectionHeading'
 import { useLocale } from '../i18n/LocaleContext'
 
 export default function NotFoundPage() {
@@ -7,13 +7,10 @@ export default function NotFoundPage() {
 
   return (
     <section className="page-wrap">
-      <PageHeader
-        index="404"
-        title={ui.notFound.title}
-        subtitle={ui.notFound.subtitle}
-      />
-      <p className="prose-quiet">{ui.notFound.body}</p>
-      <div className="mt-8 flex flex-wrap gap-3">
+      <SectionHeading title={ui.notFound.title} index="404" />
+      <p className="profile-lede profile-lede--compact">{ui.notFound.subtitle}</p>
+      <p className="contact-blurb">{ui.notFound.body}</p>
+      <div className="hero-actions">
         <Link to="/" className="btn btn-primary">
           {ui.notFound.goHome}
         </Link>

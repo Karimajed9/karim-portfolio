@@ -3,13 +3,15 @@ import type { SiteContent, UiCopy } from './types'
 export const siteEn: SiteContent = {
   name: 'Karim Majed',
   title: 'Software Engineer – Backend | C# / .NET | Azure | SQL',
+  shortTitle: 'Backend software engineer',
   description:
     'Backend software engineer in Montréal with 5+ years of C#/.NET, Azure, and SQL work.',
+  metaLine: 'C# / .NET / Azure / SQL · 5+ years of experience · Montréal, Canada',
   githubUrl: 'https://github.com/Karimajed9',
   linkedInUrl: 'https://www.linkedin.com/in/karimajed9',
   about: {
     summary:
-      'Backend-focused Software Engineer with 5+ years building C#/.NET enterprise systems, Azure integrations, and large-scale SQL data workflows. Experience includes reusable backend frameworks, REST APIs, asynchronous messaging, idempotent financial processing, production troubleshooting, and performance optimization. Fluent in English, French, and Arabic.',
+      'Backend-focused software engineer with 5+ years of experience building enterprise C#/.NET systems, cloud integrations and large-scale SQL data workflows. Work includes reusable backend frameworks, REST APIs, asynchronous messaging, idempotent financial processing, production troubleshooting and performance optimization.',
     education: [
       {
         school: 'Concordia University',
@@ -18,6 +20,7 @@ export const siteEn: SiteContent = {
         country: 'Canada',
         startDate: 'September 2020',
         endDate: 'August 2021',
+        yearLabel: '2021',
       },
       {
         school: 'American University of Beirut',
@@ -26,6 +29,7 @@ export const siteEn: SiteContent = {
         country: 'Lebanon',
         startDate: 'September 2016',
         endDate: 'May 2020',
+        yearLabel: '2020',
       },
     ],
     goals: 'Keep building solid backend systems with C#/.NET, Azure, and SQL.',
@@ -47,46 +51,33 @@ export const siteEn: SiteContent = {
       'Programming',
     ],
   },
+  languages: ['English', 'French', 'Arabic'],
   skills: [
     {
-      category: 'Languages & Backend',
-      items: ['C#', 'SQL', 'Java', 'ASP.NET', '.NET Framework', 'REST APIs', 'Spring Boot'],
+      category: 'Backend & Data',
+      items: ['C#', '.NET Framework', 'ASP.NET', 'SQL Server', 'Stored procedures', 'REST APIs', 'Java'],
     },
     {
-      category: 'Azure & Integration',
+      category: 'Azure & Integrations',
       items: [
         'Azure Functions',
-        'Logic Apps',
+        'Azure Logic Apps',
         'Azure Web Apps',
-        'Blob Storage',
-        'Message queues',
-        'SFTP',
-        'Sage APIs',
-      ],
-    },
-    {
-      category: 'Data & Reliability',
-      items: [
-        'SQL Server',
-        'Stored procedures',
-        'CSV/Excel ETL',
-        'Idempotency',
-        'Application Insights',
-        'Datadog',
-      ],
-    },
-    {
-      category: 'Other',
-      items: [
-        'JavaScript',
-        'Git',
-        'Jenkins',
-        'Jira',
+        'Azure Blob Storage',
         'Azure Key Vault',
-        'React',
-        'TypeScript',
-        'PostgreSQL',
+        'Application Insights',
+        'Queues',
+        'Sage APIs',
+        'SFTP',
       ],
+    },
+    {
+      category: 'Reliability & Delivery',
+      items: ['Idempotency', 'CSV/Excel ETL', 'Datadog', 'Git', 'Jenkins', 'Jira'],
+    },
+    {
+      category: 'Personal projects',
+      items: ['React', 'TypeScript', 'Spring Boot', 'PostgreSQL', 'JavaScript'],
     },
   ],
   experience: [
@@ -95,22 +86,22 @@ export const siteEn: SiteContent = {
       role: 'Software Developer',
       startDate: 'November 2022',
       endDate: 'Present',
-      location: 'Montréal, QC, Canada',
+      location: 'Montréal, Canada',
       highlights: [
-        'Built a reusable C#/.NET due-date framework with configurable deadlines and compliance rules.',
+        'Built a reusable C#/.NET due-date framework with configurable deadlines and compliance rules. Short custom-event handlers are still needed per record or datalist.',
         'Implemented caregiver disbursement calculations from placement history, child ages, care levels, service types, and rate schedules.',
-        'Developed Azure Functions integrating case-management and Sage APIs—nightly batches, HTTP-triggered queue workflows, and unique transaction IDs for idempotent sync.',
+        'Developed Azure Functions integrating case-management and Sage APIs—nightly batches, HTTP-triggered queue workflows, and unique transaction IDs for idempotent sync and reconciliation.',
         'Added retries, Blob Storage recovery, Application Insights monitoring, and targeted failure notifications.',
         'Rebuilt deprecated Logic Apps migration workflows processing millions of records with SQL, stored procedures, CSV/Excel, validation, deduplication, and error reports.',
-        'Optimized C# event handlers and nightly API-to-SFTP government reporting exports (thousands of records).',
+        'Optimized C# event handlers by removing redundant processing; nightly API-to-SFTP government reporting exports (thousands of records).',
       ],
     },
     {
-      company: 'Wiley Edge / National Bank of Canada',
+      company: 'Wiley Edge, assigned to National Bank of Canada',
       role: 'Java Developer',
       startDate: 'September 2021',
       endDate: 'September 2022',
-      location: 'Montréal, QC, Canada',
+      location: 'Montréal, Canada',
       highlights: [
         'Delivered 50+ Java features and extensions for an internal customer-service system used by 100+ bank employees.',
         'Resolved 100+ functional and UI defects.',
@@ -119,22 +110,45 @@ export const siteEn: SiteContent = {
     },
   ],
   projects: {
-    title: 'Projects',
-    subtitle: 'A few things I have built',
+    title: 'Personal projects',
+    subtitle: 'Side work and learning',
     items: [
       {
         name: 'Personal Portfolio Platform',
         summary:
-          'Personal portfolio platform built with Java, Spring Boot, PostgreSQL, React, and TypeScript.',
-        tags: ['Java', 'Spring Boot', 'PostgreSQL', 'React', 'TypeScript'],
+          'Building a portfolio with a React/TypeScript frontend, Java/Spring Boot REST APIs and PostgreSQL. A space to explain design decisions, architecture and side projects; Docker and Azure deployment are part of the learning roadmap.',
+        tags: ['React', 'TypeScript', 'Java', 'Spring Boot', 'PostgreSQL'],
         href: 'https://github.com/Karimajed9/karim-portfolio',
+        mark: 'KM',
       },
     ],
+  },
+  mobility: {
+    basedIn: 'Based in Montréal, Canada.',
+    headline: 'Open to relocating to Europe, particularly France and Switzerland.',
+    destinations: [
+      {
+        code: 'FR',
+        name: 'France',
+        body: 'Interested in backend and .NET/Azure roles in France; open to discussing relocation and work authorization with employers.',
+      },
+      {
+        code: 'CH',
+        name: 'Switzerland',
+        body: 'Also exploring backend opportunities in Switzerland, subject to employer sponsorship and local requirements.',
+      },
+    ],
+    boardRows: [
+      ['YUL', 'CDG', 'OPEN'],
+      ['YUL', 'GVA', 'OPEN'],
+      ['YUL', 'ZRH', 'OPEN'],
+    ],
+    boardFoot: 'Open to relocating to Europe, particularly France and Switzerland.',
   },
   contact: {
     title: 'Contact',
     subtitle: 'Get in touch',
-    email: 'karim_majed_98@hotmail.com',
+    email: 'karim_majed@outlook.com',
     blurb: 'Happy to talk about roles or projects. Email me or use the form below.',
   },
 }
@@ -142,16 +156,20 @@ export const siteEn: SiteContent = {
 export const uiEn: UiCopy = {
   skipToContent: 'Skip to content',
   nav: {
-    home: 'Home',
-    about: 'About',
-    skills: 'Skills',
-    experience: 'Experience',
-    projects: 'Projects',
-    contact: 'Contact',
     primary: 'Primary',
+    sections: 'Sections',
     openMenu: 'Open menu',
     closeMenu: 'Close menu',
     siteMenu: 'Site menu',
+  },
+  sections: {
+    profile: 'Profile',
+    experience: 'Experience',
+    projects: 'Projects',
+    skills: 'Skills',
+    education: 'Education',
+    mobility: 'Mobility',
+    contact: 'Contact',
   },
   settings: {
     open: 'Settings',
@@ -167,67 +185,42 @@ export const uiEn: UiCopy = {
     github: 'GitHub',
     linkedIn: 'LinkedIn',
   },
+  cv: {
+    en: 'CV (EN)',
+    fr: 'CV (FR)',
+    download: 'Download CV (PDF)',
+    downloadEn: 'Download CV — English',
+    downloadFr: 'Download CV — French',
+  },
   home: {
     introAria: 'Introduction',
-    mark: 'Portfolio · Montréal',
-    seeProjects: 'See projects',
-    contact: 'Contact',
-    blueprintLabel: 'Elevation · studio',
-    highlightsLabel: 'Highlights',
-    highlightsHeading: 'Quick facts',
-    projectsLabel: 'Projects',
-    featuredHeading: 'Featured project',
-    allProjects: 'All projects',
-    moreLabel: 'More',
-    moreHeading: 'Want more detail?',
-    moreBody: 'See About for background and education. Reach out anytime.',
-    about: 'About',
-    highlightItems: [
-      { value: '5+ years', label: 'Backend C#/.NET systems and SQL data work' },
-      { value: 'Azure', label: 'Functions, Logic Apps, Blob Storage, and APIs' },
-      {
-        value: 'Idempotent sync',
-        label: 'Unique transaction IDs for financial and Sage API workflows',
-      },
-      {
-        value: '50+ features',
-        label: 'Java work on an internal banking customer-service system',
-      },
-    ],
-  },
-  about: {
-    subtitle: 'Background, education, and interests.',
-    summary: 'Summary',
-    role: 'Role',
-    roleAside:
-      'Also building with Java, Spring Boot, React, and TypeScript on personal projects.',
-    education: 'Education',
-    goals: 'Goals',
-    professionalInterests: 'Professional interests',
-    personalInterests: 'Personal interests',
-    invite: 'Want to talk? Send a message.',
-    contact: 'Contact',
-  },
-  skills: {
-    subtitle: 'Grouped by area. Main tools first, then supporting ones.',
-    main: 'Main',
-    alsoUse: 'Also use',
-    domains: {
-      backend: 'Backend',
-      frontend: 'Frontend',
-      cloud: 'Cloud',
-      databases: 'Databases',
-      tools: 'Tools',
-    },
+    getInTouch: 'Get in touch',
+    boardAria:
+      'Departures board: from Montréal, Canada to France and Switzerland. Open to relocating to Europe.',
+    departures: 'Departures',
+    languages: 'Languages',
+    copyEmail: 'Copy',
+    copied: 'Copied',
   },
   experience: {
-    title: 'Experience',
-    subtitle: 'Recent roles and what I worked on.',
+    title: 'Professional experience',
+    present: 'Present',
   },
   projects: {
-    title: 'Projects',
+    title: 'Personal projects',
+    viewRepo: 'View repository',
+  },
+  skills: {
+    title: 'Core technical skills',
+  },
+  education: {
+    title: 'Education',
+  },
+  mobility: {
+    title: 'International mobility',
   },
   contact: {
+    title: 'Contact',
     name: 'Name',
     email: 'Email',
     message: 'Message',

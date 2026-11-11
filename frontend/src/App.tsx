@@ -1,9 +1,5 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom'
 import HomePage from './pages/HomePage'
-import AboutPage from './pages/AboutPage'
-import SkillsPage from './pages/SkillsPage'
-import ExperiencePage from './pages/ExperiencePage'
-import ProjectsPage from './pages/ProjectsPage'
 import ContactPage from './pages/ContactPage'
 import AdminPage from './pages/AdminPage'
 import NotFoundPage from './pages/NotFoundPage'
@@ -27,12 +23,13 @@ function App() {
           <Routes>
             <Route element={<Layout />}>
               <Route index element={<HomePage />} />
-              <Route path="about" element={<AboutPage />} />
-              <Route path="skills" element={<SkillsPage />} />
-              <Route path="experience" element={<ExperiencePage />} />
-              <Route path="projects" element={<ProjectsPage />} />
               <Route path="contact" element={<ContactPage />} />
               <Route path="admin" element={<AdminPage />} />
+              {/* Old multipage routes collapse into the single-page anchors. */}
+              <Route path="about" element={<Navigate to="/#profile" replace />} />
+              <Route path="skills" element={<Navigate to="/#skills" replace />} />
+              <Route path="experience" element={<Navigate to="/#experience" replace />} />
+              <Route path="projects" element={<Navigate to="/#projects" replace />} />
               <Route path="*" element={<NotFoundPage />} />
             </Route>
           </Routes>

@@ -3,7 +3,9 @@ export type Locale = 'en' | 'fr'
 export type SiteContent = {
   name: string
   title: string
+  shortTitle: string
   description: string
+  metaLine: string
   githubUrl: string
   linkedInUrl: string
   about: {
@@ -15,11 +17,13 @@ export type SiteContent = {
       country: string
       startDate: string
       endDate: string
+      yearLabel: string
     }>
     goals: string
     professionalInterests: string[]
     personalInterests: string[]
   }
+  languages: string[]
   skills: Array<{ category: string; items: string[] }>
   experience: Array<{
     company: string
@@ -37,7 +41,15 @@ export type SiteContent = {
       summary: string
       tags: string[]
       href: string
+      mark: string
     }>
+  }
+  mobility: {
+    basedIn: string
+    headline: string
+    destinations: Array<{ code: string; name: string; body: string }>
+    boardRows: string[][]
+    boardFoot: string
   }
   contact: {
     title: string
@@ -50,16 +62,20 @@ export type SiteContent = {
 export type UiCopy = {
   skipToContent: string
   nav: {
-    home: string
-    about: string
-    skills: string
-    experience: string
-    projects: string
-    contact: string
     primary: string
+    sections: string
     openMenu: string
     closeMenu: string
     siteMenu: string
+  }
+  sections: {
+    profile: string
+    experience: string
+    projects: string
+    skills: string
+    education: string
+    mobility: string
+    contact: string
   }
   settings: {
     open: string
@@ -75,55 +91,41 @@ export type UiCopy = {
     github: string
     linkedIn: string
   }
+  cv: {
+    en: string
+    fr: string
+    download: string
+    downloadEn: string
+    downloadFr: string
+  }
   home: {
     introAria: string
-    mark: string
-    seeProjects: string
-    contact: string
-    blueprintLabel: string
-    highlightsLabel: string
-    highlightsHeading: string
-    projectsLabel: string
-    featuredHeading: string
-    allProjects: string
-    moreLabel: string
-    moreHeading: string
-    moreBody: string
-    about: string
-    highlightItems: Array<{ value: string; label: string }>
-  }
-  about: {
-    subtitle: string
-    summary: string
-    role: string
-    roleAside: string
-    education: string
-    goals: string
-    professionalInterests: string
-    personalInterests: string
-    invite: string
-    contact: string
-  }
-  skills: {
-    subtitle: string
-    main: string
-    alsoUse: string
-    domains: {
-      backend: string
-      frontend: string
-      cloud: string
-      databases: string
-      tools: string
-    }
+    getInTouch: string
+    boardAria: string
+    departures: string
+    languages: string
+    copyEmail: string
+    copied: string
   }
   experience: {
     title: string
-    subtitle: string
+    present: string
   }
   projects: {
     title: string
+    viewRepo: string
+  }
+  skills: {
+    title: string
+  }
+  education: {
+    title: string
+  }
+  mobility: {
+    title: string
   }
   contact: {
+    title: string
     name: string
     email: string
     message: string

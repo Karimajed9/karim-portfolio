@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { apiUrl } from '../api'
-import PageHeader from '../components/PageHeader'
+import SectionHeading from '../components/SectionHeading'
 import StatusBanner from '../components/StatusBanner'
 import { useLocale } from '../i18n/LocaleContext'
 
@@ -74,11 +74,10 @@ export default function AdminPage() {
 
   return (
     <section className="page-wrap">
-      <PageHeader
-        index="Admin"
-        title={ui.admin.title}
-        subtitle={authenticated ? ui.admin.signedIn : ui.admin.signedOut}
-      />
+      <SectionHeading title={ui.admin.title} index="AD" />
+      <p className="contact-blurb contact-blurb--tight">
+        {authenticated ? ui.admin.signedIn : ui.admin.signedOut}
+      </p>
 
       {!authenticated && (
         <form className="mt-2 max-w-md space-y-5" onSubmit={handleSubmit}>

@@ -1,69 +1,60 @@
 INSERT INTO project (name, summary, tags, href)
 SELECT
-  'Personal Portfolio Platform',
-  'Personal portfolio platform built with Java, Spring Boot, PostgreSQL, React, and TypeScript.',
-  'Java,Spring Boot,PostgreSQL,React,TypeScript',
+  'Portfolio',
+  'Personal site built with React, TypeScript, and Vite.',
+  'React,TypeScript,Vite',
   'https://github.com/Karimajed9/karim-portfolio'
-WHERE NOT EXISTS (SELECT 1 FROM project WHERE name = 'Personal Portfolio Platform')
-   AND NOT EXISTS (SELECT 1 FROM project WHERE name = 'Portfolio');
+WHERE NOT EXISTS (SELECT 1 FROM project WHERE name = 'Portfolio');
 
 INSERT INTO about_profile (summary, goals, professional_interests, personal_interests) VALUES
   (
-    'Backend-focused Software Engineer with 5+ years building C#/.NET enterprise systems, Azure integrations, and large-scale SQL data workflows. Experience includes reusable backend frameworks, REST APIs, asynchronous messaging, idempotent financial processing, production troubleshooting, and performance optimization. Fluent in English, French, and Arabic.',
-    'Keep building solid backend systems with C#/.NET, Azure, and SQL.',
-    'Backend Engineering,C# / .NET,Azure Integrations,SQL & Data Workflows,REST APIs & Messaging,Production Reliability',
+    'Full Stack Software Developer with 5+ years of experience building and maintaining enterprise applications. Experienced in C#, .NET, Java, JavaScript, TypeScript, SQL, and REST APIs. Passionate about solving problems, learning new technologies, building quality software, and continuously improving.',
+    'My goal is to grow as a well-rounded Software Engineer, take on challenging projects, and build impactful, reliable, and scalable solutions. I strive to continuously improve my technical skills, embrace new technologies, take ownership of my work, and contribute to a team where I can make a meaningful difference.',
+    'Software Engineering,Cloud Computing & Azure,Full Stack Development,Learning New Technologies,Problem Solving,Technology & Innovation',
     'Muay Thai,Camping,Hiking,Traveling,Exploring New Places,Technology,Programming'
   );
 
 INSERT INTO education (school, city, degree, country, start_date, end_date, sort_order) VALUES
   (
     'Concordia University',
-    'Montréal',
+    'Montreal',
     'Graduate Diploma in Computer Science',
     'Canada',
-    'September 2020',
-    'August 2021',
+    '09/01/2020',
+    '08/30/2021',
     1
   ),
   (
     'American University of Beirut',
     'Beirut',
-    'BBA, Management Information Systems',
+    'Bachelor of Business Administration in Management Information Systems',
     'Lebanon',
-    'September 2016',
-    'May 2020',
+    '09/01/2016',
+    '05/31/2020',
     2
   );
 
 INSERT INTO skill (category, name, sort_order) VALUES
-  ('Languages & Backend', 'C#', 1),
-  ('Languages & Backend', 'SQL', 2),
-  ('Languages & Backend', 'Java', 3),
-  ('Languages & Backend', 'ASP.NET', 4),
-  ('Languages & Backend', '.NET Framework', 5),
-  ('Languages & Backend', 'REST APIs', 6),
-  ('Languages & Backend', 'Spring Boot', 7),
-  ('Azure & Integration', 'Azure Functions', 1),
-  ('Azure & Integration', 'Logic Apps', 2),
-  ('Azure & Integration', 'Azure Web Apps', 3),
-  ('Azure & Integration', 'Blob Storage', 4),
-  ('Azure & Integration', 'Message queues', 5),
-  ('Azure & Integration', 'SFTP', 6),
-  ('Azure & Integration', 'Sage APIs', 7),
-  ('Data & Reliability', 'SQL Server', 1),
-  ('Data & Reliability', 'Stored procedures', 2),
-  ('Data & Reliability', 'CSV/Excel ETL', 3),
-  ('Data & Reliability', 'Idempotency', 4),
-  ('Data & Reliability', 'Application Insights', 5),
-  ('Data & Reliability', 'Datadog', 6),
-  ('Other', 'JavaScript', 1),
-  ('Other', 'Git', 2),
-  ('Other', 'Jenkins', 3),
-  ('Other', 'Jira', 4),
-  ('Other', 'Azure Key Vault', 5),
-  ('Other', 'React', 6),
-  ('Other', 'TypeScript', 7),
-  ('Other', 'PostgreSQL', 8);
+  ('Programming Languages', 'C#', 1),
+  ('Programming Languages', 'Java', 2),
+  ('Programming Languages', 'TypeScript', 3),
+  ('Programming Languages', 'JavaScript', 4),
+  ('Programming Languages', 'SQL', 5),
+  ('Frontend', 'React', 1),
+  ('Frontend', 'HTML', 2),
+  ('Frontend', 'CSS', 3),
+  ('Frontend', 'Tailwind', 4),
+  ('Backend', 'ASP.NET', 1),
+  ('Backend', 'Spring Boot', 2),
+  ('Backend', 'REST APIs', 3),
+  ('Databases', 'PostgreSQL', 1),
+  ('Databases', 'SQL Server', 2),
+  ('Cloud & DevOps', 'Azure', 1),
+  ('Cloud & DevOps', 'Docker', 2),
+  ('Cloud & DevOps', 'GitHub Actions', 3),
+  ('Tools', 'Git', 1),
+  ('Tools', 'Maven', 2),
+  ('Tools', 'Vite', 3);
 
 INSERT INTO experience (company, role, start_date, end_date, location, highlights, sort_order) VALUES
   (
@@ -71,16 +62,16 @@ INSERT INTO experience (company, role, start_date, end_date, location, highlight
     'Software Developer',
     'November 2022',
     'Present',
-    'Montréal, QC, Canada',
-    'Built a reusable C#/.NET due-date framework with configurable deadlines and compliance rules.|||Implemented caregiver disbursement calculations from placement history, child ages, care levels, service types, and rate schedules.|||Developed Azure Functions integrating case-management and Sage APIs—nightly batches, HTTP-triggered queue workflows, and unique transaction IDs for idempotent sync.|||Added retries, Blob Storage recovery, Application Insights monitoring, and targeted failure notifications.|||Rebuilt deprecated Logic Apps migration workflows processing millions of records with SQL, stored procedures, CSV/Excel, validation, deduplication, and error reports.|||Optimized C# event handlers and nightly API-to-SFTP government reporting exports (thousands of records).',
+    'Montreal, Canada',
+    'Develop and maintain enterprise web applications using C#, ASP.NET, JavaScript, and SQL.|||Implement custom features and integrate external services such as Azure Logic Apps, Azure Functions, and Sage.|||Develop and maintain REST APIs to support application integrations and business requirements.|||Manage deployments across 10+ production environments.|||Troubleshoot production issues, monitor application performance, and improve system reliability using Datadog.|||Collaborate with clients and team members to understand requirements and deliver effective solutions.',
     1
   ),
   (
-    'Wiley Edge / National Bank of Canada',
+    'Wilet Edge - Contractor to National Bank of Canada',
     'Java Developer',
     'September 2021',
     'September 2022',
-    'Montréal, QC, Canada',
-    'Delivered 50+ Java features and extensions for an internal customer-service system used by 100+ bank employees.|||Resolved 100+ functional and UI defects.|||Supported sprint delivery and code quality in a 15-person Agile/Scrum team.',
+    'Montreal, Canada',
+    'Contributed to enterprise software development using Java.|||Worked on application development and maintenance in a financial services environment.|||Collaborated with development teams to implement solutions and support business requirements.',
     2
   );
