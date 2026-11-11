@@ -1,10 +1,8 @@
 import { cleanup, render, screen, within } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import { afterEach, describe, expect, it } from 'vitest'
 import HomePage from './pages/HomePage'
-import AboutPage from './pages/AboutPage'
-import SkillsPage from './pages/SkillsPage'
+import ContactPage from './pages/ContactPage'
 import Layout from './components/Layout'
 import { AppProviders } from './test/providers'
 
@@ -20,53 +18,38 @@ function renderApp(initialPath: string) {
         element: <Layout />,
         children: [
           { index: true, element: <HomePage /> },
-          { path: 'about', element: <AboutPage /> },
-          { path: 'skills', element: <SkillsPage /> },
+          { path: 'contact', element: <ContactPage /> },
         ],
       },
     ],
     { initialEntries: [initialPath] },
   )
 
-  return {
-    user: userEvent.setup(),
-    ...render(
-      <AppProviders>
-        <RouterProvider router={router} useTransitions={false} />
-      </AppProviders>,
-    ),
-    router,
-  }
+  return render(
+    <AppProviders>
+      <RouterProvider router={router} useTransitions={false} />
+    </AppProviders>,
+  )
 }
 
 describe('primary nav', () => {
-  it('goes straight from About to Skills without rendering Home', async () => {
-    const { user } = renderApp('/about')
-    const main = screen.getByRole('main')
-
-    expect(within(main).getByRole('heading', { level: 1 })).toHaveTextContent('About')
-    expect(within(main).queryByRole('heading', { name: /Karim Majed/i })).not.toBeInTheDocument()
-
-    await user.click(
-      within(screen.getByRole('navigation', { name: 'Primary' })).getByRole('link', {
-        name: 'Skills',
-      }),
-    )
-
-    expect(within(main).queryByRole('heading', { name: /Karim Majed/i })).not.toBeInTheDocument()
-    expect(within(main).getByRole('heading', { level: 1 })).toHaveTextContent('Skills')
-  })
-
-  it('leaves Home for About in one step', async () => {
-    const { user } = renderApp('/')
+  it('renders the architectural single-page home with section anchors', () => {
+    renderApp('/')
     const main = screen.getByRole('main')
     const nav = screen.getByRole('navigation', { name: 'Primary' })
 
-    expect(within(main).getByRole('heading', { level: 1 })).toHaveTextContent('Karim Majed')
+    expect(within(main).getByRole('heading', { level: 1 })).toHaveTextContent(/Karim/)
+    expect(within(main).getByRole('heading', { name: /Professional experience/i })).toBeInTheDocument()
+    expect(within(nav).getByRole('link', { name: /Contact/i })).toHaveAttribute('href', '#contact')
+    expect(document.getElementById('skills')).toBeTruthy()
+  })
 
-    await user.click(within(nav).getByRole('link', { name: 'About' }))
+  it('renders the dedicated contact route with the API form', () => {
+    renderApp('/contact')
+    const main = screen.getByRole('main')
 
-    expect(within(main).queryByRole('heading', { name: /Karim Majed/i })).not.toBeInTheDocument()
-    expect(within(main).getByRole('heading', { level: 1 })).toHaveTextContent('About')
+    expect(within(main).queryByRole('heading', { level: 1 })).not.toBeInTheDocument()
+    expect(within(main).getByRole('heading', { name: /^Contact$/i })).toBeInTheDocument()
+    expect(within(main).getByRole('button', { name: 'Send message' })).toBeInTheDocument()
   })
 })

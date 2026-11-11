@@ -14,7 +14,8 @@ describe('HomePage', () => {
       </AppProviders>,
     )
 
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Karim Majed')
-    expect(screen.getByRole('link', { name: 'See projects' })).toHaveAttribute('href', '/projects')
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/Karim\s*Majed/)
+    expect(screen.getByRole('link', { name: /Get in touch/i })).toHaveAttribute('href', '#contact')
+    expect(screen.getByRole('heading', { name: /Core technical skills/i })).toBeInTheDocument()
   })
 })

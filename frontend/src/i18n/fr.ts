@@ -2,14 +2,16 @@ import type { SiteContent, UiCopy } from './types'
 
 export const siteFr: SiteContent = {
   name: 'Karim Majed',
-  title: 'Ingénieur logiciel – Backend | C# / .NET | Azure | SQL',
+  title: 'Développeur logiciel – Backend | C# / .NET | Azure | SQL',
+  shortTitle: 'Développeur logiciel backend',
   description:
     'Développeur backend à Montréal avec plus de 5 ans d’expérience en C#/.NET, Azure et SQL.',
+  metaLine: 'C# / .NET / Azure / SQL · 5+ ans d’expérience · Montréal, Canada',
   githubUrl: 'https://github.com/Karimajed9',
   linkedInUrl: 'https://www.linkedin.com/in/karimajed9',
   about: {
     summary:
-      'Développeur backend avec plus de 5 ans d’expérience en applications d’entreprise C#/.NET, intégrations Azure et traitement de données SQL à grande échelle. Expertise en composants réutilisables, API REST, messagerie asynchrone, fiabilité des flux financiers, diagnostic en production et optimisation. Français, anglais et arabe (courants).',
+      'Développeur backend avec plus de 5 ans d’expérience en applications d’entreprise C#/.NET, intégrations cloud et traitement de données SQL à grande échelle. Travail sur des frameworks réutilisables, API REST, messagerie asynchrone, traitements financiers idempotents, diagnostic en production et optimisation.',
     education: [
       {
         school: 'Université Concordia',
@@ -18,6 +20,7 @@ export const siteFr: SiteContent = {
         country: 'Canada',
         startDate: 'septembre 2020',
         endDate: 'août 2021',
+        yearLabel: '2021',
       },
       {
         school: 'Université américaine de Beyrouth',
@@ -26,6 +29,7 @@ export const siteFr: SiteContent = {
         country: 'Liban',
         startDate: 'septembre 2016',
         endDate: 'mai 2020',
+        yearLabel: '2020',
       },
     ],
     goals: 'Continuer à bâtir des systèmes backend solides avec C#/.NET, Azure et SQL.',
@@ -47,70 +51,57 @@ export const siteFr: SiteContent = {
       'Programmation',
     ],
   },
+  languages: ['Anglais', 'Français', 'Arabe'],
   skills: [
     {
-      category: 'Langages et backend',
-      items: ['C#', 'SQL', 'Java', 'ASP.NET', '.NET Framework', 'API REST', 'Spring Boot'],
+      category: 'Backend et données',
+      items: ['C#', '.NET Framework', 'ASP.NET', 'SQL Server', 'Procédures stockées', 'API REST', 'Java'],
     },
     {
-      category: 'Azure et intégration',
+      category: 'Azure et intégrations',
       items: [
         'Azure Functions',
-        'Logic Apps',
+        'Azure Logic Apps',
         'Azure Web Apps',
-        'Blob Storage',
-        'Files de messages',
-        'SFTP',
-        'API Sage',
-      ],
-    },
-    {
-      category: 'Données et fiabilité',
-      items: [
-        'SQL Server',
-        'Procédures stockées',
-        'ETL CSV/Excel',
-        'Idempotence',
-        'Application Insights',
-        'Datadog',
-      ],
-    },
-    {
-      category: 'Autres outils',
-      items: [
-        'JavaScript',
-        'Git',
-        'Jenkins',
-        'Jira',
+        'Azure Blob Storage',
         'Azure Key Vault',
-        'React',
-        'TypeScript',
-        'PostgreSQL',
+        'Application Insights',
+        'Files',
+        'API Sage',
+        'SFTP',
       ],
+    },
+    {
+      category: 'Fiabilité et livraison',
+      items: ['Idempotence', 'ETL CSV/Excel', 'Datadog', 'Git', 'Jenkins', 'Jira'],
+    },
+    {
+      category: 'Projets personnels',
+      items: ['React', 'TypeScript', 'Spring Boot', 'PostgreSQL', 'JavaScript'],
     },
   ],
   experience: [
     {
       company: 'Redmane Technology',
       role: 'Développeur logiciel',
-      startDate: 'nov. 2022',
+      startDate: 'novembre 2022',
       endDate: 'aujourd’hui',
-      location: 'Montréal, QC, Canada',
+      location: 'Montréal, Canada',
       highlights: [
-        'Framework C#/.NET réutilisable de gestion des échéances, règles configurables et conformité.',
+        'Framework C#/.NET réutilisable de gestion des échéances, règles configurables et conformité. De courts handlers d’événements personnalisés restent nécessaires par enregistrement ou liste.',
         'Calculs de versements aux familles d’accueil (placements, âge, niveaux de soins, services, barèmes).',
-        'Azure Functions vers API Sage : traitements nocturnes, HTTP, files, synchro idempotente.',
-        'Nouvelles tentatives, reprise Blob Storage, Application Insights, alertes.',
-        'Migration Logic Apps : millions d’enregistrements, SQL, procédures stockées, CSV/Excel, validation, dédoublonnage.',
-        'Événements C# optimisés ; exports nocturnes SFTP gouvernemental.',
+        'Azure Functions vers API Sage : traitements nocturnes, HTTP, files, identifiants de transaction uniques pour une synchro idempotente et un rapprochement.',
+        'Nouvelles tentatives, reprise Blob Storage, Application Insights, alertes ciblées.',
+        'Migration Logic Apps : millions d’enregistrements, SQL, procédures stockées, CSV/Excel, validation, dédoublonnage et rapports d’erreurs.',
+        'Handlers C# optimisés en retirant du traitement redondant ; exports nocturnes SFTP gouvernemental.',
       ],
     },
     {
-      company: 'Wiley Edge / Banque Nationale',
+      company: 'Wiley Edge, en mission à la Banque Nationale du Canada',
       role: 'Développeur Java',
-      startDate: 'sept. 2021',
-      endDate: 'sept. 2022',
-      location: 'Montréal, QC, Canada',
+      startDate: 'septembre 2021',
+      endDate: 'septembre 2022',
+      location: 'Montréal, Canada',
       highlights: [
         'Plus de 50 fonctionnalités Java pour une application interne utilisée par plus de 100 employés.',
         'Plus de 100 anomalies fonctionnelles et d’interface corrigées.',
@@ -119,22 +110,45 @@ export const siteFr: SiteContent = {
     },
   ],
   projects: {
-    title: 'Projets',
-    subtitle: 'Quelques réalisations',
+    title: 'Projets personnels',
+    subtitle: 'Travaux et apprentissages',
     items: [
       {
         name: 'Plateforme de portfolio personnel',
         summary:
-          'Portfolio personnel avec Java, Spring Boot, PostgreSQL, React et TypeScript.',
-        tags: ['Java', 'Spring Boot', 'PostgreSQL', 'React', 'TypeScript'],
+          'Portfolio avec frontend React/TypeScript, API Java/Spring Boot et PostgreSQL. Un espace pour expliquer les décisions de design, l’architecture et les projets personnels ; Docker et le déploiement Azure font partie de la feuille de route.',
+        tags: ['React', 'TypeScript', 'Java', 'Spring Boot', 'PostgreSQL'],
         href: 'https://github.com/Karimajed9/karim-portfolio',
+        mark: 'KM',
       },
     ],
+  },
+  mobility: {
+    basedIn: 'Basé à Montréal, Canada.',
+    headline: 'Ouvert à une mobilité en Europe, en particulier en France et en Suisse.',
+    destinations: [
+      {
+        code: 'FR',
+        name: 'France',
+        body: 'Intéressé par des postes backend et .NET/Azure en France ; ouvert à discuter relocation et autorisation de travail avec les employeurs.',
+      },
+      {
+        code: 'CH',
+        name: 'Suisse',
+        body: 'Explore aussi des opportunités backend en Suisse, sous réserve de parrainage employeur et des exigences locales.',
+      },
+    ],
+    boardRows: [
+      ['YUL', 'CDG', 'OUVERT'],
+      ['YUL', 'GVA', 'OUVERT'],
+      ['YUL', 'ZRH', 'OUVERT'],
+    ],
+    boardFoot: 'Ouvert à une mobilité en Europe, en particulier en France et en Suisse.',
   },
   contact: {
     title: 'Contact',
     subtitle: 'Écrivez-moi',
-    email: 'karim_majed_98@hotmail.com',
+    email: 'karim_majed@outlook.com',
     blurb: 'Ouvert aux discussions sur des postes ou des projets. Courriel ou formulaire ci-dessous.',
   },
 }
@@ -142,16 +156,20 @@ export const siteFr: SiteContent = {
 export const uiFr: UiCopy = {
   skipToContent: 'Aller au contenu',
   nav: {
-    home: 'Accueil',
-    about: 'À propos',
-    skills: 'Compétences',
-    experience: 'Expérience',
-    projects: 'Projets',
-    contact: 'Contact',
     primary: 'Principal',
+    sections: 'Sections',
     openMenu: 'Ouvrir le menu',
     closeMenu: 'Fermer le menu',
     siteMenu: 'Menu du site',
+  },
+  sections: {
+    profile: 'Profil',
+    experience: 'Expérience',
+    projects: 'Projets',
+    skills: 'Compétences',
+    education: 'Formation',
+    mobility: 'Mobilité',
+    contact: 'Contact',
   },
   settings: {
     open: 'Paramètres',
@@ -167,67 +185,42 @@ export const uiFr: UiCopy = {
     github: 'GitHub',
     linkedIn: 'LinkedIn',
   },
+  cv: {
+    en: 'CV (EN)',
+    fr: 'CV (FR)',
+    download: 'Télécharger le CV (PDF)',
+    downloadEn: 'Télécharger le CV — anglais',
+    downloadFr: 'Télécharger le CV — français',
+  },
   home: {
     introAria: 'Introduction',
-    mark: 'Portfolio · Montréal',
-    seeProjects: 'Voir les projets',
-    contact: 'Contact',
-    blueprintLabel: 'Élévation · studio',
-    highlightsLabel: 'Points clés',
-    highlightsHeading: 'En bref',
-    projectsLabel: 'Projets',
-    featuredHeading: 'Projet en vedette',
-    allProjects: 'Tous les projets',
-    moreLabel: 'Suite',
-    moreHeading: 'Plus de détails ?',
-    moreBody: 'Consultez À propos pour le parcours et les études. Contactez-moi quand vous voulez.',
-    about: 'À propos',
-    highlightItems: [
-      { value: '5+ ans', label: 'Systèmes backend C#/.NET et données SQL' },
-      { value: 'Azure', label: 'Functions, Logic Apps, Blob Storage et API' },
-      {
-        value: 'Synchro idempotente',
-        label: 'Identifiants uniques pour les flux financiers et API Sage',
-      },
-      {
-        value: '50+ fonctions',
-        label: 'Travail Java sur une app interne de service client bancaire',
-      },
-    ],
-  },
-  about: {
-    subtitle: 'Parcours, études et intérêts.',
-    summary: 'Résumé',
-    role: 'Rôle',
-    roleAside:
-      'Je construis aussi avec Java, Spring Boot, React et TypeScript sur des projets personnels.',
-    education: 'Formation',
-    goals: 'Objectifs',
-    professionalInterests: 'Intérêts professionnels',
-    personalInterests: 'Intérêts personnels',
-    invite: 'Envie d’échanger ? Envoyez un message.',
-    contact: 'Contact',
-  },
-  skills: {
-    subtitle: 'Regroupées par domaine. Outils principaux d’abord, puis les autres.',
-    main: 'Principaux',
-    alsoUse: 'Aussi',
-    domains: {
-      backend: 'Backend',
-      frontend: 'Frontend',
-      cloud: 'Nuage',
-      databases: 'Bases de données',
-      tools: 'Outils',
-    },
+    getInTouch: 'Me contacter',
+    boardAria:
+      'Tableau des départs : de Montréal, Canada vers la France et la Suisse. Ouvert à une mobilité en Europe.',
+    departures: 'Départs',
+    languages: 'Langues',
+    copyEmail: 'Copier',
+    copied: 'Copié',
   },
   experience: {
-    title: 'Expérience',
-    subtitle: 'Postes récents et travail réalisé.',
+    title: 'Expérience professionnelle',
+    present: 'Aujourd’hui',
   },
   projects: {
-    title: 'Projets',
+    title: 'Projets personnels',
+    viewRepo: 'Voir le dépôt',
+  },
+  skills: {
+    title: 'Compétences techniques',
+  },
+  education: {
+    title: 'Formation',
+  },
+  mobility: {
+    title: 'Mobilité internationale',
   },
   contact: {
+    title: 'Contact',
     name: 'Nom',
     email: 'Courriel',
     message: 'Message',
