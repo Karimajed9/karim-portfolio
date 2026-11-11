@@ -21,7 +21,7 @@ public class SecurityConfig {
         .csrf(csrf -> csrf.disable())
         .cors(Customizer.withDefaults())
         .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/error").permitAll()
+            .requestMatchers("/error", "/favicon.ico", "/favicon.svg").permitAll()
             .requestMatchers(HttpMethod.GET, "/api/health", "/api/about", "/api/skills",
                 "/api/experience", "/api/projects").permitAll()
             .requestMatchers(HttpMethod.POST, "/api/contact").permitAll()
