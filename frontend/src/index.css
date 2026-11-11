@@ -8,6 +8,7 @@
   --font-sans: "IBM Plex Sans", ui-sans-serif, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 
+  /* Default dark studio tokens */
   --color-bg: #0b1117;
   --color-surface: #111c24;
   --color-elevated: #182630;
@@ -16,9 +17,12 @@
   --color-muted: #74838e;
   --color-accent: #55b7b1;
   --color-accent-deep: #0a6468;
+  --color-on-accent: #071214;
   --color-line: #293943;
   --color-danger: #d97a7a;
   --color-success: #6fbf9a;
+  --color-danger-ink: #f0c4c4;
+  --color-success-ink: #c8ead9;
 }
 
 @layer base {
@@ -30,8 +34,30 @@
     --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   }
 
+  /* Light overrides — same token names, readable cool technical palette */
+  html[data-theme="light"] {
+    color-scheme: light;
+    --color-bg: #eef3f5;
+    --color-surface: #ffffff;
+    --color-elevated: #e4ecef;
+    --color-ink: #101820;
+    --color-ink-soft: #33414c;
+    --color-muted: #455560;
+    --color-accent: #0c736d;
+    --color-accent-deep: #085650;
+    --color-on-accent: #f4fbfa;
+    --color-line: #b7c4cb;
+    --color-danger: #a63d3d;
+    --color-success: #277a57;
+    --color-danger-ink: #7a2a2a;
+    --color-success-ink: #1a5c3d;
+  }
+
   html {
     scroll-behavior: smooth;
+    /* Keep a stable scrollbar gutter so route changes (short ↔ tall pages)
+       and mobile-menu overflow:hidden do not shift the layout sideways. */
+    scrollbar-gutter: stable;
   }
 
   body {
@@ -142,6 +168,15 @@
     backdrop-filter: blur(12px) saturate(1.05);
   }
 
+  .site-nav-end {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    min-width: 0;
+    margin-left: auto;
+  }
+
   .site-brand {
     display: inline-flex;
     align-items: center;
@@ -228,6 +263,114 @@
 
   .site-nav-link.is-active {
     color: var(--color-ink);
+  }
+
+  .site-nav-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex-shrink: 0;
+  }
+
+  .settings-menu {
+    position: relative;
+  }
+
+  .settings-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 1px solid var(--color-line);
+    background: var(--color-surface);
+    color: var(--color-ink);
+    cursor: pointer;
+    transition: border-color 180ms ease, background-color 180ms ease, color 180ms ease;
+  }
+
+  .settings-trigger:hover,
+  .settings-trigger[aria-expanded="true"] {
+    border-color: var(--color-accent);
+    background: var(--color-elevated);
+    color: var(--color-accent);
+  }
+
+  .settings-trigger:focus-visible,
+  .settings-segment-btn:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  .settings-trigger-icon {
+    display: block;
+  }
+
+  .settings-panel {
+    position: absolute;
+    top: calc(100% + 0.55rem);
+    right: 0;
+    z-index: 60;
+    width: min(18.5rem, calc(100vw - 2 * var(--page-pad-x)));
+    padding: 0.9rem;
+    border: 1px solid var(--color-line);
+    background: var(--color-elevated);
+    box-shadow: 0 12px 32px color-mix(in srgb, black 45%, transparent);
+  }
+
+  .settings-panel-title {
+    margin: 0 0 0.85rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+
+  .settings-group + .settings-group {
+    margin-top: 0.9rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--color-line);
+  }
+
+  .settings-group-label {
+    margin: 0 0 0.5rem;
+    font-size: 0.8rem;
+    color: var(--color-ink-soft);
+  }
+
+  .settings-segment {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.35rem;
+  }
+
+  .settings-segment-btn {
+    padding: 0.45rem 0.55rem;
+    border: 1px solid var(--color-line);
+    background: var(--color-surface);
+    color: var(--color-muted);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: border-color 160ms ease, color 160ms ease, background-color 160ms ease;
+  }
+
+  .settings-segment-btn.is-active {
+    border-color: var(--color-accent);
+    color: var(--color-ink);
+    background: color-mix(in srgb, var(--color-accent-deep) 35%, var(--color-surface));
+  }
+
+  .settings-segment-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.72;
+  }
+
+  .settings-hint {
+    margin: 0.45rem 0 0;
+    font-size: 0.72rem;
+    color: var(--color-muted);
   }
 
   .site-nav-toggle {
@@ -435,14 +578,70 @@
     color: var(--color-ink-soft);
   }
 
+  /* API fallback: float under sticky nav so route/load swaps do not push content. */
+  .status-banner--overlay {
+    position: fixed;
+    top: calc(var(--nav-h) + 0.65rem);
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(calc(100% - (2 * var(--page-pad-x))), var(--page-max));
+    z-index: 45;
+    margin: 0;
+    box-shadow: 0 10px 28px color-mix(in srgb, black 40%, transparent);
+  }
+
+  .status-banner--dismissible {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .status-banner-message {
+    margin: 0;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .status-banner-dismiss {
+    flex-shrink: 0;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--color-line);
+    background: var(--color-surface);
+    color: var(--color-muted);
+    font-size: 1.15rem;
+    line-height: 0;
+    cursor: pointer;
+    transition: color 160ms ease, border-color 160ms ease, background-color 160ms ease;
+  }
+
+  .status-banner-dismiss > span {
+    display: block;
+    line-height: 1;
+    /* Optical center for the × glyph inside the square hit area */
+    transform: translateY(-0.04em);
+  }
+
+  .status-banner-dismiss:hover {
+    color: var(--color-ink);
+    border-color: var(--color-accent);
+    background: var(--color-elevated);
+  }
+
   .status-banner--error {
     border-color: color-mix(in srgb, var(--color-danger) 45%, var(--color-line));
-    color: #f0c4c4;
+    color: var(--color-danger-ink);
   }
 
   .status-banner--success {
     border-color: color-mix(in srgb, var(--color-success) 45%, var(--color-line));
-    color: #c8ead9;
+    color: var(--color-success-ink);
   }
 
   .chip {
@@ -501,11 +700,11 @@
 
   .btn-primary {
     background: var(--color-accent);
-    color: #071214;
+    color: var(--color-on-accent);
   }
 
   .btn-primary:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--color-accent) 85%, white);
+    background: color-mix(in srgb, var(--color-accent) 82%, var(--color-on-accent));
   }
 
   .btn-secondary {
@@ -581,7 +780,52 @@
   .field-error {
     margin: 0.4rem 0 0;
     font-size: 0.82rem;
-    color: #f0c4c4;
+    color: var(--color-danger-ink);
+  }
+
+  html[data-theme="light"] .settings-panel,
+  html[data-theme="light"] .status-banner--overlay {
+    box-shadow: 0 12px 28px color-mix(in srgb, black 14%, transparent);
+  }
+
+  html[data-theme="light"] .site-nav {
+    background: color-mix(in srgb, var(--color-bg) 92%, white);
+  }
+
+  html[data-theme="light"] body {
+    background-image:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--color-accent-deep) 8%, transparent) 0%,
+        transparent 28%
+      ),
+      linear-gradient(
+        125deg,
+        transparent 40%,
+        color-mix(in srgb, var(--color-accent) 5%, transparent) 100%
+      ),
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 47px,
+        color-mix(in srgb, var(--color-line) 55%, transparent) 47px,
+        color-mix(in srgb, var(--color-line) 55%, transparent) 48px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 47px,
+        color-mix(in srgb, var(--color-line) 55%, transparent) 47px,
+        color-mix(in srgb, var(--color-line) 55%, transparent) 48px
+      );
+  }
+
+  html[data-theme="light"] .blueprint-grid {
+    opacity: 0.4;
+  }
+
+  html[data-theme="light"] .settings-segment-btn.is-active {
+    background: color-mix(in srgb, var(--color-accent) 16%, var(--color-surface));
   }
 
   .prose-quiet {

@@ -2,7 +2,7 @@
 
 Full-stack portfolio site for **Karim Majed** — recruiter-ready pages (Home, About, Skills, Experience, Projects, Contact) plus a small admin view for contact messages. Built as a deliberate upskilling track in **React**, **TypeScript**, **Spring Boot**, and **Azure** (local-first; cloud deploy deferred).
 
-**Karim** is a Full Stack Software Developer with 5+ years of experience (C# / ASP.NET, Java, JavaScript, SQL, REST, enterprise apps including financial services, Azure Logic Apps and Functions).
+**Karim** is a backend-focused Software Engineer with 5+ years building C#/.NET enterprise systems, Azure integrations, and large-scale SQL data workflows (REST APIs, messaging, idempotent financial processing).
 
 ---
 

@@ -2,7 +2,7 @@ import { useId, useState, type FormEvent } from 'react'
 import { apiUrl } from '../api'
 import PageHeader from '../components/PageHeader'
 import StatusBanner from '../components/StatusBanner'
-import { site } from '../data/site'
+import { useLocale } from '../i18n/LocaleContext'
 
 type FieldErrors = {
   name?: string
@@ -20,21 +20,8 @@ function validateEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
 }
 
-function validate(fields: { name: string; email: string; message: string }): FieldErrors {
-  const errors: FieldErrors = {}
-  if (fields.name.trim().length < 2) {
-    errors.name = 'Enter at least 2 characters.'
-  }
-  if (!validateEmail(fields.email.trim())) {
-    errors.email = 'Enter a valid email address.'
-  }
-  if (fields.message.trim().length < 10) {
-    errors.message = 'Message should be at least 10 characters.'
-  }
-  return errors
-}
-
 export default function ContactPage() {
+  const { site, ui } = useLocale()
   const formId = useId()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -43,12 +30,30 @@ export default function ContactPage() {
   const [errors, setErrors] = useState<FieldErrors>({})
   const [status, setStatus] = useState<FormStatus>({ kind: 'idle' })
 
+  function validate(fields: { name: string; email: string; message: string }): FieldErrors {
+    const next: FieldErrors = {}
+    if (fields.name.trim().length < 2) {
+      next.name = ui.contact.nameError
+    }
+    if (!validateEmail(fields.email.trim())) {
+      next.email = ui.contact.emailError
+    }
+    if (fields.message.trim().length < 10) {
+      next.message = ui.contact.messageError
+    }
+    return next
+  }
+
+  function withEmail(template: string): string {
+    return template.replace('{email}', site.contact.email)
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
     // Bots that fill the hidden honeypot field are rejected client-side.
     if (website.trim().length > 0) {
-      setStatus({ kind: 'error', message: 'Could not send message. Please try again.' })
+      setStatus({ kind: 'error', message: ui.contact.honeypotRejected })
       return
     }
 
@@ -74,15 +79,14 @@ export default function ContactPage() {
       if (res.status === 429) {
         setStatus({
           kind: 'error',
-          message:
-            'Only one message per minute from this network. Please wait a minute and try again.',
+          message: ui.contact.rateLimited,
         })
         return
       }
       if (!res.ok) {
         setStatus({
           kind: 'error',
-          message: `Send failed. Email me at ${site.contact.email} if the API is offline.`,
+          message: withEmail(ui.contact.sendFailed),
         })
         return
       }
@@ -95,7 +99,7 @@ export default function ContactPage() {
     } catch {
       setStatus({
         kind: 'error',
-        message: `Could not reach the API. Email me at ${site.contact.email} instead.`,
+        message: withEmail(ui.contact.unreachable),
       })
     }
   }
@@ -110,17 +114,17 @@ export default function ContactPage() {
           {site.contact.email}
         </a>
         <a href={site.githubUrl} target="_blank" rel="noreferrer" className="text-link">
-          GitHub
+          {ui.social.github}
         </a>
         <a href={site.linkedInUrl} target="_blank" rel="noreferrer" className="text-link">
-          LinkedIn
+          {ui.social.linkedIn}
         </a>
       </div>
 
       <form className="mt-10 max-w-lg space-y-5" onSubmit={handleSubmit} noValidate>
         {status.kind === 'success' ? (
           <StatusBanner tone="success" role="status">
-            Message sent. Thanks for reaching out.
+            {ui.contact.success}
           </StatusBanner>
         ) : null}
         {status.kind === 'error' ? (
@@ -144,7 +148,7 @@ export default function ContactPage() {
         </div>
 
         <label className="field" htmlFor={`${formId}-name`}>
-          <span className="field-label">Name</span>
+          <span className="field-label">{ui.contact.name}</span>
           <input
             id={`${formId}-name`}
             name="name"
@@ -165,7 +169,7 @@ export default function ContactPage() {
         </label>
 
         <label className="field" htmlFor={`${formId}-email`}>
-          <span className="field-label">Email</span>
+          <span className="field-label">{ui.contact.email}</span>
           <input
             id={`${formId}-email`}
             name="email"
@@ -186,7 +190,7 @@ export default function ContactPage() {
         </label>
 
         <label className="field" htmlFor={`${formId}-message`}>
-          <span className="field-label">Message</span>
+          <span className="field-label">{ui.contact.message}</span>
           <textarea
             id={`${formId}-message`}
             name="message"
@@ -210,7 +214,7 @@ export default function ContactPage() {
           className="btn btn-primary"
           disabled={status.kind === 'submitting'}
         >
-          {status.kind === 'submitting' ? 'Sending…' : 'Send message'}
+          {status.kind === 'submitting' ? ui.contact.sending : ui.contact.send}
         </button>
       </form>
     </section>

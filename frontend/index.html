@@ -6,15 +6,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Karim Majed — Full Stack Software Developer. Enterprise apps with .NET, Java, SQL, REST, and Azure."
+      content="Karim Majed — Backend software engineer. C# / .NET, Azure, SQL, and REST APIs."
     />
+    <script>
+      (() => {
+        try {
+          const theme = localStorage.getItem('portfolio-theme')
+          const next = theme === 'light' || theme === 'dark' ? theme : 'dark'
+          document.documentElement.dataset.theme = next
+          document.documentElement.style.colorScheme = next
+        } catch (_) {
+          document.documentElement.dataset.theme = 'dark'
+          document.documentElement.style.colorScheme = 'dark'
+        }
+      })()
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Syne:wght@500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <title>Karim Majed — Full Stack Software Developer</title>
+    <title>Karim Majed — Backend software engineer</title>
   </head>
   <body>
     <div id="root"></div>

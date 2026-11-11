@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { apiUrl } from '../api'
 import PageHeader from '../components/PageHeader'
 import StatusBanner from '../components/StatusBanner'
+import { useLocale } from '../i18n/LocaleContext'
 
 type ContactMessage = {
   id: number
@@ -16,14 +17,8 @@ function basicAuthHeader(username: string, password: string): string {
   return `Basic ${token}`
 }
 
-function errorMessageForStatus(status: number): string {
-  if (status === 401 || status === 403) {
-    return 'Invalid username or password.'
-  }
-  return `Could not load messages (HTTP ${status}).`
-}
-
 export default function AdminPage() {
+  const { locale, ui } = useLocale()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [authenticated, setAuthenticated] = useState(false)
@@ -43,7 +38,15 @@ export default function AdminPage() {
       })
 
       if (!res.ok) {
-        setError(errorMessageForStatus(res.status))
+        if (res.status === 401 || res.status === 403) {
+          setError(ui.admin.authError)
+        } else {
+          setError(
+            locale === 'fr'
+              ? `Impossible de charger les messages (HTTP ${res.status}).`
+              : `Could not load messages (HTTP ${res.status}).`,
+          )
+        }
         return false
       }
 
@@ -52,7 +55,7 @@ export default function AdminPage() {
       setAuthenticated(true)
       return true
     } catch {
-      setError('Could not reach the API. Is the backend running on port 8080?')
+      setError(ui.admin.unreachable)
       return false
     } finally {
       setLoading(false)
@@ -73,18 +76,14 @@ export default function AdminPage() {
     <section className="page-wrap">
       <PageHeader
         index="Admin"
-        title="Messages"
-        subtitle={
-          authenticated
-            ? 'Contact messages from the site.'
-            : 'Sign in to view contact messages.'
-        }
+        title={ui.admin.title}
+        subtitle={authenticated ? ui.admin.signedIn : ui.admin.signedOut}
       />
 
       {!authenticated && (
         <form className="mt-2 max-w-md space-y-5" onSubmit={handleSubmit}>
           <label className="field">
-            <span className="field-label">Username</span>
+            <span className="field-label">{ui.admin.username}</span>
             <input
               type="text"
               name="username"
@@ -96,7 +95,7 @@ export default function AdminPage() {
             />
           </label>
           <label className="field">
-            <span className="field-label">Password</span>
+            <span className="field-label">{ui.admin.password}</span>
             <input
               type="password"
               name="password"
@@ -108,7 +107,7 @@ export default function AdminPage() {
             />
           </label>
           <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? 'Loading…' : 'Load messages'}
+            {loading ? ui.admin.loading : ui.admin.load}
           </button>
         </form>
       )}
@@ -129,13 +128,13 @@ export default function AdminPage() {
             onClick={handleRefresh}
             disabled={loading}
           >
-            {loading ? 'Refreshing…' : 'Refresh'}
+            {loading ? ui.admin.refreshing : ui.admin.refresh}
           </button>
 
           <div className="mt-10">
-            <h2 className="section-label">Contact messages</h2>
+            <h2 className="section-label">{ui.admin.listHeading}</h2>
             {messages.length === 0 ? (
-              <p className="prose-quiet">No messages yet.</p>
+              <p className="prose-quiet">{ui.admin.empty}</p>
             ) : (
               <ul className="mt-4 space-y-6">
                 {messages.map((msg) => (
@@ -145,7 +144,7 @@ export default function AdminPage() {
                       <span className="font-normal text-muted">· {msg.email}</span>
                     </p>
                     <p className="mt-1 font-mono text-xs tracking-wide text-muted">
-                      {new Date(msg.createdAt).toLocaleString()}
+                      {new Date(msg.createdAt).toLocaleString(locale)}
                     </p>
                     <p className="mt-3 prose-quiet">{msg.message}</p>
                   </li>

@@ -1,46 +1,28 @@
 import { Link } from 'react-router-dom'
 import ArchitecturalVisual from '../components/ArchitecturalVisual'
 import ProjectList from '../components/ProjectList'
-import { site } from '../data/site'
-
-const [firstName, ...restName] = site.name.split(' ')
-const lastName = restName.join(' ')
-
-const highlights = [
-  {
-    value: '5+ years',
-    label: 'Building and maintaining enterprise applications',
-  },
-  {
-    value: '10+ environments',
-    label: 'Production deployments managed at Redmane Technology',
-  },
-  {
-    value: '.NET · Java · SQL',
-    label: 'Enterprise stacks with REST API integrations',
-  },
-  {
-    value: 'Azure',
-    label: 'Logic Apps, Functions, and cloud-minded delivery',
-  },
-] as const
-
-const featuredPeek = site.projects.items.slice(0, 1).map((item, index) => ({
-  id: index + 1,
-  name: item.name,
-  summary: item.summary,
-  tags: item.tags,
-  href: item.href,
-}))
+import { useLocale } from '../i18n/LocaleContext'
 
 export default function HomePage() {
+  const { site, ui } = useLocale()
+  const [firstName, ...restName] = site.name.split(' ')
+  const lastName = restName.join(' ')
+
+  const featuredPeek = site.projects.items.slice(0, 1).map((item, index) => ({
+    id: index + 1,
+    name: item.name,
+    summary: item.summary,
+    tags: item.tags,
+    href: item.href,
+  }))
+
   return (
     <>
-      <section className="hero-stage" aria-label="Introduction">
+      <section className="hero-stage" aria-label={ui.home.introAria}>
         <div className="hero-media" aria-hidden="true" />
         <div className="hero-content">
           <div className="hero-copy">
-            <p className="hero-mark">Portfolio · Montreal</p>
+            <p className="hero-mark">{ui.home.mark}</p>
             <h1 className="hero-name">
               <span className="hero-name-line">{firstName}</span>{' '}
               <span className="hero-name-line hero-name-line--last">{lastName}</span>
@@ -49,36 +31,36 @@ export default function HomePage() {
             <p className="hero-lede">{site.description}</p>
             <div className="hero-actions">
               <Link to="/projects" className="btn btn-primary">
-                View projects
+                {ui.home.seeProjects}
               </Link>
               <Link to="/contact" className="btn btn-secondary">
-                Contact me
+                {ui.home.contact}
               </Link>
             </div>
             <div className="hero-meta">
               <a href={site.githubUrl} target="_blank" rel="noreferrer">
-                GitHub
+                {ui.social.github}
               </a>
               <span className="hero-meta-sep" aria-hidden="true" />
               <a href={site.linkedInUrl} target="_blank" rel="noreferrer">
-                LinkedIn
+                {ui.social.linkedIn}
               </a>
             </div>
           </div>
           <div className="hero-visual">
-            <ArchitecturalVisual />
+            <ArchitecturalVisual label={ui.home.blueprintLabel} />
           </div>
         </div>
       </section>
 
       <div className="page-wrap !pt-0">
         <section className="section-block" aria-labelledby="highlights-heading">
-          <p className="section-label">At a glance</p>
+          <p className="section-label">{ui.home.highlightsLabel}</p>
           <h2 id="highlights-heading" className="section-heading">
-            Built for production systems
+            {ui.home.highlightsHeading}
           </h2>
           <div className="highlight-grid mt-8">
-            {highlights.map((item) => (
+            {ui.home.highlightItems.map((item) => (
               <article key={item.value} className="highlight-item">
                 <p className="highlight-value">{item.value}</p>
                 <p className="highlight-label">{item.label}</p>
@@ -87,10 +69,10 @@ export default function HomePage() {
           </div>
           <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2">
             <Link to="/experience" className="text-link">
-              Experience
+              {ui.nav.experience}
             </Link>
             <Link to="/skills" className="text-link">
-              Skills
+              {ui.nav.skills}
             </Link>
           </div>
         </section>
@@ -99,13 +81,13 @@ export default function HomePage() {
           <section className="section-block" aria-labelledby="work-heading">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
-                <p className="section-label">Featured</p>
+                <p className="section-label">{ui.home.projectsLabel}</p>
                 <h2 id="work-heading" className="section-heading">
-                  One project peek
+                  {ui.home.featuredHeading}
                 </h2>
               </div>
               <Link to="/projects" className="text-link">
-                All projects
+                {ui.home.allProjects}
               </Link>
             </div>
             <div className="mt-8">
@@ -117,21 +99,18 @@ export default function HomePage() {
         <section className="section-block" aria-labelledby="invite-heading">
           <div className="invite-panel">
             <div>
-              <p className="section-label">Next</p>
+              <p className="section-label">{ui.home.moreLabel}</p>
               <h2 id="invite-heading" className="section-heading">
-                Want the fuller picture?
+                {ui.home.moreHeading}
               </h2>
-              <p className="prose-quiet mt-4">
-                Background, education, and interests live on About. Open to roles and
-                collaborations — say hello anytime.
-              </p>
+              <p className="prose-quiet mt-4">{ui.home.moreBody}</p>
             </div>
             <div className="flex flex-wrap gap-3">
               <Link to="/about" className="btn btn-secondary">
-                About
+                {ui.home.about}
               </Link>
               <Link to="/contact" className="btn btn-primary">
-                Contact
+                {ui.home.contact}
               </Link>
             </div>
           </div>

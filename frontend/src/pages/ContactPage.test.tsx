@@ -1,7 +1,18 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { AppProviders } from '../test/providers'
 import ContactPage from './ContactPage'
+
+function renderContact() {
+  return render(
+    <AppProviders>
+      <MemoryRouter>
+        <ContactPage />
+      </MemoryRouter>
+    </AppProviders>,
+  )
+}
 
 describe('ContactPage spam protection', () => {
   afterEach(() => {
@@ -14,11 +25,7 @@ describe('ContactPage spam protection', () => {
     const fetchMock = vi.fn()
     vi.stubGlobal('fetch', fetchMock)
 
-    render(
-      <MemoryRouter>
-        <ContactPage />
-      </MemoryRouter>,
-    )
+    renderContact()
 
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Karim' } })
     fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'karim@example.com' } })
@@ -45,11 +52,7 @@ describe('ContactPage spam protection', () => {
       }),
     )
 
-    render(
-      <MemoryRouter>
-        <ContactPage />
-      </MemoryRouter>,
-    )
+    renderContact()
 
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Karim' } })
     fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'karim@example.com' } })

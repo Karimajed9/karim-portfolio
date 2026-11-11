@@ -6,6 +6,7 @@ import HomePage from './pages/HomePage'
 import AboutPage from './pages/AboutPage'
 import SkillsPage from './pages/SkillsPage'
 import Layout from './components/Layout'
+import { AppProviders } from './test/providers'
 
 afterEach(() => {
   cleanup()
@@ -29,7 +30,11 @@ function renderApp(initialPath: string) {
 
   return {
     user: userEvent.setup(),
-    ...render(<RouterProvider router={router} useTransitions={false} />),
+    ...render(
+      <AppProviders>
+        <RouterProvider router={router} useTransitions={false} />
+      </AppProviders>,
+    ),
     router,
   }
 }

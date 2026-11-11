@@ -136,11 +136,11 @@ export function fallbackReasonFromHealth(result: HealthProbeResult): ApiFallback
 export function messageForFallbackReason(reason: ApiFallbackReason): string {
   switch (reason) {
     case 'warming':
-      return 'API is warming up (cold start). Showing static portfolio copy meanwhile…'
+      return 'The API is starting up. Showing saved site content for now.'
     case 'offline':
-      return "Can't reach the API right now. Showing static portfolio copy."
+      return "Can't reach the API. Showing saved site content."
     case 'loading':
-      return 'Loading live data… showing static copy for a moment.'
+      return 'Loading live data. Showing saved site content for a moment.'
   }
 }
 
