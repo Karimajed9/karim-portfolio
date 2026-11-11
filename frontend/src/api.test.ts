@@ -31,7 +31,7 @@ describe('health probe messaging', () => {
   })
 
   it('exposes distinct copy for each reason', () => {
-    expect(messageForFallbackReason('warming')).toMatch(/warming up/i)
+    expect(messageForFallbackReason('warming')).toMatch(/starting up/i)
     expect(messageForFallbackReason('offline')).toMatch(/can't reach/i)
     expect(messageForFallbackReason('loading')).toMatch(/loading live data/i)
   })

@@ -1,25 +1,25 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
-import { site } from '../data/site'
-
-const links = [
-  { to: '/', label: 'Home', end: true },
-  { to: '/about', label: 'About' },
-  { to: '/skills', label: 'Skills' },
-  { to: '/experience', label: 'Experience' },
-  { to: '/projects', label: 'Projects' },
-  { to: '/contact', label: 'Contact' },
-] as const
+import { useLocale } from '../i18n/LocaleContext'
+import SettingsMenu from './SettingsMenu'
 
 export default function Layout() {
+  const { site, ui } = useLocale()
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
-  // Close the menu when the path changes without setState-in-effect and
-  // without unmounting the clicked NavLink mid-navigation.
   const [menuPath, setMenuPath] = useState(location.pathname)
   const menuId = useId()
   const toggleRef = useRef<HTMLButtonElement>(null)
   const firstLinkRef = useRef<HTMLAnchorElement>(null)
+
+  const links = [
+    { to: '/', label: ui.nav.home, end: true },
+    { to: '/about', label: ui.nav.about },
+    { to: '/skills', label: ui.nav.skills },
+    { to: '/experience', label: ui.nav.experience },
+    { to: '/projects', label: ui.nav.projects },
+    { to: '/contact', label: ui.nav.contact },
+  ] as const
 
   const isMenuOpen = menuOpen && menuPath === location.pathname
 
@@ -61,9 +61,9 @@ export default function Layout() {
   return (
     <div className="site-shell">
       <a href="#main-content" className="skip-link">
-        Skip to content
+        {ui.skipToContent}
       </a>
-      <nav className="site-nav" aria-label="Primary">
+      <nav className="site-nav" aria-label={ui.nav.primary}>
         <NavLink to="/" className="site-brand" end>
           <span className="site-brand-mark" aria-hidden="true">
             KM
@@ -71,40 +71,51 @@ export default function Layout() {
           <span className="site-brand-name">{site.name}</span>
         </NavLink>
 
-        <div className="site-nav-desktop">
-          {links.map((link) => (
-            <NavLink
-              key={link.to}
-              to={link.to}
-              end={'end' in link ? link.end : false}
-              className={({ isActive }) =>
-                `site-nav-link${isActive ? ' is-active' : ''}`
-              }
-            >
-              {link.label}
-            </NavLink>
-          ))}
-        </div>
+        <div className="site-nav-end">
+          <div className="site-nav-desktop">
+            {links.map((link) => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                end={'end' in link ? link.end : false}
+                className={({ isActive }) =>
+                  `site-nav-link${isActive ? ' is-active' : ''}`
+                }
+              >
+                {link.label}
+              </NavLink>
+            ))}
+          </div>
 
-        <button
-          ref={toggleRef}
-          type="button"
-          className="site-nav-toggle"
-          aria-expanded={isMenuOpen}
-          aria-controls={menuId}
-          aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
-          onClick={toggleMenu}
-        >
-          <span className="site-nav-toggle-bars" aria-hidden="true">
-            <span />
-            <span />
-            <span />
-          </span>
-        </button>
+          <div className="site-nav-actions">
+            <SettingsMenu />
+            <button
+              ref={toggleRef}
+              type="button"
+              className="site-nav-toggle"
+              aria-expanded={isMenuOpen}
+              aria-controls={menuId}
+              onClick={toggleMenu}
+              aria-label={isMenuOpen ? ui.nav.closeMenu : ui.nav.openMenu}
+            >
+              <span className="site-nav-toggle-bars" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+              </span>
+            </button>
+          </div>
+        </div>
       </nav>
 
       {isMenuOpen ? (
-        <div id={menuId} className="site-nav-mobile" role="dialog" aria-modal="true" aria-label="Site menu">
+        <div
+          id={menuId}
+          className="site-nav-mobile"
+          role="dialog"
+          aria-modal="true"
+          aria-label={ui.nav.siteMenu}
+        >
           {links.map((link, index) => (
             <NavLink
               key={link.to}
@@ -121,7 +132,6 @@ export default function Layout() {
         </div>
       ) : null}
 
-      {/* No pathname key / page-enter wrapper — remount+transition compounded the flash. */}
       <main id="main-content" className="site-main">
         <Outlet />
       </main>
@@ -134,14 +144,14 @@ export default function Layout() {
             <div className="site-footer-meta mt-4">
               <a href={`mailto:${site.contact.email}`}>{site.contact.email}</a>
               <a href={site.githubUrl} target="_blank" rel="noreferrer">
-                GitHub
+                {ui.social.github}
               </a>
               <a href={site.linkedInUrl} target="_blank" rel="noreferrer">
-                LinkedIn
+                {ui.social.linkedIn}
               </a>
             </div>
           </div>
-          <p className="site-footer-copy">Portfolio · Montreal</p>
+          <p className="site-footer-copy">{ui.footer.location}</p>
         </div>
       </footer>
     </div>

@@ -1,4 +1,8 @@
-export default function ArchitecturalVisual() {
+type Props = {
+  label: string
+}
+
+export default function ArchitecturalVisual({ label }: Props) {
   return (
     <div className="blueprint" aria-hidden="true">
       <div className="blueprint-grid" />
@@ -9,7 +13,7 @@ export default function ArchitecturalVisual() {
         xmlns="http://www.w3.org/2000/svg"
         role="presentation"
       >
-        <g stroke="#55B7B1" strokeWidth="1.25" opacity="0.9">
+        <g stroke="var(--color-accent)" strokeWidth="1.25" opacity="0.9">
           <path
             className="blueprint-path"
             d="M72 292 V118 H148 V292 M148 148 H214 V292 M214 98 H308 V292 M308 168 H408 V292"
@@ -25,12 +29,12 @@ export default function ArchitecturalVisual() {
             opacity="0.55"
           />
           <path d="M332 198 H384 M332 228 H384 M332 258 H384" opacity="0.55" />
-          <path d="M48 292 H432" stroke="#A3B0B9" opacity="0.5" />
-          <path d="M48 40 V320 M432 40 V320" stroke="#293943" />
-          <circle cx="148" cy="72" r="3" fill="#55B7B1" />
-          <circle cx="308" cy="54" r="3" fill="#55B7B1" />
+          <path d="M48 292 H432" stroke="var(--color-ink-soft)" opacity="0.5" />
+          <path d="M48 40 V320 M432 40 V320" stroke="var(--color-line)" />
+          <circle cx="148" cy="72" r="3" fill="var(--color-accent)" />
+          <circle cx="308" cy="54" r="3" fill="var(--color-accent)" />
         </g>
-        <g fontFamily="IBM Plex Mono, monospace" fontSize="10" fill="#74838E">
+        <g fontFamily="IBM Plex Mono, monospace" fontSize="10" fill="var(--color-muted)">
           <text x="72" y="308">A</text>
           <text x="214" y="308">B</text>
           <text x="308" y="308">C</text>
@@ -38,7 +42,7 @@ export default function ArchitecturalVisual() {
           <text x="420" y="52">01</text>
         </g>
       </svg>
-      <span className="blueprint-label">Elevation · studio</span>
+      <span className="blueprint-label">{label}</span>
     </div>
   )
 }

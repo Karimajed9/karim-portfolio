@@ -8,6 +8,8 @@ import ContactPage from './pages/ContactPage'
 import AdminPage from './pages/AdminPage'
 import NotFoundPage from './pages/NotFoundPage'
 import Layout from './components/Layout'
+import { LocaleProvider } from './i18n/LocaleContext'
+import { ThemeProvider } from './theme/ThemeContext'
 
 // Vite BASE_URL is "/" locally and "/karim-portfolio/" on GitHub Pages builds.
 // React Router basename must omit a trailing slash; root deploys omit basename.
@@ -16,23 +18,27 @@ const routerBasename = trimmedBase.length > 0 ? trimmedBase : undefined
 
 function App() {
   return (
-    // useTransitions={false}: RR7 defaults to startTransition for history
-    // updates, which keeps the outgoing page painted until the destination
-    // commits — that reads as a Home flash when leaving `/`.
-    <BrowserRouter basename={routerBasename} useTransitions={false}>
-      <Routes>
-        <Route element={<Layout />}>
-          <Route index element={<HomePage />} />
-          <Route path="about" element={<AboutPage />} />
-          <Route path="skills" element={<SkillsPage />} />
-          <Route path="experience" element={<ExperiencePage />} />
-          <Route path="projects" element={<ProjectsPage />} />
-          <Route path="contact" element={<ContactPage />} />
-          <Route path="admin" element={<AdminPage />} />
-          <Route path="*" element={<NotFoundPage />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <ThemeProvider>
+      <LocaleProvider>
+        {/* useTransitions={false}: RR7 defaults to startTransition for history
+            updates, which keeps the outgoing page painted until the destination
+            commits — that reads as a Home flash when leaving `/`. */}
+        <BrowserRouter basename={routerBasename} useTransitions={false}>
+          <Routes>
+            <Route element={<Layout />}>
+              <Route index element={<HomePage />} />
+              <Route path="about" element={<AboutPage />} />
+              <Route path="skills" element={<SkillsPage />} />
+              <Route path="experience" element={<ExperiencePage />} />
+              <Route path="projects" element={<ProjectsPage />} />
+              <Route path="contact" element={<ContactPage />} />
+              <Route path="admin" element={<AdminPage />} />
+              <Route path="*" element={<NotFoundPage />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </LocaleProvider>
+    </ThemeProvider>
   )
 }
 
