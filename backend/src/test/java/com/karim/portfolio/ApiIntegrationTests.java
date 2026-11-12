@@ -1,5 +1,6 @@
 package com.karim.portfolio;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -30,6 +31,9 @@ class ApiIntegrationTests {
 
 	@Autowired
 	MockMvc mockMvc;
+
+	@Autowired
+	ContactMessageRepository contactMessages;
 
 	@Test
 	void healthReturnsOk() throws Exception {
@@ -80,7 +84,9 @@ class ApiIntegrationTests {
 		SessionAuth auth = loginAsAdmin();
 
 		mockMvc.perform(get("/api/admin/messages").session(auth.session()))
-				.andExpect(status().isOk());
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.content").isArray())
+				.andExpect(jsonPath("$.size").value(20));
 
 		long before = readRevision();
 
@@ -96,6 +102,28 @@ class ApiIntegrationTests {
 
 		long after = readRevision();
 		org.junit.jupiter.api.Assertions.assertTrue(after > before);
+	}
+
+	@Test
+	void adminCanDeleteContactMessage() throws Exception {
+		SessionAuth auth = loginAsAdmin();
+		ContactMessage saved = contactMessages.save(
+				new ContactMessage("Delete Me", "delete@example.com", "Please remove this message"));
+
+		mockMvc.perform(get("/api/admin/messages")
+						.session(auth.session())
+						.param("page", "0")
+						.param("size", "20"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.content[0].id").value(saved.getId()))
+				.andExpect(jsonPath("$.content[0].email").value("delete@example.com"));
+
+		mockMvc.perform(delete("/api/admin/messages/" + saved.getId())
+						.session(auth.session())
+						.header("X-CSRF-TOKEN", auth.csrfToken()))
+				.andExpect(status().isNoContent());
+
+		org.junit.jupiter.api.Assertions.assertFalse(contactMessages.existsById(saved.getId()));
 	}
 
 	@Test

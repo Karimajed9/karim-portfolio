@@ -175,6 +175,13 @@ export type UiCopy = {
     tabsLabel: string
     messagesTab: string
     cvTab: string
+    deleteMessage: string
+    deletingMessage: string
+    deleteMessageFailed: string
+    prevPage: string
+    nextPage: string
+    pageStatus: string
+    messagesCount: string
     authError: string
     tooManyRequests: string
     logout: string
