@@ -87,7 +87,7 @@ export function writeApiCache<T>(path: string, data: T): void {
 /** Default wait before treating a cold API as "slow" (free-tier wake). */
 export const SLOW_FETCH_MS = 1500
 
-/** Short probe window for /api/health to tell warming vs offline. */
+/** Short probe window for /api/health to tell reachable vs offline. */
 export const HEALTH_PROBE_MS = 800
 
 export type FetchJsonCachedOptions = {
@@ -108,7 +108,9 @@ export type StaticLoadMeta = {
 export type HealthProbeResult = 'ok' | 'timeout' | 'unreachable'
 
 /**
- * Quick /api/health check used to distinguish cold-start vs unreachable API.
+ * Quick /api/health check used to distinguish reachable vs down.
+ * 502 / connection refused / abort / cancel → unreachable-style results that
+ * map to offline. A probe timeout is not treated as a healthy cold start.
  */
 export async function probeApiHealth(
   timeoutMs = HEALTH_PROBE_MS,
@@ -117,9 +119,11 @@ export async function probeApiHealth(
   const timer = setTimeout(() => controller.abort(), timeoutMs)
   try {
     const res = await fetch(apiUrl('/api/health'), { signal: controller.signal })
+    // Non-OK (e.g. 502) means the API edge is up but the app is not healthy.
     if (!res.ok) return 'unreachable'
     return 'ok'
   } catch (err) {
+    // AbortError covers our probe timer and browser/proxy cancellation.
     if (err instanceof Error && err.name === 'AbortError') return 'timeout'
     return 'unreachable'
   } finally {
@@ -127,9 +131,14 @@ export async function probeApiHealth(
   }
 }
 
+/**
+ * Map health probe → banner reason.
+ * Warming is only used while a content request is still slow/pending (onSlow);
+ * a failed or cancelled health check is offline, not warming.
+ */
 export function fallbackReasonFromHealth(result: HealthProbeResult): ApiFallbackReason {
   if (result === 'ok') return 'loading'
-  if (result === 'timeout') return 'warming'
+  // timeout (cancelled/aborted) and unreachable (502, refused, network) → down
   return 'offline'
 }
 
@@ -190,9 +199,11 @@ export type LoadWithStaticFallbackOptions = Pick<FetchJsonCachedOptions, 'slowAf
 
 /**
  * Page-loader helper: serve live/cached API data, or `site.ts` static fallback.
- * - No cache + slow network → static + reason refined via /api/health probe
+ * - No cache + slow network → static + warming while the request is still pending
+ * - Health OK while content still pending → loading (reachable, just slow)
+ * - Health 502 / refused / cancelled / timed out → offline
+ * - Content 502 / network error → offline (refined by health as above)
  * - Network success (including empty `[]`) → live meta, no banner
- * - Network failure → keep cache/static + offline/warming/loading from health probe
  *
  * Important: a cache hit must not count as "live settled". Otherwise a later
  * connection-refused/502 never probes /api/health or shows the offline banner.
@@ -235,6 +246,7 @@ export async function loadWithStaticFallback<T>(
       {
         slowAfterMs: options?.slowAfterMs,
         onSlow: () => {
+          // Optimistic warming only while the content request is still in flight.
           void publishFallback('warming')
         },
       },

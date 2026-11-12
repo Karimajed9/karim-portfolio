@@ -26,7 +26,7 @@ describe('apiUrl', () => {
 describe('health probe messaging', () => {
   it('maps probe results to fallback reasons', () => {
     expect(fallbackReasonFromHealth('ok')).toBe('loading')
-    expect(fallbackReasonFromHealth('timeout')).toBe('warming')
+    expect(fallbackReasonFromHealth('timeout')).toBe('offline')
     expect(fallbackReasonFromHealth('unreachable')).toBe('offline')
   })
 
@@ -221,7 +221,7 @@ describe('api cache', () => {
     await expect(probeApiHealth(50)).resolves.toBe('unreachable')
   })
 
-  it('loadWithStaticFallback shows warming on slow hang then swaps to live', async () => {
+  it('loadWithStaticFallback shows warming while slow then loading when health is reachable', async () => {
     vi.useFakeTimers()
     const updates: Array<{ data: unknown; meta: { usingStatic: boolean; reason?: string } }> = []
     const staticFallback = [{ id: 0, name: 'static' }]
@@ -229,16 +229,10 @@ describe('api cache', () => {
     let resolveSkills!: (value: { ok: boolean; json: () => Promise<unknown> }) => void
     vi.stubGlobal(
       'fetch',
-      vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      vi.fn((input: RequestInfo | URL) => {
         const url = String(input)
         if (url.includes('/api/health')) {
-          return new Promise((_resolve, reject) => {
-            init?.signal?.addEventListener('abort', () => {
-              const err = new Error('Aborted')
-              err.name = 'AbortError'
-              reject(err)
-            })
-          })
+          return Promise.resolve({ ok: true, json: async () => ({ status: 'ok' }) })
         }
         return new Promise((resolve) => {
           resolveSkills = resolve
@@ -259,8 +253,8 @@ describe('api cache', () => {
       meta: { usingStatic: true, reason: 'warming' },
     })
 
-    await vi.advanceTimersByTimeAsync(HEALTH_PROBE_MS)
-    expect(updates.at(-1)?.meta).toEqual({ usingStatic: true, reason: 'warming' })
+    await Promise.resolve()
+    expect(updates.at(-1)?.meta).toEqual({ usingStatic: true, reason: 'loading' })
 
     resolveSkills({
       ok: true,
@@ -273,6 +267,44 @@ describe('api cache', () => {
       meta: { usingStatic: false },
     })
     expect(readApiCache('/api/skills')).toEqual([{ id: 9, name: 'live' }])
+  })
+
+  it('loadWithStaticFallback marks offline when health probe is cancelled', async () => {
+    vi.useFakeTimers()
+    const updates: Array<{ data: unknown; meta: { usingStatic: boolean; reason?: string } }> = []
+    const staticFallback = [{ id: 0, name: 'static' }]
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input)
+        if (url.includes('/api/health')) {
+          return new Promise((_resolve, reject) => {
+            init?.signal?.addEventListener('abort', () => {
+              const err = new Error('Aborted')
+              err.name = 'AbortError'
+              reject(err)
+            })
+          })
+        }
+        return Promise.resolve({ ok: false, status: 502 })
+      }),
+    )
+
+    const pending = loadWithStaticFallback(
+      '/api/skills',
+      staticFallback,
+      (data, meta) => updates.push({ data, meta }),
+      { healthProbeMs: HEALTH_PROBE_MS },
+    )
+
+    await vi.advanceTimersByTimeAsync(HEALTH_PROBE_MS)
+    await pending
+
+    expect(updates.at(-1)).toEqual({
+      data: staticFallback,
+      meta: { usingStatic: true, reason: 'offline' },
+    })
   })
 
   it('loadWithStaticFallback marks offline when health is unreachable', async () => {

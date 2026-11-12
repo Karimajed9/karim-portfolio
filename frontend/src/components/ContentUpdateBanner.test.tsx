@@ -37,6 +37,7 @@ describe('ContentUpdateBanner', () => {
     renderBanner()
     await waitFor(() => expect(fetch).toHaveBeenCalled())
     expect(screen.queryByText(/refresh the page/i)).toBeNull()
+    expect(screen.queryByText(/can't reach the api/i)).toBeNull()
   })
 
   it('shows a dismissible notice when revision changes', async () => {
@@ -61,6 +62,56 @@ describe('ContentUpdateBanner', () => {
     expect(await screen.findByText(/refresh the page/i)).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: /dismiss content update/i }))
     expect(screen.queryByText(/refresh the page/i)).toBeNull()
+  })
+
+  it('shows the offline API banner on 502 from content-revision', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input)
+        if (url.includes('/api/health')) {
+          return Promise.reject(new TypeError('Failed to fetch'))
+        }
+        return Promise.resolve({ ok: false, status: 502, json: async () => ({}) })
+      }),
+    )
+
+    renderBanner()
+    expect(await screen.findByText(/can't reach the api/i)).toBeInTheDocument()
+    expect(screen.queryByText(/starting up/i)).toBeNull()
+    expect(screen.queryByText(/refresh the page/i)).toBeNull()
+  })
+
+  it('shows offline when content-revision fetch throws', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input)
+        if (url.includes('/api/health')) {
+          return Promise.reject(new TypeError('Failed to fetch'))
+        }
+        throw new TypeError('Failed to fetch')
+      }),
+    )
+
+    renderBanner()
+    expect(await screen.findByText(/can't reach the api/i)).toBeInTheDocument()
+  })
+
+  it('stays quiet on empty successful revision payloads', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () =>
+        Promise.resolve({
+          ok: true,
+          json: async () => ({}),
+        }),
+      ),
+    )
+
+    renderBanner()
+    await waitFor(() => expect(fetch).toHaveBeenCalled())
+    expect(screen.queryByRole('status')).toBeNull()
   })
 
   it('does not render on the admin route', async () => {
