@@ -293,6 +293,8 @@ export const uiFr: UiCopy = {
     remove: 'Supprimer',
     saved: 'Enregistré. Actualisez une page ouverte pour voir la dernière version.',
     saveFailed: 'Enregistrement impossible. Vérifiez les champs et réessayez.',
+    langEn: 'EN',
+    langFr: 'FR',
     company: 'Entreprise',
     role: 'Poste',
     startDate: 'Date de début',

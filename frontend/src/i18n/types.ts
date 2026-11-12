@@ -197,6 +197,8 @@ export type UiCopy = {
     remove: string
     saved: string
     saveFailed: string
+    langEn: string
+    langFr: string
     company: string
     role: string
     startDate: string

@@ -82,10 +82,16 @@ export default function HomePage() {
     }
   }
 
-  const staticExperience = useMemo(() => buildStaticExperience(site), [site])
-  const staticProjects = useMemo(() => buildStaticProjects(site), [site])
-  const staticSkills = useMemo(() => buildStaticSkills(site), [site])
-  const staticAbout = useMemo(() => buildStaticAbout(site), [site])
+  const staticExperience = useMemo(
+    () => buildStaticExperience(site, locale),
+    [site, locale],
+  )
+  const staticProjects = useMemo(
+    () => buildStaticProjects(site, locale),
+    [site, locale],
+  )
+  const staticSkills = useMemo(() => buildStaticSkills(site, locale), [site, locale])
+  const staticAbout = useMemo(() => buildStaticAbout(site, locale), [site, locale])
   const { data: experienceData } = useStaticApiResource(
     '/api/experience',
     staticExperience,
@@ -106,13 +112,19 @@ export default function HomePage() {
     staticAbout,
     locale,
   )
-  const experience = useMemo(() => toExperienceViews(experienceData), [experienceData])
-  const projects = useMemo(
-    () => toProjectViews(projectsData, site.projects.items),
-    [projectsData, site.projects.items],
+  const experience = useMemo(
+    () => toExperienceViews(experienceData, locale),
+    [experienceData, locale],
   )
-  const skills = useMemo(() => toSkillGroups(skillsData), [skillsData])
-  const education = useMemo(() => toEducationViews(aboutData), [aboutData])
+  const projects = useMemo(
+    () => toProjectViews(projectsData, site.projects.items, locale),
+    [projectsData, site.projects.items, locale],
+  )
+  const skills = useMemo(() => toSkillGroups(skillsData, locale), [skillsData, locale])
+  const education = useMemo(
+    () => toEducationViews(aboutData, locale),
+    [aboutData, locale],
+  )
 
   const [firstName, ...rest] = site.name.split(' ')
   const lastName = rest.join(' ')

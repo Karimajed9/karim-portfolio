@@ -4,7 +4,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record SkillRequest(
-    @NotBlank String category,
-    @NotBlank String name,
+    @NotBlank String categoryEn,
+    String categoryFr,
+    @NotBlank String nameEn,
+    String nameFr,
     @NotNull Integer sortOrder
 ) {}

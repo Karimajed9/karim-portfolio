@@ -15,9 +15,11 @@ export const CONTENT_REVISION_POLL_MS = 20_000
  * Dismissible “refresh for latest” notice when admin content changed after
  * this page view started. Does not auto-reload.
  *
- * Failed polls report the shared offline API banner. A successful poll
- * (HTTP 200) clears that banner — including recovery after an earlier failure.
- * Empty revision payloads stay quiet for the update notice but still clear offline.
+ * Polling is public-site only: the admin route never hits `/api/content-revision`
+ * (edits there would keep triggering the notice). Failed polls report the shared
+ * offline API banner. A successful poll (HTTP 200) clears that banner —
+ * including recovery after an earlier failure. Empty revision payloads stay quiet
+ * for the update notice but still clear offline.
  */
 export default function ContentUpdateBanner() {
   const { ui } = useLocale()
@@ -30,6 +32,7 @@ export default function ContentUpdateBanner() {
     location.pathname === '/admin' || location.pathname.endsWith('/admin')
 
   useEffect(() => {
+    // Admin editors bump the revision themselves — do not poll while editing.
     if (isAdmin) return
 
     let cancelled = false

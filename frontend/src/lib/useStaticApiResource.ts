@@ -8,8 +8,8 @@ import { reportApiDown, reportApiUp } from './apiBannerState'
 import type { Locale } from '../i18n/types'
 
 /**
- * Seeds from static (and EN cache when present) so first paint is full content.
- * French always uses static site copy; English revalidates against the API.
+ * Seeds from static (and cache when present) so first paint is full content.
+ * Both locales revalidate against the bilingual API; views pick EN/FR with fallback.
  * Live success clears the shared API banner; failures report down.
  */
 export function useStaticApiResource<T>(
@@ -18,14 +18,12 @@ export function useStaticApiResource<T>(
   locale: Locale,
 ): { data: T; fallbackReason: ApiFallbackReason | null } {
   const requestKey = `${locale}:${path}`
-  const cached = locale === 'en' ? readApiCache<T>(path) : null
+  const cached = readApiCache<T>(path)
   const [remote, setRemote] = useState<T | null>(null)
   const [resolvedKey, setResolvedKey] = useState<string | null>(null)
   const [fallbackReason, setFallbackReason] = useState<ApiFallbackReason | null>(null)
 
   useEffect(() => {
-    if (locale === 'fr') return
-
     let cancelled = false
     void loadWithStaticFallback<T>(path, staticData, (data, meta) => {
       if (!cancelled) {
@@ -46,10 +44,6 @@ export function useStaticApiResource<T>(
       cancelled = true
     }
   }, [locale, path, staticData])
-
-  if (locale === 'fr') {
-    return { data: staticData, fallbackReason: null }
-  }
 
   // Empty arrays (`[]`) are valid live/cached payloads — only null means "not yet".
   const data =

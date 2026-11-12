@@ -6,6 +6,7 @@ import {
   buildStaticProjects,
   buildStaticSkills,
   educationYearLabel,
+  pickLocalized,
   projectMark,
   splitHighlights,
   splitTags,
@@ -21,21 +22,29 @@ describe('contentApi adapters', () => {
     expect(splitTags('React, TypeScript,')).toEqual(['React', 'TypeScript'])
   })
 
+  it('picks the active locale and falls back when empty', () => {
+    expect(pickLocalized('Hello', 'Bonjour', 'en')).toBe('Hello')
+    expect(pickLocalized('Hello', 'Bonjour', 'fr')).toBe('Bonjour')
+    expect(pickLocalized('Hello', '', 'fr')).toBe('Hello')
+    expect(pickLocalized('', 'Bonjour', 'en')).toBe('Bonjour')
+  })
+
   it('builds static API-shaped seeds from site copy', () => {
-    const experience = buildStaticExperience(siteEn)
-    expect(experience[0]?.highlights).toContain('|||')
-    expect(toExperienceViews(experience)[0]?.highlights.length).toBeGreaterThan(0)
+    const experience = buildStaticExperience(siteEn, 'en')
+    expect(experience[0]?.highlightsEn).toContain('|||')
+    expect(experience[0]?.highlightsFr).toBe('')
+    expect(toExperienceViews(experience, 'en')[0]?.highlights.length).toBeGreaterThan(0)
 
-    const projects = buildStaticProjects(siteEn)
-    expect(projects[0]?.tags).toContain(',')
-    expect(toProjectViews(projects, siteEn.projects.items)[0]?.mark).toBe('KM')
+    const projects = buildStaticProjects(siteEn, 'en')
+    expect(projects[0]?.tagsEn).toContain(',')
+    expect(toProjectViews(projects, siteEn.projects.items, 'en')[0]?.mark).toBe('KM')
 
-    const skills = buildStaticSkills(siteEn)
+    const skills = buildStaticSkills(siteEn, 'en')
     expect(skills.length).toBeGreaterThan(0)
-    expect(toSkillGroups(skills)[0]?.category).toBe(siteEn.skills[0]?.category)
+    expect(toSkillGroups(skills, 'en')[0]?.category).toBe(siteEn.skills[0]?.category)
 
-    const about = buildStaticAbout(siteEn)
-    expect(toEducationViews(about)[0]?.degree).toBe(siteEn.about.education[0]?.degree)
+    const about = buildStaticAbout(siteEn, 'en')
+    expect(toEducationViews(about, 'en')[0]?.degree).toBe(siteEn.about.education[0]?.degree)
   })
 
   it('derives a mark when the name is unknown', () => {
@@ -43,45 +52,76 @@ describe('contentApi adapters', () => {
     expect(projectMark('Solo', [])).toBe('SO')
   })
 
-  it('groups skills by category and sortOrder', () => {
+  it('groups skills by localized category and sortOrder', () => {
     expect(
-      toSkillGroups([
-        { id: 2, category: 'Cloud', name: 'Logic Apps', sortOrder: 2 },
-        { id: 1, category: 'Cloud', name: 'Azure Functions', sortOrder: 1 },
-        { id: 3, category: 'Other', name: 'Git', sortOrder: 1 },
-      ]),
+      toSkillGroups(
+        [
+          {
+            id: 2,
+            categoryEn: 'Cloud',
+            categoryFr: 'Nuage',
+            nameEn: 'Logic Apps',
+            nameFr: 'Logic Apps',
+            sortOrder: 2,
+          },
+          {
+            id: 1,
+            categoryEn: 'Cloud',
+            categoryFr: 'Nuage',
+            nameEn: 'Azure Functions',
+            nameFr: 'Azure Functions',
+            sortOrder: 1,
+          },
+          {
+            id: 3,
+            categoryEn: 'Other',
+            categoryFr: 'Autre',
+            nameEn: 'Git',
+            nameFr: 'Git',
+            sortOrder: 1,
+          },
+        ],
+        'fr',
+      ),
     ).toEqual([
-      { category: 'Cloud', items: ['Azure Functions', 'Logic Apps'] },
-      { category: 'Other', items: ['Git'] },
+      { category: 'Nuage', items: ['Azure Functions', 'Logic Apps'] },
+      { category: 'Autre', items: ['Git'] },
     ])
   })
 
   it('maps about.education only and derives year labels', () => {
     expect(educationYearLabel('August 2021')).toBe('2021')
     expect(
-      toEducationViews({
-        summary: 'ignored',
-        goals: 'ignored',
-        professionalInterests: '',
-        personalInterests: '',
-        education: [
-          {
-            id: 1,
-            school: 'Concordia University',
-            city: 'Montréal',
-            degree: 'Graduate Diploma in Computer Science',
-            country: 'Canada',
-            startDate: 'September 2020',
-            endDate: 'August 2021',
-          },
-        ],
-      }),
+      toEducationViews(
+        {
+          summary: 'ignored',
+          goals: 'ignored',
+          professionalInterests: '',
+          personalInterests: '',
+          education: [
+            {
+              id: 1,
+              schoolEn: 'Concordia University',
+              schoolFr: 'Université Concordia',
+              cityEn: 'Montreal',
+              cityFr: 'Montréal',
+              degreeEn: 'Graduate Diploma in Computer Science',
+              degreeFr: 'Diplôme de 2e cycle en informatique',
+              countryEn: 'Canada',
+              countryFr: 'Canada',
+              startDate: 'September 2020',
+              endDate: 'August 2021',
+            },
+          ],
+        },
+        'fr',
+      ),
     ).toEqual([
       {
         id: 1,
-        school: 'Concordia University',
+        school: 'Université Concordia',
         city: 'Montréal',
-        degree: 'Graduate Diploma in Computer Science',
+        degree: 'Diplôme de 2e cycle en informatique',
         country: 'Canada',
         startDate: 'September 2020',
         endDate: 'August 2021',

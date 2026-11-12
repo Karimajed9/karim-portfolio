@@ -12,16 +12,22 @@ public class Skill {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
-  private String category;
-  private String name;
+  private String categoryEn;
+  private String categoryFr;
+  private String nameEn;
+  private String nameFr;
   private Integer sortOrder;
 
   public Long getId() { return id; }
-  public String getCategory() { return category; }
-  public String getName() { return name; }
+  public String getCategoryEn() { return categoryEn; }
+  public String getCategoryFr() { return categoryFr; }
+  public String getNameEn() { return nameEn; }
+  public String getNameFr() { return nameFr; }
   public Integer getSortOrder() { return sortOrder; }
 
-  public void setCategory(String category) { this.category = category; }
-  public void setName(String name) { this.name = name; }
+  public void setCategoryEn(String categoryEn) { this.categoryEn = categoryEn; }
+  public void setCategoryFr(String categoryFr) { this.categoryFr = categoryFr; }
+  public void setNameEn(String nameEn) { this.nameEn = nameEn; }
+  public void setNameFr(String nameFr) { this.nameFr = nameFr; }
   public void setSortOrder(Integer sortOrder) { this.sortOrder = sortOrder; }
 }

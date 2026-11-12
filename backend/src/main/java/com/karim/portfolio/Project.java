@@ -12,19 +12,28 @@ public class Project {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
-  private String name;
-  private String summary;
-  private String tags;
+  private String nameEn;
+  private String nameFr;
+  private String summaryEn;
+  private String summaryFr;
+  private String tagsEn;
+  private String tagsFr;
   private String href;
 
   public Long getId() { return id; }
-  public String getName() { return name; }
-  public String getSummary() { return summary; }
-  public String getTags() { return tags; }
+  public String getNameEn() { return nameEn; }
+  public String getNameFr() { return nameFr; }
+  public String getSummaryEn() { return summaryEn; }
+  public String getSummaryFr() { return summaryFr; }
+  public String getTagsEn() { return tagsEn; }
+  public String getTagsFr() { return tagsFr; }
   public String getHref() { return href; }
 
-  public void setName(String name) { this.name = name; }
-  public void setSummary(String summary) { this.summary = summary; }
-  public void setTags(String tags) { this.tags = tags; }
+  public void setNameEn(String nameEn) { this.nameEn = nameEn; }
+  public void setNameFr(String nameFr) { this.nameFr = nameFr; }
+  public void setSummaryEn(String summaryEn) { this.summaryEn = summaryEn; }
+  public void setSummaryFr(String summaryFr) { this.summaryFr = summaryFr; }
+  public void setTagsEn(String tagsEn) { this.tagsEn = tagsEn; }
+  public void setTagsFr(String tagsFr) { this.tagsFr = tagsFr; }
   public void setHref(String href) { this.href = href; }
 }

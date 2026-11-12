@@ -293,6 +293,8 @@ export const uiEn: UiCopy = {
     remove: 'Delete',
     saved: 'Saved. Refresh an open page to see the latest.',
     saveFailed: 'Could not save. Check the fields and try again.',
+    langEn: 'EN',
+    langFr: 'FR',
     company: 'Company',
     role: 'Role',
     startDate: 'Start date',

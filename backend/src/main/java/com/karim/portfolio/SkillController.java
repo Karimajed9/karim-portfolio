@@ -14,6 +14,6 @@ public class SkillController {
 
   @GetMapping("/api/skills")
   public List<Skill> list() {
-    return skills.findAllByOrderByCategoryAscSortOrderAsc();
+    return skills.findAllByOrderByCategoryEnAscSortOrderAsc();
   }
 }

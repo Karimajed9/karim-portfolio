@@ -52,9 +52,16 @@ public class AdminProjectController {
   }
 
   private static void apply(Project row, ProjectRequest body) {
-    row.setName(body.name().trim());
-    row.setSummary(body.summary().trim());
-    row.setTags(body.tags() == null ? "" : body.tags().trim());
-    row.setHref(body.href() == null ? "" : body.href().trim());
+    row.setNameEn(body.nameEn().trim());
+    row.setNameFr(trimToEmpty(body.nameFr()));
+    row.setSummaryEn(body.summaryEn().trim());
+    row.setSummaryFr(trimToEmpty(body.summaryFr()));
+    row.setTagsEn(trimToEmpty(body.tagsEn()));
+    row.setTagsFr(trimToEmpty(body.tagsFr()));
+    row.setHref(trimToEmpty(body.href()));
+  }
+
+  private static String trimToEmpty(String value) {
+    return value == null ? "" : value.trim();
   }
 }

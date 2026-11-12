@@ -1,41 +1,54 @@
-import type { SiteContent } from '../i18n/types'
+import type { Locale, SiteContent } from '../i18n/types'
 
 /** Wire shape of `GET /api/experience`. */
 export type ApiExperience = {
   id: number
-  company: string
-  role: string
+  companyEn: string
+  companyFr?: string | null
+  roleEn: string
+  roleFr?: string | null
   startDate: string
   endDate: string
-  location: string
-  highlights: string
+  locationEn: string
+  locationFr?: string | null
+  highlightsEn: string
+  highlightsFr?: string | null
   sortOrder?: number
 }
 
 /** Wire shape of `GET /api/projects`. */
 export type ApiProject = {
   id: number
-  name: string
-  summary: string
-  tags: string
+  nameEn: string
+  nameFr?: string | null
+  summaryEn: string
+  summaryFr?: string | null
+  tagsEn?: string | null
+  tagsFr?: string | null
   href: string
 }
 
 /** Wire shape of `GET /api/skills`. */
 export type ApiSkill = {
   id: number
-  category: string
-  name: string
+  categoryEn: string
+  categoryFr?: string | null
+  nameEn: string
+  nameFr?: string | null
   sortOrder: number
 }
 
 /** Education row inside `GET /api/about`. */
 export type ApiEducation = {
   id: number
-  school: string
-  city: string
-  degree: string
-  country: string
+  schoolEn: string
+  schoolFr?: string | null
+  cityEn: string
+  cityFr?: string | null
+  degreeEn: string
+  degreeFr?: string | null
+  countryEn: string
+  countryFr?: string | null
   startDate: string
   endDate: string
   sortOrder?: number
@@ -85,6 +98,19 @@ export type EducationView = {
   yearLabel: string
 }
 
+/** Prefer the active locale; if empty, fall back to the other language. */
+export function pickLocalized(
+  en: string | null | undefined,
+  fr: string | null | undefined,
+  locale: Locale,
+): string {
+  const primary = (locale === 'fr' ? fr : en) ?? ''
+  const fallback = (locale === 'fr' ? en : fr) ?? ''
+  const trimmedPrimary = primary.trim()
+  if (trimmedPrimary) return trimmedPrimary
+  return fallback.trim()
+}
+
 export function splitHighlights(value: string | null | undefined): string[] {
   if (!value) return []
   return value
@@ -101,41 +127,73 @@ export function splitTags(value: string | null | undefined): string[] {
     .filter(Boolean)
 }
 
-export function buildStaticExperience(site: SiteContent): ApiExperience[] {
-  return site.experience.map((item, index) => ({
-    id: index + 1,
-    company: item.company,
-    role: item.role,
-    startDate: item.startDate,
-    endDate: item.endDate,
-    location: item.location,
-    highlights: item.highlights.join('|||'),
-    sortOrder: index + 1,
-  }))
+export function buildStaticExperience(
+  site: SiteContent,
+  locale: Locale = 'en',
+): ApiExperience[] {
+  return site.experience.map((item, index) => {
+    const company = item.company
+    const role = item.role
+    const location = item.location
+    const highlights = item.highlights.join('|||')
+    return {
+      id: index + 1,
+      companyEn: locale === 'en' ? company : '',
+      companyFr: locale === 'fr' ? company : '',
+      roleEn: locale === 'en' ? role : '',
+      roleFr: locale === 'fr' ? role : '',
+      startDate: item.startDate,
+      endDate: item.endDate,
+      locationEn: locale === 'en' ? location : '',
+      locationFr: locale === 'fr' ? location : '',
+      highlightsEn: locale === 'en' ? highlights : '',
+      highlightsFr: locale === 'fr' ? highlights : '',
+      sortOrder: index + 1,
+    }
+  })
 }
 
-export function buildStaticProjects(site: SiteContent): ApiProject[] {
-  return site.projects.items.map((item, index) => ({
-    id: index + 1,
-    name: item.name,
-    summary: item.summary,
-    tags: item.tags.join(','),
-    href: item.href,
-  }))
+export function buildStaticProjects(
+  site: SiteContent,
+  locale: Locale = 'en',
+): ApiProject[] {
+  return site.projects.items.map((item, index) => {
+    const name = item.name
+    const summary = item.summary
+    const tags = item.tags.join(',')
+    return {
+      id: index + 1,
+      nameEn: locale === 'en' ? name : '',
+      nameFr: locale === 'fr' ? name : '',
+      summaryEn: locale === 'en' ? summary : '',
+      summaryFr: locale === 'fr' ? summary : '',
+      tagsEn: locale === 'en' ? tags : '',
+      tagsFr: locale === 'fr' ? tags : '',
+      href: item.href,
+    }
+  })
 }
 
-export function buildStaticSkills(site: SiteContent): ApiSkill[] {
+export function buildStaticSkills(
+  site: SiteContent,
+  locale: Locale = 'en',
+): ApiSkill[] {
   return site.skills.flatMap((group, groupIndex) =>
     group.items.map((name, itemIndex) => ({
       id: groupIndex * 100 + itemIndex + 1,
-      category: group.category,
-      name,
+      categoryEn: locale === 'en' ? group.category : '',
+      categoryFr: locale === 'fr' ? group.category : '',
+      nameEn: locale === 'en' ? name : '',
+      nameFr: locale === 'fr' ? name : '',
       sortOrder: itemIndex + 1,
     })),
   )
 }
 
-export function buildStaticAbout(site: SiteContent): ApiAbout {
+export function buildStaticAbout(
+  site: SiteContent,
+  locale: Locale = 'en',
+): ApiAbout {
   return {
     summary: site.about.summary,
     goals: site.about.goals,
@@ -143,10 +201,14 @@ export function buildStaticAbout(site: SiteContent): ApiAbout {
     personalInterests: site.about.personalInterests.join(','),
     education: site.about.education.map((item, index) => ({
       id: index + 1,
-      school: item.school,
-      city: item.city,
-      degree: item.degree,
-      country: item.country,
+      schoolEn: locale === 'en' ? item.school : '',
+      schoolFr: locale === 'fr' ? item.school : '',
+      cityEn: locale === 'en' ? item.city : '',
+      cityFr: locale === 'fr' ? item.city : '',
+      degreeEn: locale === 'en' ? item.degree : '',
+      degreeFr: locale === 'fr' ? item.degree : '',
+      countryEn: locale === 'en' ? item.country : '',
+      countryFr: locale === 'fr' ? item.country : '',
       startDate: item.startDate,
       endDate: item.endDate,
       sortOrder: index + 1,
@@ -172,40 +234,54 @@ export function projectMark(
   return `${parts[0][0] ?? ''}${parts[1][0] ?? ''}`.toUpperCase()
 }
 
-export function toExperienceViews(rows: ApiExperience[]): ExperienceView[] {
+export function toExperienceViews(
+  rows: ApiExperience[],
+  locale: Locale = 'en',
+): ExperienceView[] {
   return rows.map((row) => ({
     id: row.id,
-    company: row.company,
-    role: row.role,
+    company: pickLocalized(row.companyEn, row.companyFr, locale),
+    role: pickLocalized(row.roleEn, row.roleFr, locale),
     startDate: row.startDate,
     endDate: row.endDate,
-    location: row.location,
-    highlights: splitHighlights(row.highlights),
+    location: pickLocalized(row.locationEn, row.locationFr, locale),
+    highlights: splitHighlights(
+      pickLocalized(row.highlightsEn, row.highlightsFr, locale),
+    ),
   }))
 }
 
 export function toProjectViews(
   rows: ApiProject[],
   staticItems: SiteContent['projects']['items'],
+  locale: Locale = 'en',
 ): ProjectView[] {
-  return rows.map((row) => ({
-    id: row.id,
-    name: row.name,
-    summary: row.summary,
-    tags: splitTags(row.tags),
-    href: row.href,
-    mark: projectMark(row.name, staticItems),
-  }))
+  return rows.map((row) => {
+    const name = pickLocalized(row.nameEn, row.nameFr, locale)
+    return {
+      id: row.id,
+      name,
+      summary: pickLocalized(row.summaryEn, row.summaryFr, locale),
+      tags: splitTags(pickLocalized(row.tagsEn, row.tagsFr, locale)),
+      href: row.href,
+      mark: projectMark(name, staticItems),
+    }
+  })
 }
 
 /** Group flat API skills into category rows, preserving first-seen category order. */
-export function toSkillGroups(rows: ApiSkill[]): SkillGroupView[] {
+export function toSkillGroups(
+  rows: ApiSkill[],
+  locale: Locale = 'en',
+): SkillGroupView[] {
   const byCategory = new Map<string, ApiSkill[]>()
 
   for (const row of rows) {
-    const list = byCategory.get(row.category)
+    const category = pickLocalized(row.categoryEn, row.categoryFr, locale)
+    if (!category) continue
+    const list = byCategory.get(category)
     if (list) list.push(row)
-    else byCategory.set(row.category, [row])
+    else byCategory.set(category, [row])
   }
 
   return [...byCategory.entries()].map(([category, items]) => ({
@@ -213,19 +289,23 @@ export function toSkillGroups(rows: ApiSkill[]): SkillGroupView[] {
     items: items
       .slice()
       .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
-      .map((item) => item.name),
+      .map((item) => pickLocalized(item.nameEn, item.nameFr, locale))
+      .filter(Boolean),
   }))
 }
 
 /** Map `/api/about` to education rows only — profile copy stays on bundled site data. */
-export function toEducationViews(about: ApiAbout): EducationView[] {
+export function toEducationViews(
+  about: ApiAbout,
+  locale: Locale = 'en',
+): EducationView[] {
   const rows = about.education ?? []
   return rows.map((row) => ({
     id: row.id,
-    school: row.school,
-    city: row.city,
-    degree: row.degree,
-    country: row.country,
+    school: pickLocalized(row.schoolEn, row.schoolFr, locale),
+    city: pickLocalized(row.cityEn, row.cityFr, locale),
+    degree: pickLocalized(row.degreeEn, row.degreeFr, locale),
+    country: pickLocalized(row.countryEn, row.countryFr, locale),
     startDate: row.startDate,
     endDate: row.endDate,
     yearLabel: educationYearLabel(row.endDate),

@@ -52,8 +52,14 @@ public class AdminSkillController {
   }
 
   private static void apply(Skill row, SkillRequest body) {
-    row.setCategory(body.category().trim());
-    row.setName(body.name().trim());
+    row.setCategoryEn(body.categoryEn().trim());
+    row.setCategoryFr(trimToEmpty(body.categoryFr()));
+    row.setNameEn(body.nameEn().trim());
+    row.setNameFr(trimToEmpty(body.nameFr()));
     row.setSortOrder(body.sortOrder());
+  }
+
+  private static String trimToEmpty(String value) {
+    return value == null ? "" : value.trim();
   }
 }

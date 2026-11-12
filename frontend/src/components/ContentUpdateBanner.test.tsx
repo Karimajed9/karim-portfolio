@@ -150,10 +150,13 @@ describe('ContentUpdateBanner', () => {
     expect(screen.queryByText(/can't reach the api/i)).toBeNull()
   })
 
-  it('does not render on the admin route', async () => {
+  it('does not poll content-revision on the admin route', async () => {
     renderBanner('/admin')
     await new Promise((r) => setTimeout(r, 20))
     expect(fetch).not.toHaveBeenCalled()
     expect(screen.queryByText(/refresh the page/i)).toBeNull()
+    window.dispatchEvent(new Event('focus'))
+    await new Promise((r) => setTimeout(r, 20))
+    expect(fetch).not.toHaveBeenCalled()
   })
 })

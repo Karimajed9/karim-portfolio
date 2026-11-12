@@ -95,10 +95,11 @@ class ApiIntegrationTests {
 						.header("X-CSRF-TOKEN", auth.csrfToken())
 						.contentType(MediaType.APPLICATION_JSON)
 						.content("""
-								{"name":"Admin Project","summary":"Created in test","tags":"Java","href":"https://example.com/admin"}
+								{"nameEn":"Admin Project","nameFr":"Projet admin","summaryEn":"Created in test","summaryFr":"Créé en test","tagsEn":"Java","tagsFr":"Java","href":"https://example.com/admin"}
 								"""))
 				.andExpect(status().isCreated())
-				.andExpect(jsonPath("$.name").value("Admin Project"));
+				.andExpect(jsonPath("$.nameEn").value("Admin Project"))
+				.andExpect(jsonPath("$.nameFr").value("Projet admin"));
 
 		long after = readRevision();
 		org.junit.jupiter.api.Assertions.assertTrue(after > before);
@@ -154,7 +155,7 @@ class ApiIntegrationTests {
 		mockMvc.perform(post("/api/admin/projects")
 						.contentType(MediaType.APPLICATION_JSON)
 						.content("""
-								{"name":"X","summary":"Y","tags":"a","href":"https://example.com"}
+								{"nameEn":"X","summaryEn":"Y","tagsEn":"a","href":"https://example.com"}
 								"""))
 				.andExpect(status().isUnauthorized());
 	}
