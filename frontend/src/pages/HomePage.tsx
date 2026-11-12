@@ -254,12 +254,14 @@ export default function HomePage() {
                       <span>.</span>
                     </div>
                   </div>
-                  <div className="project-card-meta">
-                    {[project.category, project.status].filter(Boolean).join(' · ')}
+                  <div className="project-card-body">
+                    <div className="project-card-meta">
+                      {[project.category, project.status].filter(Boolean).join(' · ')}
+                    </div>
+                    <h3 className="project-card-title">{project.name}</h3>
+                    <div className="project-card-tags">{project.tags.join(' · ')}</div>
+                    <p className="project-card-summary">{project.summary}</p>
                   </div>
-                  <div className="project-card-tags">{project.tags.join(' · ')}</div>
-                  <h3 className="project-card-title">{project.name}</h3>
-                  <p className="project-card-summary">{project.summary}</p>
                   <div className="project-card-actions">
                     <Link to={`/projects/${project.slug}`} className="project-card-cta">
                       {ui.projects.explore}
