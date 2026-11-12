@@ -1,0 +1,111 @@
+import { PORTFOLIO_COVER_PATH } from './publicAsset'
+
+/** Case-study copy verified against this repo’s code and workflows. */
+
+export const PORTFOLIO_SLUG = 'personal-portfolio-platform'
+
+export const portfolioCaseStudyEn = {
+  slug: PORTFOLIO_SLUG,
+  name: 'Personal Portfolio Platform',
+  summary:
+    'Full-stack portfolio SPA on Azure Static Web Apps with a Spring Boot API and PostgreSQL on Render, plus admin editing and static-first fallbacks.',
+  tags: ['React', 'TypeScript', 'Spring Boot', 'PostgreSQL', 'Flyway'],
+  href: 'https://github.com/Karimajed9/karim-portfolio',
+  mark: 'KM',
+  category: 'Personal project',
+  status: 'Live',
+  coverImageUrl: PORTFOLIO_COVER_PATH,
+  liveDemoUrl: 'https://karimmajed.com',
+  role: 'Solo full-stack engineer',
+  overview:
+    'A bilingual personal site for recruiters and a working lab for React, TypeScript, and Spring Boot. The public SPA is deployed with the Azure Static Web Apps workflow; the API and database follow the Render blueprint. When the API is slow or down, the UI keeps serving bundled static copy and cached responses.',
+  problem:
+    'I needed one codebase that stays useful while a free API host sleeps, lets me edit portfolio content without a rebuild, and documents real deploy choices instead of a marketing mockup.',
+  architectureImageUrl: '',
+  architectureCaption:
+    'The Vite React SPA calls Spring Boot REST endpoints. Flyway manages PostgreSQL schema. Docker Compose runs Postgres, the API, and an nginx frontend locally. GitHub Actions builds and deploys the SPA to Azure Static Web Apps (GitHub Pages remains as a backup workflow). The API is defined in render.yaml as a Docker web service with Postgres. Optional Azure Blob Storage and Application Insights are wired in code with local/no-op fallbacks; Render is configured with APP_STORAGE_MODE=local.',
+  features: [
+    'React 19 + TypeScript + Vite SPA with Tailwind and React Router',
+    'Spring Boot REST APIs for about, skills, experience, projects, contact, uploads, and content revision',
+    'PostgreSQL 16 schema managed with Flyway migrations',
+    'Session-based admin login with CSRF for content, messages, and CV uploads',
+    'Bilingual EN/FR fields for experience, projects, skills, and education',
+    'Project case-study pages with slug routes and admin-editable sections',
+    'Contact form with honeypot and per-IP rate limiting',
+    'Static-first public content with localStorage cache when the API is slow or down',
+    'CV PDF slots via BlobStorage (local filesystem or Azure Blob when configured)',
+    'Docker Compose for local Postgres + API + nginx frontend',
+  ],
+  tradeoffs: [
+    'Static-first fallback keeps pages readable when Render sleeps, at the cost of temporarily stale API copy until refresh',
+    'Render free web services cold-start after idle time; the SPA shows warming/offline banners instead of failing blank',
+    'Azure Blob and Application Insights stay optional — production Render uses local upload storage unless Azure credentials are set',
+  ],
+  challenges: [
+    'Keeping EN and FR content editable without duplicating the whole UI stack',
+    'Classifying API warm-up versus true offline so status banners stay honest',
+    'Protecting contact without blocking real visitors',
+    'Admin CSRF and session auth that still work from the SPA across hosts',
+  ],
+  testing:
+    'Frontend: Vitest. Backend: JUnit with Testcontainers Postgres. GitHub Actions CI on main runs npm test/build and ./mvnw test. Deploy workflows cover Azure Static Web Apps and a GitHub Pages backup; the API is described by render.yaml for Render.',
+  galleryUrls: [] as string[],
+  lessons: [
+    'Ship a useful static baseline before depending on a free API that can sleep',
+    'Treat bilingual content as data columns early if admin editing matters',
+    'Keep deploy claims aligned with the workflows in the repo — SWA for the SPA, Render for the API',
+  ],
+}
+
+export const portfolioCaseStudyFr = {
+  slug: PORTFOLIO_SLUG,
+  name: 'Plateforme de portfolio personnel',
+  summary:
+    'SPA portfolio full-stack sur Azure Static Web Apps, avec API Spring Boot et PostgreSQL sur Render, édition admin et repli statique en premier.',
+  tags: ['React', 'TypeScript', 'Spring Boot', 'PostgreSQL', 'Flyway'],
+  href: 'https://github.com/Karimajed9/karim-portfolio',
+  mark: 'KM',
+  category: 'Projet personnel',
+  status: 'En ligne',
+  coverImageUrl: PORTFOLIO_COVER_PATH,
+  liveDemoUrl: 'https://karimmajed.com',
+  role: 'Ingénieur full-stack solo',
+  overview:
+    'Un site personnel bilingue pour les recruteurs et un labo concret pour React, TypeScript et Spring Boot. La SPA publique est déployée via le workflow Azure Static Web Apps ; l’API et la base suivent le blueprint Render. Quand l’API est lente ou indisponible, l’UI continue avec le contenu statique embarqué et le cache.',
+  problem:
+    'Il me fallait une base de code utile pendant qu’une API gratuite dort, éditable sans rebuild, et qui documente de vrais choix de déploiement plutôt qu’une maquette marketing.',
+  architectureImageUrl: '',
+  architectureCaption:
+    'La SPA Vite/React appelle les endpoints REST Spring Boot. Flyway gère le schéma PostgreSQL. Docker Compose lance Postgres, l’API et un frontend nginx en local. GitHub Actions construit et déploie la SPA sur Azure Static Web Apps (GitHub Pages reste un workflow de secours). L’API est définie dans render.yaml comme service Docker avec Postgres. Azure Blob Storage et Application Insights sont optionnels dans le code, avec replis locaux ; Render est configuré avec APP_STORAGE_MODE=local.',
+  features: [
+    'SPA React 19 + TypeScript + Vite avec Tailwind et React Router',
+    'API REST Spring Boot pour à propos, compétences, expérience, projets, contact, uploads et révision de contenu',
+    'Schéma PostgreSQL 16 géré par Flyway',
+    'Connexion admin par session avec CSRF pour le contenu, les messages et les CV',
+    'Champs bilingues EN/FR pour expérience, projets, compétences et formation',
+    'Pages d’étude de cas projets avec routes par slug et sections éditables en admin',
+    'Formulaire de contact avec honeypot et limite par IP',
+    'Contenu public statique d’abord avec cache localStorage si l’API est lente ou indisponible',
+    'Emplacements CV PDF via BlobStorage (disque local ou Azure Blob si configuré)',
+    'Docker Compose pour Postgres + API + frontend nginx en local',
+  ],
+  tradeoffs: [
+    'Le repli statique garde les pages lisibles quand Render dort, au prix d’une copie API temporairement périmée jusqu’au rafraîchissement',
+    'Les services web Render gratuits redémarrent après inactivité ; la SPA affiche des bannières warming/offline plutôt qu’une page vide',
+    'Azure Blob et Application Insights restent optionnels — en production Render utilise le stockage local des uploads sauf credentials Azure',
+  ],
+  challenges: [
+    'Garder EN et FR éditables sans dupliquer toute la stack UI',
+    'Distinguer le démarrage à froid de l’API d’une vraie coupure pour des bannières honnêtes',
+    'Protéger le contact sans bloquer les vrais visiteurs',
+    'CSRF admin et session qui fonctionnent depuis la SPA entre hôtes',
+  ],
+  testing:
+    'Frontend : Vitest. Backend : JUnit avec Postgres Testcontainers. CI GitHub Actions sur main lance npm test/build et ./mvnw test. Les workflows de déploiement couvrent Azure Static Web Apps et un secours GitHub Pages ; l’API est décrite par render.yaml pour Render.',
+  galleryUrls: [] as string[],
+  lessons: [
+    'Livrer une base statique utile avant de dépendre d’une API gratuite qui peut dormir',
+    'Traiter le contenu bilingue comme des colonnes dès que l’édition admin compte',
+    'Aligner les affirmations de déploiement sur les workflows du dépôt — SWA pour la SPA, Render pour l’API',
+  ],
+}

@@ -37,11 +37,27 @@ export type SiteContent = {
     title: string
     subtitle: string
     items: Array<{
+      slug: string
       name: string
       summary: string
       tags: string[]
       href: string
       mark: string
+      category: string
+      status: string
+      coverImageUrl: string
+      liveDemoUrl: string
+      role: string
+      overview: string
+      problem: string
+      architectureImageUrl: string
+      architectureCaption: string
+      features: string[]
+      tradeoffs: string[]
+      challenges: string[]
+      testing: string
+      galleryUrls: string[]
+      lessons: string[]
     }>
   }
   mobility: {
@@ -114,6 +130,37 @@ export type UiCopy = {
   projects: {
     title: string
     viewRepo: string
+    explore: string
+    liveDemo: string
+    github: string
+    category: string
+    status: string
+  }
+  caseStudy: {
+    breadcrumbHome: string
+    breadcrumbProjects: string
+    overview: string
+    metadata: string
+    role: string
+    tech: string
+    status: string
+    source: string
+    demo: string
+    problem: string
+    architecture: string
+    features: string
+    tradeoffs: string
+    challenges: string
+    testing: string
+    gallery: string
+    lessons: string
+    links: string
+    nextProject: string
+    sectionNav: string
+    missingCover: string
+    missingImage: string
+    notFound: string
+    backToProjects: string
   }
   skills: {
     title: string
@@ -175,6 +222,13 @@ export type UiCopy = {
     tabsLabel: string
     messagesTab: string
     cvTab: string
+    deleteMessage: string
+    deletingMessage: string
+    deleteMessageFailed: string
+    prevPage: string
+    nextPage: string
+    pageStatus: string
+    messagesCount: string
     authError: string
     tooManyRequests: string
     logout: string
@@ -190,6 +244,8 @@ export type UiCopy = {
     remove: string
     saved: string
     saveFailed: string
+    langEn: string
+    langFr: string
     company: string
     role: string
     startDate: string
@@ -203,7 +259,29 @@ export type UiCopy = {
     tags: string
     tagsHint: string
     href: string
+    slug: string
+    coverImage: string
+    coverImageHint: string
+    coverImageUpload: string
+    coverImageUrl: string
+    coverImagePick: string
+    coverImageFailed: string
+    coverImageSaved: string
+    liveDemoUrl: string
+    mark: string
+    overview: string
+    problem: string
+    architectureImage: string
+    architectureCaption: string
+    features: string
+    tradeoffs: string
+    challenges: string
+    testing: string
+    gallery: string
+    galleryHint: string
+    lessons: string
     category: string
+    status: string
     school: string
     city: string
     degree: string

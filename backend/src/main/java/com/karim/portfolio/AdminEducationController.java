@@ -52,12 +52,20 @@ public class AdminEducationController {
   }
 
   private static void apply(Education row, EducationRequest body) {
-    row.setSchool(body.school().trim());
-    row.setCity(body.city().trim());
-    row.setDegree(body.degree().trim());
-    row.setCountry(body.country().trim());
+    row.setSchoolEn(body.schoolEn().trim());
+    row.setSchoolFr(trimToEmpty(body.schoolFr()));
+    row.setCityEn(body.cityEn().trim());
+    row.setCityFr(trimToEmpty(body.cityFr()));
+    row.setDegreeEn(body.degreeEn().trim());
+    row.setDegreeFr(trimToEmpty(body.degreeFr()));
+    row.setCountryEn(body.countryEn().trim());
+    row.setCountryFr(trimToEmpty(body.countryFr()));
     row.setStartDate(body.startDate().trim());
     row.setEndDate(body.endDate().trim());
     row.setSortOrder(body.sortOrder());
+  }
+
+  private static String trimToEmpty(String value) {
+    return value == null ? "" : value.trim();
   }
 }

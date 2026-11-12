@@ -1,5 +1,6 @@
 package com.karim.portfolio;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -30,6 +31,9 @@ class ApiIntegrationTests {
 
 	@Autowired
 	MockMvc mockMvc;
+
+	@Autowired
+	ContactMessageRepository contactMessages;
 
 	@Test
 	void healthReturnsOk() throws Exception {
@@ -80,7 +84,9 @@ class ApiIntegrationTests {
 		SessionAuth auth = loginAsAdmin();
 
 		mockMvc.perform(get("/api/admin/messages").session(auth.session()))
-				.andExpect(status().isOk());
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.content").isArray())
+				.andExpect(jsonPath("$.size").value(20));
 
 		long before = readRevision();
 
@@ -89,13 +95,45 @@ class ApiIntegrationTests {
 						.header("X-CSRF-TOKEN", auth.csrfToken())
 						.contentType(MediaType.APPLICATION_JSON)
 						.content("""
-								{"name":"Admin Project","summary":"Created in test","tags":"Java","href":"https://example.com/admin"}
+								{"slug":"admin-project","nameEn":"Admin Project","nameFr":"Projet admin","summaryEn":"Created in test","summaryFr":"Créé en test","tagsEn":"Java","tagsFr":"Java","href":"https://example.com/admin","categoryEn":"Test","statusEn":"Planned","sortOrder":99}
 								"""))
 				.andExpect(status().isCreated())
-				.andExpect(jsonPath("$.name").value("Admin Project"));
+				.andExpect(jsonPath("$.nameEn").value("Admin Project"))
+				.andExpect(jsonPath("$.nameFr").value("Projet admin"))
+				.andExpect(jsonPath("$.slug").value("admin-project"));
+
+		mockMvc.perform(get("/api/projects/personal-portfolio-platform"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.slug").value("personal-portfolio-platform"))
+				.andExpect(jsonPath("$.nameEn").value("Personal Portfolio Platform"));
+
+		mockMvc.perform(get("/api/projects/missing-slug"))
+				.andExpect(status().isNotFound());
 
 		long after = readRevision();
 		org.junit.jupiter.api.Assertions.assertTrue(after > before);
+	}
+
+	@Test
+	void adminCanDeleteContactMessage() throws Exception {
+		SessionAuth auth = loginAsAdmin();
+		ContactMessage saved = contactMessages.save(
+				new ContactMessage("Delete Me", "delete@example.com", "Please remove this message"));
+
+		mockMvc.perform(get("/api/admin/messages")
+						.session(auth.session())
+						.param("page", "0")
+						.param("size", "20"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.content[0].id").value(saved.getId()))
+				.andExpect(jsonPath("$.content[0].email").value("delete@example.com"));
+
+		mockMvc.perform(delete("/api/admin/messages/" + saved.getId())
+						.session(auth.session())
+						.header("X-CSRF-TOKEN", auth.csrfToken()))
+				.andExpect(status().isNoContent());
+
+		org.junit.jupiter.api.Assertions.assertFalse(contactMessages.existsById(saved.getId()));
 	}
 
 	@Test
@@ -122,11 +160,42 @@ class ApiIntegrationTests {
 	}
 
 	@Test
+	void adminCanUploadProjectCoverImage() throws Exception {
+		SessionAuth auth = loginAsAdmin();
+		byte[] png = new byte[] {
+				(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
+				0, 0, 0, 0, 0, 0, 0, 0
+		};
+		MockMultipartFile file = new MockMultipartFile(
+				"file",
+				"cover.png",
+				"image/png",
+				png);
+
+		MvcResult upload = mockMvc.perform(multipart("/api/admin/uploads")
+						.file(file)
+						.session(auth.session())
+						.header("X-CSRF-TOKEN", auth.csrfToken()))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.url").isString())
+				.andReturn();
+
+		String url = JsonPath.read(upload.getResponse().getContentAsString(), "$.url");
+		org.junit.jupiter.api.Assertions.assertTrue(
+				url.startsWith("/media/uploads/"),
+				() -> "expected /media/uploads/ URL, got " + url);
+
+		mockMvc.perform(get(url))
+				.andExpect(status().isOk())
+				.andExpect(content().contentTypeCompatibleWith(MediaType.IMAGE_PNG));
+	}
+
+	@Test
 	void adminProjectWriteRequiresAuth() throws Exception {
 		mockMvc.perform(post("/api/admin/projects")
 						.contentType(MediaType.APPLICATION_JSON)
 						.content("""
-								{"name":"X","summary":"Y","tags":"a","href":"https://example.com"}
+								{"slug":"x","nameEn":"X","summaryEn":"Y","tagsEn":"a","href":"https://example.com","sortOrder":0}
 								"""))
 				.andExpect(status().isUnauthorized());
 	}

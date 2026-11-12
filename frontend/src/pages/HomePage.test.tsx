@@ -99,35 +99,57 @@ describe('HomePage', () => {
         experience: () => [
           {
             id: 1,
-            company: 'API Co',
-            role: 'API Role',
+            companyEn: 'API Co',
+            companyFr: '',
+            roleEn: 'API Role',
+            roleFr: '',
             startDate: '2024',
             endDate: 'Present',
-            location: 'Montréal',
-            highlights: 'Live highlight',
+            locationEn: 'Montréal',
+            locationFr: '',
+            highlightsEn: 'Live highlight',
+            highlightsFr: '',
           },
         ],
         projects: () => [
           {
             id: 1,
-            name: 'API Project',
-            summary: 'From API',
-            tags: 'React,TypeScript',
+            slug: 'api-project',
+            nameEn: 'API Project',
+            nameFr: '',
+            summaryEn: 'From API',
+            summaryFr: '',
+            tagsEn: 'React,TypeScript',
+            tagsFr: '',
             href: 'https://example.com',
+            categoryEn: 'Personal project',
+            statusEn: 'In progress',
+            mark: 'AP',
           },
         ],
         skills: () => [
-          { id: 1, category: 'API Skills', name: 'LiveSkill', sortOrder: 1 },
+          {
+            id: 1,
+            categoryEn: 'API Skills',
+            categoryFr: '',
+            nameEn: 'LiveSkill',
+            nameFr: '',
+            sortOrder: 1,
+          },
         ],
         about: () => ({
           ...emptyAbout(),
           education: [
             {
               id: 1,
-              school: 'API University',
-              city: 'Montréal',
-              degree: 'API Degree',
-              country: 'Canada',
+              schoolEn: 'API University',
+              schoolFr: '',
+              cityEn: 'Montréal',
+              cityFr: '',
+              degreeEn: 'API Degree',
+              degreeFr: '',
+              countryEn: 'Canada',
+              countryFr: '',
               startDate: 'September 2020',
               endDate: 'August 2021',
             },
@@ -160,26 +182,51 @@ describe('HomePage', () => {
       experience: () => [
         {
           id: 9,
-          company: 'Live Experience Co',
-          role: 'Live Role',
+          companyEn: 'Live Experience Co',
+          companyFr: '',
+          roleEn: 'Live Role',
+          roleFr: '',
           startDate: 'January 2025',
           endDate: 'Present',
-          location: 'Montréal, Canada',
-          highlights: 'First live|||Second live',
+          locationEn: 'Montréal, Canada',
+          locationFr: '',
+          highlightsEn: 'First live|||Second live',
+          highlightsFr: '',
         },
       ],
       projects: () => [
         {
           id: 3,
-          name: 'Live Portfolio',
-          summary: 'Fetched project',
-          tags: 'Java,Spring Boot',
+          slug: 'live-portfolio',
+          nameEn: 'Live Portfolio',
+          nameFr: '',
+          summaryEn: 'Fetched project',
+          summaryFr: '',
+          tagsEn: 'Java,Spring Boot',
+          tagsFr: '',
           href: 'https://github.com/example/live',
+          categoryEn: 'Personal project',
+          statusEn: 'In progress',
+          mark: 'LP',
         },
       ],
       skills: () => [
-        { id: 1, category: 'Cloud', name: 'Azure Functions', sortOrder: 1 },
-        { id: 2, category: 'Cloud', name: 'Logic Apps', sortOrder: 2 },
+        {
+          id: 1,
+          categoryEn: 'Cloud',
+          categoryFr: '',
+          nameEn: 'Azure Functions',
+          nameFr: '',
+          sortOrder: 1,
+        },
+        {
+          id: 2,
+          categoryEn: 'Cloud',
+          categoryFr: '',
+          nameEn: 'Logic Apps',
+          nameFr: '',
+          sortOrder: 2,
+        },
       ],
       about: () => ({
         ...emptyAbout(),
@@ -187,10 +234,14 @@ describe('HomePage', () => {
         education: [
           {
             id: 9,
-            school: 'Live University',
-            city: 'Montréal',
-            degree: 'Live Degree',
-            country: 'Canada',
+            schoolEn: 'Live University',
+            schoolFr: '',
+            cityEn: 'Montréal',
+            cityFr: '',
+            degreeEn: 'Live Degree',
+            degreeFr: '',
+            countryEn: 'Canada',
+            countryFr: '',
             startDate: 'September 2020',
             endDate: 'August 2021',
           },
@@ -203,6 +254,10 @@ describe('HomePage', () => {
 
     expect(screen.getByText(siteEn.experience[0]!.company)).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: siteEn.projects.items[0]!.name })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Explore Case Study/i })).toHaveAttribute(
+      'href',
+      `/projects/${siteEn.projects.items[0]!.slug}`,
+    )
     expect(screen.getByText(siteEn.skills[0]!.items[0]!)).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: siteEn.about.education[0]!.degree })).toBeInTheDocument()
 
@@ -266,21 +321,30 @@ describe('HomePage', () => {
     writeApiCache('/api/experience', [
       {
         id: 1,
-        company: 'Cached Co',
-        role: 'Cached Role',
+        companyEn: 'Cached Co',
+        companyFr: '',
+        roleEn: 'Cached Role',
+        roleFr: '',
         startDate: '2020',
         endDate: '2021',
-        location: 'Montréal',
-        highlights: 'Cached highlight',
+        locationEn: 'Montréal',
+        locationFr: '',
+        highlightsEn: 'Cached highlight',
+        highlightsFr: '',
       },
     ])
     writeApiCache('/api/projects', [
       {
         id: 1,
-        name: 'Cached Project',
-        summary: 'Cached',
-        tags: 'React',
+        slug: 'cached-project',
+        nameEn: 'Cached Project',
+        nameFr: '',
+        summaryEn: 'Cached',
+        summaryFr: '',
+        tagsEn: 'React',
+        tagsFr: '',
         href: 'https://example.com/cached',
+        mark: 'CP',
       },
     ])
 
@@ -310,35 +374,55 @@ describe('HomePage', () => {
     writeApiCache('/api/experience', [
       {
         id: 1,
-        company: 'Cached Co',
-        role: 'Cached Role',
+        companyEn: 'Cached Co',
+        companyFr: '',
+        roleEn: 'Cached Role',
+        roleFr: '',
         startDate: '2020',
         endDate: '2021',
-        location: 'Montréal',
-        highlights: 'Cached highlight',
+        locationEn: 'Montréal',
+        locationFr: '',
+        highlightsEn: 'Cached highlight',
+        highlightsFr: '',
       },
     ])
     writeApiCache('/api/projects', [
       {
         id: 1,
-        name: 'Cached Project',
-        summary: 'Cached',
-        tags: 'React',
+        slug: 'cached-project',
+        nameEn: 'Cached Project',
+        nameFr: '',
+        summaryEn: 'Cached',
+        summaryFr: '',
+        tagsEn: 'React',
+        tagsFr: '',
         href: 'https://example.com/cached',
+        mark: 'CP',
       },
     ])
     writeApiCache('/api/skills', [
-      { id: 1, category: 'Cached', name: 'CachedSkill', sortOrder: 1 },
+      {
+        id: 1,
+        categoryEn: 'Cached',
+        categoryFr: '',
+        nameEn: 'CachedSkill',
+        nameFr: '',
+        sortOrder: 1,
+      },
     ])
     writeApiCache('/api/about', {
       ...emptyAbout(),
       education: [
         {
           id: 1,
-          school: 'Cached U',
-          city: 'Montréal',
-          degree: 'Cached Degree',
-          country: 'Canada',
+          schoolEn: 'Cached U',
+          schoolFr: '',
+          cityEn: 'Montréal',
+          cityFr: '',
+          degreeEn: 'Cached Degree',
+          degreeFr: '',
+          countryEn: 'Canada',
+          countryFr: '',
           startDate: '2020',
           endDate: '2021',
         },
@@ -429,12 +513,16 @@ describe('HomePage', () => {
         jsonResponse([
           {
             id: 2,
-            company: 'Delayed Co',
-            role: 'Delayed Role',
+            companyEn: 'Delayed Co',
+            companyFr: '',
+            roleEn: 'Delayed Role',
+            roleFr: '',
             startDate: '2024',
             endDate: 'Present',
-            location: 'Montréal',
-            highlights: 'Arrived later',
+            locationEn: 'Montréal',
+            locationFr: '',
+            highlightsEn: 'Arrived later',
+            highlightsFr: '',
           },
         ]),
       )
@@ -442,15 +530,29 @@ describe('HomePage', () => {
         jsonResponse([
           {
             id: 2,
-            name: 'Delayed Project',
-            summary: 'Slow payload',
-            tags: 'TypeScript',
+            slug: 'delayed-project',
+            nameEn: 'Delayed Project',
+            nameFr: '',
+            summaryEn: 'Slow payload',
+            summaryFr: '',
+            tagsEn: 'TypeScript',
+            tagsFr: '',
             href: 'https://example.com/delayed',
+            mark: 'DP',
           },
         ]),
       )
       resolveSkills(
-        jsonResponse([{ id: 2, category: 'Delayed', name: 'DelayedSkill', sortOrder: 1 }]),
+        jsonResponse([
+          {
+            id: 2,
+            categoryEn: 'Delayed',
+            categoryFr: '',
+            nameEn: 'DelayedSkill',
+            nameFr: '',
+            sortOrder: 1,
+          },
+        ]),
       )
       resolveAbout(
         jsonResponse({
@@ -458,10 +560,14 @@ describe('HomePage', () => {
           education: [
             {
               id: 2,
-              school: 'Delayed U',
-              city: 'Montréal',
-              degree: 'Delayed Degree',
-              country: 'Canada',
+              schoolEn: 'Delayed U',
+              schoolFr: '',
+              cityEn: 'Montréal',
+              cityFr: '',
+              degreeEn: 'Delayed Degree',
+              degreeFr: '',
+              countryEn: 'Canada',
+              countryFr: '',
               startDate: '2020',
               endDate: '2021',
             },

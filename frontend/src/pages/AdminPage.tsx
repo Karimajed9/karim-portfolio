@@ -15,7 +15,17 @@ type ContactMessage = {
   createdAt: string
 }
 
+type MessagesPage = {
+  content: ContactMessage[]
+  totalElements: number
+  totalPages: number
+  number: number
+  size: number
+}
+
 type AdminTab = 'messages' | AdminEditorPanel
+
+const MESSAGES_PAGE_SIZE = 20
 
 export default function AdminPage() {
   const { locale, ui } = useLocale()
@@ -24,6 +34,10 @@ export default function AdminPage() {
   const [authenticated, setAuthenticated] = useState(false)
   const [csrfToken, setCsrfToken] = useState<string | null>(null)
   const [messages, setMessages] = useState<ContactMessage[] | null>(null)
+  const [messagePage, setMessagePage] = useState(0)
+  const [messageTotalPages, setMessageTotalPages] = useState(0)
+  const [messageTotal, setMessageTotal] = useState(0)
+  const [deletingId, setDeletingId] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [tab, setTab] = useState<AdminTab>('messages')
@@ -38,13 +52,14 @@ export default function AdminPage() {
     { id: 'cv', label: ui.admin.cvTab },
   ]
 
-  async function fetchMessages() {
+  async function fetchMessages(page = messagePage) {
     setError(null)
     setLoading(true)
     try {
-      const res = await fetch(apiUrl('/api/admin/messages'), {
-        credentials: 'include',
-      })
+      const res = await fetch(
+        apiUrl(`/api/admin/messages?page=${page}&size=${MESSAGES_PAGE_SIZE}`),
+        { credentials: 'include' },
+      )
       if (!res.ok) {
         if (res.status === 401 || res.status === 403) {
           setAuthenticated(false)
@@ -59,8 +74,11 @@ export default function AdminPage() {
         }
         return false
       }
-      const data: ContactMessage[] = await res.json()
-      setMessages(data)
+      const data = (await res.json()) as MessagesPage
+      setMessages(data.content ?? [])
+      setMessagePage(data.number ?? page)
+      setMessageTotalPages(Math.max(data.totalPages ?? 0, 0))
+      setMessageTotal(data.totalElements ?? 0)
       setAuthenticated(true)
       return true
     } catch {
@@ -105,6 +123,7 @@ export default function AdminPage() {
       setCsrfToken(data.csrfToken)
       setAuthenticated(true)
       setTab('messages')
+      setMessagePage(0)
       signedIn = true
     } catch {
       setError(ui.admin.unreachable)
@@ -113,13 +132,13 @@ export default function AdminPage() {
       setLoading(false)
     }
     if (signedIn) {
-      await fetchMessages()
+      await fetchMessages(0)
     }
   }
 
   async function handleRefresh() {
     if (tab === 'messages') {
-      await fetchMessages()
+      await fetchMessages(messagePage)
       return
     }
     setContentReloadToken((n) => n + 1)
@@ -139,9 +158,46 @@ export default function AdminPage() {
     setAuthenticated(false)
     setCsrfToken(null)
     setMessages(null)
+    setMessagePage(0)
+    setMessageTotalPages(0)
+    setMessageTotal(0)
     setPassword('')
     setTab('messages')
   }
+
+  async function handleDeleteMessage(id: number) {
+    if (!csrfToken) return
+    setError(null)
+    setDeletingId(id)
+    try {
+      const res = await fetch(apiUrl(`/api/admin/messages/${id}`), {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: { 'X-CSRF-TOKEN': csrfToken },
+      })
+      if (!res.ok) {
+        if (res.status === 401 || res.status === 403) {
+          setAuthenticated(false)
+          setCsrfToken(null)
+          setError(ui.admin.authError)
+        } else {
+          setError(ui.admin.deleteMessageFailed)
+        }
+        return
+      }
+      const nextPage =
+        messages?.length === 1 && messagePage > 0 ? messagePage - 1 : messagePage
+      await fetchMessages(nextPage)
+    } catch {
+      setError(ui.admin.unreachable)
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
+  const pageLabel = ui.admin.pageStatus
+    .replace('{page}', String(messagePage + 1))
+    .replace('{total}', String(Math.max(messageTotalPages, 1)))
 
   return (
     <section className="page-wrap">
@@ -238,20 +294,66 @@ export default function AdminPage() {
               {messages == null ? null : messages.length === 0 ? (
                 <p className="prose-quiet">{ui.admin.empty}</p>
               ) : (
-                <ul className="mt-4 space-y-6">
-                  {messages.map((msg) => (
-                    <li key={msg.id} className="border border-line bg-surface p-5">
-                      <p className="font-semibold text-ink">
-                        {msg.name}{' '}
-                        <span className="font-normal text-muted">· {msg.email}</span>
+                <>
+                  <ul className="mt-4 space-y-6">
+                    {messages.map((msg) => (
+                      <li key={msg.id} className="border border-line bg-surface p-5">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                            <p className="font-semibold text-ink">
+                              {msg.name}{' '}
+                              <span className="font-normal text-muted">· {msg.email}</span>
+                            </p>
+                            <p className="mt-1 font-mono text-xs tracking-wide text-muted">
+                              {new Date(msg.createdAt).toLocaleString(locale)}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            className="btn btn-secondary"
+                            disabled={deletingId === msg.id || loading}
+                            onClick={() => void handleDeleteMessage(msg.id)}
+                          >
+                            {deletingId === msg.id
+                              ? ui.admin.deletingMessage
+                              : ui.admin.deleteMessage}
+                          </button>
+                        </div>
+                        <p className="mt-3 prose-quiet">{msg.message}</p>
+                      </li>
+                    ))}
+                  </ul>
+                  {messageTotalPages > 1 ? (
+                    <div className="mt-6 flex flex-wrap items-center gap-3">
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        disabled={loading || messagePage <= 0}
+                        onClick={() => void fetchMessages(messagePage - 1)}
+                      >
+                        {ui.admin.prevPage}
+                      </button>
+                      <p className="font-mono text-xs tracking-wide text-muted">
+                        {pageLabel}
+                        {messageTotal > 0
+                          ? ` · ${messageTotal} ${ui.admin.messagesCount}`
+                          : null}
                       </p>
-                      <p className="mt-1 font-mono text-xs tracking-wide text-muted">
-                        {new Date(msg.createdAt).toLocaleString(locale)}
-                      </p>
-                      <p className="mt-3 prose-quiet">{msg.message}</p>
-                    </li>
-                  ))}
-                </ul>
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        disabled={loading || messagePage + 1 >= messageTotalPages}
+                        onClick={() => void fetchMessages(messagePage + 1)}
+                      >
+                        {ui.admin.nextPage}
+                      </button>
+                    </div>
+                  ) : messageTotal > 0 ? (
+                    <p className="mt-4 font-mono text-xs tracking-wide text-muted">
+                      {messageTotal} {ui.admin.messagesCount}
+                    </p>
+                  ) : null}
+                </>
               )}
             </div>
           ) : (

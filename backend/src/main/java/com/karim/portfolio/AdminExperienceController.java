@@ -52,12 +52,20 @@ public class AdminExperienceController {
   }
 
   private static void apply(Experience row, ExperienceRequest body) {
-    row.setCompany(body.company().trim());
-    row.setRole(body.role().trim());
+    row.setCompanyEn(body.companyEn().trim());
+    row.setCompanyFr(trimToEmpty(body.companyFr()));
+    row.setRoleEn(body.roleEn().trim());
+    row.setRoleFr(trimToEmpty(body.roleFr()));
     row.setStartDate(body.startDate().trim());
     row.setEndDate(body.endDate().trim());
-    row.setLocation(body.location().trim());
-    row.setHighlights(body.highlights() == null ? "" : body.highlights().trim());
+    row.setLocationEn(body.locationEn().trim());
+    row.setLocationFr(trimToEmpty(body.locationFr()));
+    row.setHighlightsEn(trimToEmpty(body.highlightsEn()));
+    row.setHighlightsFr(trimToEmpty(body.highlightsFr()));
     row.setSortOrder(body.sortOrder());
+  }
+
+  private static String trimToEmpty(String value) {
+    return value == null ? "" : value.trim();
   }
 }

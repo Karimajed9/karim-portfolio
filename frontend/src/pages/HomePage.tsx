@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import ContactForm from '../components/ContactForm'
 import DeparturesBoard from '../components/DeparturesBoard'
 import FlipDigits from '../components/FlipDigits'
@@ -15,6 +16,7 @@ import {
   toSkillGroups,
 } from '../lib/contentApi'
 import { cvEnPath, cvFrPath } from '../lib/cv'
+import { publicAssetUrl } from '../lib/publicAsset'
 import { useStaticApiResource } from '../lib/useStaticApiResource'
 
 const SECTION_IDS = [
@@ -82,10 +84,16 @@ export default function HomePage() {
     }
   }
 
-  const staticExperience = useMemo(() => buildStaticExperience(site), [site])
-  const staticProjects = useMemo(() => buildStaticProjects(site), [site])
-  const staticSkills = useMemo(() => buildStaticSkills(site), [site])
-  const staticAbout = useMemo(() => buildStaticAbout(site), [site])
+  const staticExperience = useMemo(
+    () => buildStaticExperience(site, locale),
+    [site, locale],
+  )
+  const staticProjects = useMemo(
+    () => buildStaticProjects(site, locale),
+    [site, locale],
+  )
+  const staticSkills = useMemo(() => buildStaticSkills(site, locale), [site, locale])
+  const staticAbout = useMemo(() => buildStaticAbout(site, locale), [site, locale])
   const { data: experienceData } = useStaticApiResource(
     '/api/experience',
     staticExperience,
@@ -106,13 +114,19 @@ export default function HomePage() {
     staticAbout,
     locale,
   )
-  const experience = useMemo(() => toExperienceViews(experienceData), [experienceData])
-  const projects = useMemo(
-    () => toProjectViews(projectsData, site.projects.items),
-    [projectsData, site.projects.items],
+  const experience = useMemo(
+    () => toExperienceViews(experienceData, locale),
+    [experienceData, locale],
   )
-  const skills = useMemo(() => toSkillGroups(skillsData), [skillsData])
-  const education = useMemo(() => toEducationViews(aboutData), [aboutData])
+  const projects = useMemo(
+    () => toProjectViews(projectsData, site.projects.items, locale),
+    [projectsData, site.projects.items, locale],
+  )
+  const skills = useMemo(() => toSkillGroups(skillsData, locale), [skillsData, locale])
+  const education = useMemo(
+    () => toEducationViews(aboutData, locale),
+    [aboutData, locale],
+  )
 
   const [firstName, ...rest] = site.name.split(' ')
   const lastName = rest.join(' ')
@@ -216,24 +230,66 @@ export default function HomePage() {
             <SectionHeading title={ui.projects.title} index="03" />
             <div className="project-grid">
               {projects.map((project) => (
-                <article key={project.id}>
-                  <div className="project-card-visual">
-                    <div className="project-card-mark">
+                <article key={project.id} className="project-card">
+                  <div className="project-card-visual project-card-visual--cover">
+                    {project.coverImageUrl ? (
+                      <img
+                        src={publicAssetUrl(project.coverImageUrl)}
+                        alt=""
+                        className="project-card-cover"
+                        onError={(event) => {
+                          event.currentTarget.style.display = 'none'
+                          const fallback = event.currentTarget.nextElementSibling
+                          if (fallback instanceof HTMLElement) {
+                            fallback.hidden = false
+                          }
+                        }}
+                      />
+                    ) : null}
+                    <div
+                      className="project-card-mark"
+                      hidden={Boolean(project.coverImageUrl)}
+                    >
                       {project.mark}
                       <span>.</span>
                     </div>
                   </div>
+                  <div className="project-card-meta">
+                    {[project.category, project.status].filter(Boolean).join(' · ')}
+                  </div>
                   <div className="project-card-tags">{project.tags.join(' · ')}</div>
                   <h3 className="project-card-title">{project.name}</h3>
                   <p className="project-card-summary">{project.summary}</p>
-                  <a
-                    href={project.href}
-                    className="project-card-link"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {ui.projects.viewRepo} ↗
-                  </a>
+                  <div className="project-card-actions">
+                    <Link to={`/projects/${project.slug}`} className="project-card-cta">
+                      {ui.projects.explore}
+                      <span aria-hidden="true">→</span>
+                    </Link>
+                    {(project.href || project.liveDemoUrl) && (
+                      <div className="project-card-secondary">
+                        {project.href ? (
+                          <a
+                            href={project.href}
+                            className="project-card-link"
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {ui.projects.github} ↗
+                          </a>
+                        ) : null}
+                        {project.liveDemoUrl ? (
+                          <a
+                            href={project.liveDemoUrl}
+                            className="project-card-link"
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {ui.projects.liveDemo} ↗
+                          </a>
+                        ) : null}
+                      </div>
+                    )}
+                  </div>
                 </article>
               ))}
             </div>
