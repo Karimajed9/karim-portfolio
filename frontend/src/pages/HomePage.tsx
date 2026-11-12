@@ -8,8 +8,10 @@ import { useLocale } from '../i18n/LocaleContext'
 import {
   buildStaticExperience,
   buildStaticProjects,
+  buildStaticSkills,
   toExperienceViews,
   toProjectViews,
+  toSkillGroups,
 } from '../lib/contentApi'
 import { cvEnPath, cvFrPath } from '../lib/cv'
 import { useStaticApiResource } from '../lib/useStaticApiResource'
@@ -81,6 +83,7 @@ export default function HomePage() {
 
   const staticExperience = useMemo(() => buildStaticExperience(site), [site])
   const staticProjects = useMemo(() => buildStaticProjects(site), [site])
+  const staticSkills = useMemo(() => buildStaticSkills(site), [site])
   const { data: experienceData, fallbackReason: experienceFallback } = useStaticApiResource(
     '/api/experience',
     staticExperience,
@@ -91,12 +94,18 @@ export default function HomePage() {
     staticProjects,
     locale,
   )
+  const { data: skillsData, fallbackReason: skillsFallback } = useStaticApiResource(
+    '/api/skills',
+    staticSkills,
+    locale,
+  )
   const experience = useMemo(() => toExperienceViews(experienceData), [experienceData])
   const projects = useMemo(
     () => toProjectViews(projectsData, site.projects.items),
     [projectsData, site.projects.items],
   )
-  const fallbackReason = experienceFallback ?? projectsFallback
+  const skills = useMemo(() => toSkillGroups(skillsData), [skillsData])
+  const fallbackReason = experienceFallback ?? projectsFallback ?? skillsFallback
 
   const [firstName, ...rest] = site.name.split(' ')
   const lastName = rest.join(' ')
@@ -233,7 +242,7 @@ export default function HomePage() {
 
           <section id="skills" className="arch-section">
             <SectionHeading title={ui.skills.title} index="04" />
-            {site.skills.map((group) => (
+            {skills.map((group) => (
               <div key={group.category} className="skill-row">
                 <div className="skill-label">{group.category}</div>
                 <ul className="skill-items">

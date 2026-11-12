@@ -21,6 +21,14 @@ export type ApiProject = {
   href: string
 }
 
+/** Wire shape of `GET /api/skills`. */
+export type ApiSkill = {
+  id: number
+  category: string
+  name: string
+  sortOrder: number
+}
+
 export type ExperienceView = {
   id: number
   company: string
@@ -38,6 +46,11 @@ export type ProjectView = {
   tags: string[]
   href: string
   mark: string
+}
+
+export type SkillGroupView = {
+  category: string
+  items: string[]
 }
 
 export function splitHighlights(value: string | null | undefined): string[] {
@@ -79,6 +92,17 @@ export function buildStaticProjects(site: SiteContent): ApiProject[] {
   }))
 }
 
+export function buildStaticSkills(site: SiteContent): ApiSkill[] {
+  return site.skills.flatMap((group, groupIndex) =>
+    group.items.map((name, itemIndex) => ({
+      id: groupIndex * 100 + itemIndex + 1,
+      category: group.category,
+      name,
+      sortOrder: itemIndex + 1,
+    })),
+  )
+}
+
 export function projectMark(
   name: string,
   staticItems: SiteContent['projects']['items'],
@@ -114,5 +138,24 @@ export function toProjectViews(
     tags: splitTags(row.tags),
     href: row.href,
     mark: projectMark(row.name, staticItems),
+  }))
+}
+
+/** Group flat API skills into category rows, preserving first-seen category order. */
+export function toSkillGroups(rows: ApiSkill[]): SkillGroupView[] {
+  const byCategory = new Map<string, ApiSkill[]>()
+
+  for (const row of rows) {
+    const list = byCategory.get(row.category)
+    if (list) list.push(row)
+    else byCategory.set(row.category, [row])
+  }
+
+  return [...byCategory.entries()].map(([category, items]) => ({
+    category,
+    items: items
+      .slice()
+      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+      .map((item) => item.name),
   }))
 }

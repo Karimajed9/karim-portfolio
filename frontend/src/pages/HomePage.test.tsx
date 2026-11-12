@@ -17,6 +17,7 @@ function jsonResponse(body: unknown, ok = true) {
 function mockContentApis(handlers: {
   experience?: () => Promise<unknown> | unknown
   projects?: () => Promise<unknown> | unknown
+  skills?: () => Promise<unknown> | unknown
   health?: () => Promise<unknown> | unknown
 }) {
   return vi.fn(async (input: RequestInfo | URL) => {
@@ -33,6 +34,12 @@ function mockContentApis(handlers: {
     }
     if (url.includes('/api/projects')) {
       const value = handlers.projects ? await handlers.projects() : []
+      return typeof value === 'object' && value !== null && 'ok' in (value as object)
+        ? value
+        : jsonResponse(value)
+    }
+    if (url.includes('/api/skills')) {
+      const value = handlers.skills ? await handlers.skills() : []
       return typeof value === 'object' && value !== null && 'ok' in (value as object)
         ? value
         : jsonResponse(value)
@@ -77,6 +84,9 @@ describe('HomePage', () => {
             href: 'https://example.com',
           },
         ],
+        skills: () => [
+          { id: 1, category: 'API Skills', name: 'LiveSkill', sortOrder: 1 },
+        ],
       }),
     )
 
@@ -97,10 +107,11 @@ describe('HomePage', () => {
     await waitFor(() => {
       expect(screen.getByText('API Co')).toBeInTheDocument()
       expect(screen.getByRole('heading', { name: 'API Project' })).toBeInTheDocument()
+      expect(screen.getByText('LiveSkill')).toBeInTheDocument()
     })
   })
 
-  it('swaps in live experience and projects on success without dropping static first paint', async () => {
+  it('swaps in live experience, projects, and skills on success without dropping static first paint', async () => {
     const fetchMock = mockContentApis({
       experience: () => [
         {
@@ -122,6 +133,10 @@ describe('HomePage', () => {
           href: 'https://github.com/example/live',
         },
       ],
+      skills: () => [
+        { id: 1, category: 'Cloud', name: 'Azure Functions', sortOrder: 1 },
+        { id: 2, category: 'Cloud', name: 'Logic Apps', sortOrder: 2 },
+      ],
     })
     vi.stubGlobal('fetch', fetchMock)
 
@@ -135,11 +150,14 @@ describe('HomePage', () => {
 
     expect(screen.getByText(siteEn.experience[0]!.company)).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: siteEn.projects.items[0]!.name })).toBeInTheDocument()
+    expect(screen.getByText(siteEn.skills[0]!.items[0]!)).toBeInTheDocument()
 
     await waitFor(() => {
       expect(screen.getByText('Live Experience Co')).toBeInTheDocument()
       expect(screen.getByText('First live')).toBeInTheDocument()
       expect(screen.getByRole('heading', { name: 'Live Portfolio' })).toBeInTheDocument()
+      expect(screen.getByText('Azure Functions')).toBeInTheDocument()
+      expect(screen.getByText('Logic Apps')).toBeInTheDocument()
     })
 
     const experienceCalls = fetchMock.mock.calls.filter(([input]) =>
@@ -148,10 +166,13 @@ describe('HomePage', () => {
     const projectCalls = fetchMock.mock.calls.filter(([input]) =>
       String(input).includes('/api/projects'),
     )
+    const skillCalls = fetchMock.mock.calls.filter(([input]) => String(input).includes('/api/skills'))
     expect(experienceCalls).toHaveLength(1)
     expect(projectCalls).toHaveLength(1)
+    expect(skillCalls).toHaveLength(1)
     expect(String(experienceCalls[0]![0])).toBe(apiUrl('/api/experience'))
     expect(String(projectCalls[0]![0])).toBe(apiUrl('/api/projects'))
+    expect(String(skillCalls[0]![0])).toBe(apiUrl('/api/skills'))
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
   })
 
@@ -159,6 +180,7 @@ describe('HomePage', () => {
     const fetchMock = mockContentApis({
       experience: () => jsonResponse(null, false),
       projects: () => jsonResponse(null, false),
+      skills: () => jsonResponse(null, false),
       health: () => Promise.reject(new TypeError('Failed to fetch')),
     })
     vi.stubGlobal('fetch', fetchMock)
@@ -254,12 +276,16 @@ describe('HomePage', () => {
         href: 'https://example.com/cached',
       },
     ])
+    writeApiCache('/api/skills', [
+      { id: 1, category: 'Cached', name: 'CachedSkill', sortOrder: 1 },
+    ])
 
     vi.stubGlobal(
       'fetch',
       mockContentApis({
         experience: () => [],
         projects: () => [],
+        skills: () => [],
       }),
     )
 
@@ -276,6 +302,7 @@ describe('HomePage', () => {
     await waitFor(() => {
       expect(screen.queryByText('Cached Co')).not.toBeInTheDocument()
       expect(screen.queryByRole('heading', { name: 'Cached Project' })).not.toBeInTheDocument()
+      expect(screen.queryByText('CachedSkill')).not.toBeInTheDocument()
     })
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
   })
@@ -285,6 +312,7 @@ describe('HomePage', () => {
 
     let resolveExperience!: (value: unknown) => void
     let resolveProjects!: (value: unknown) => void
+    let resolveSkills!: (value: unknown) => void
 
     vi.stubGlobal(
       'fetch',
@@ -307,6 +335,11 @@ describe('HomePage', () => {
         if (url.includes('/api/projects')) {
           return new Promise((resolve) => {
             resolveProjects = resolve
+          })
+        }
+        if (url.includes('/api/skills')) {
+          return new Promise((resolve) => {
+            resolveSkills = resolve
           })
         }
         return Promise.resolve(jsonResponse(null, false))
@@ -355,6 +388,9 @@ describe('HomePage', () => {
           },
         ]),
       )
+      resolveSkills(
+        jsonResponse([{ id: 2, category: 'Delayed', name: 'DelayedSkill', sortOrder: 1 }]),
+      )
     })
 
     await act(async () => {
@@ -363,6 +399,7 @@ describe('HomePage', () => {
 
     expect(screen.getByText('Delayed Co')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Delayed Project' })).toBeInTheDocument()
+    expect(screen.getByText('DelayedSkill')).toBeInTheDocument()
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
   })
 })
