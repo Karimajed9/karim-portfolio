@@ -162,13 +162,6 @@ export default function HomePage() {
               </a>
             ))}
           </nav>
-          <a href="#mobility" className="section-rail-aside">
-            <span className="section-rail-aside-dot" aria-hidden="true" />
-            <span>{site.mobility.boardFoot}</span>
-          </a>
-          <a href={preferredCv} className="project-card-link section-rail-cv" download>
-            {ui.cv.download}
-          </a>
         </aside>
 
         <div className="content-column">
