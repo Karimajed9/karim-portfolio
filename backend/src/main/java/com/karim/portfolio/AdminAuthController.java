@@ -32,6 +32,7 @@ public class AdminAuthController {
   private final PasswordEncoder passwordEncoder;
   private final AdminLoginProtector loginProtector;
   private final CsrfTokenRepository csrfTokenRepository;
+  private final AdminSessionTokens sessionTokens;
   private final SecurityContextRepository securityContextRepository =
       new HttpSessionSecurityContextRepository();
 
@@ -39,11 +40,13 @@ public class AdminAuthController {
       AdminCredentials credentials,
       PasswordEncoder passwordEncoder,
       AdminLoginProtector loginProtector,
-      CsrfTokenRepository csrfTokenRepository) {
+      CsrfTokenRepository csrfTokenRepository,
+      AdminSessionTokens sessionTokens) {
     this.credentials = credentials;
     this.passwordEncoder = passwordEncoder;
     this.loginProtector = loginProtector;
     this.csrfTokenRepository = csrfTokenRepository;
+    this.sessionTokens = sessionTokens;
   }
 
   @PostMapping("/api/admin/login")
@@ -57,12 +60,12 @@ public class AdminAuthController {
       return authFailed();
     }
 
-    String providedUser = body.username() == null ? "" : body.username();
+    String providedUser = body.username() == null ? "" : body.username().trim();
     String providedPass = body.password() == null ? "" : body.password();
 
     boolean userOk = constantTimeEquals(credentials.username(), providedUser);
     // Always run bcrypt verify so username misses do not skip the expensive compare.
-    boolean passOk = passwordEncoder.matches(providedPass, credentials.passwordHash());
+    boolean passOk = passwordMatches(passwordEncoder, credentials.passwordHash(), providedPass);
 
     if (!userOk || !passOk) {
       loginProtector.recordFailure(clientKey);
@@ -87,13 +90,15 @@ public class AdminAuthController {
 
     return ResponseEntity.ok(Map.of(
         "status", "ok",
-        "csrfToken", csrf.getToken()));
+        "csrfToken", csrf.getToken(),
+        "sessionToken", sessionTokens.issue()));
   }
 
   @PostMapping("/api/admin/logout")
   public ResponseEntity<Map<String, String>> logout(
       HttpServletRequest request, HttpServletResponse response) {
     SecurityContextHolder.clearContext();
+    sessionTokens.revoke(AdminBearerAuthenticationFilter.bearerToken(request));
     HttpSession session = request.getSession(false);
     if (session != null) {
       session.invalidate();
@@ -111,6 +116,20 @@ public class AdminAuthController {
    * Constant-time equality for arbitrary-length strings via SHA-256 digests
    * (fixed-length {@link MessageDigest#isEqual}).
    */
+  /**
+   * Exact match first. If that fails and the only difference is surrounding
+   * whitespace (password managers on phones), try the trimmed password.
+   * A password that intentionally starts or ends with a space still matches
+   * the first check.
+   */
+  static boolean passwordMatches(PasswordEncoder encoder, String hash, String provided) {
+    if (encoder.matches(provided, hash)) {
+      return true;
+    }
+    String trimmed = provided.trim();
+    return !trimmed.equals(provided) && encoder.matches(trimmed, hash);
+  }
+
   static boolean constantTimeEquals(String expected, String provided) {
     byte[] digA = sha256(expected.getBytes(StandardCharsets.UTF_8));
     byte[] digB = sha256(provided.getBytes(StandardCharsets.UTF_8));

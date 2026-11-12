@@ -231,6 +231,7 @@ export type UiCopy = {
     pageStatus: string
     messagesCount: string
     authError: string
+    sessionError: string
     tooManyRequests: string
     logout: string
     unreachable: string

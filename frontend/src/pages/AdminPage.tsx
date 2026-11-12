@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { apiUrl } from '../api'
+import { adminAuthHeaders, readAdminLoginFields } from '../lib/adminSession'
 import AdminContentEditors, {
   type AdminEditorPanel,
 } from '../components/AdminContentEditors'
@@ -33,6 +34,7 @@ export default function AdminPage() {
   const [password, setPassword] = useState('')
   const [authenticated, setAuthenticated] = useState(false)
   const [csrfToken, setCsrfToken] = useState<string | null>(null)
+  const [sessionToken, setSessionToken] = useState<string | null>(null)
   const [messages, setMessages] = useState<ContactMessage[] | null>(null)
   const [messagePage, setMessagePage] = useState(0)
   const [messageTotalPages, setMessageTotalPages] = useState(0)
@@ -52,19 +54,29 @@ export default function AdminPage() {
     { id: 'cv', label: ui.admin.cvTab },
   ]
 
-  async function fetchMessages(page = messagePage) {
+  async function fetchMessages(
+    page = messagePage,
+    token: string | null = sessionToken,
+    afterLogin = false,
+  ) {
     setError(null)
     setLoading(true)
     try {
       const res = await fetch(
         apiUrl(`/api/admin/messages?page=${page}&size=${MESSAGES_PAGE_SIZE}`),
-        { credentials: 'include' },
+        {
+          credentials: 'include',
+          headers: adminAuthHeaders(null, token),
+        },
       )
       if (!res.ok) {
         if (res.status === 401 || res.status === 403) {
           setAuthenticated(false)
           setCsrfToken(null)
-          setError(ui.admin.authError)
+          setSessionToken(null)
+          // Login can return 200 while Safari drops the session cookie. That
+          // follow-up 401 is not a wrong password.
+          setError(afterLogin ? ui.admin.sessionError : ui.admin.authError)
         } else {
           setError(
             locale === 'fr'
@@ -91,20 +103,25 @@ export default function AdminPage() {
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    const { username: submittedUser, password: submittedPass } = readAdminLoginFields(e.currentTarget)
+    setUsername(submittedUser)
+    setPassword(submittedPass)
     setMessages(null)
     setError(null)
     setLoading(true)
     let signedIn = false
+    let issuedToken: string | null = null
     try {
       const res = await fetch(apiUrl('/api/admin/login'), {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username: submittedUser, password: submittedPass }),
       })
       if (!res.ok) {
         setAuthenticated(false)
         setCsrfToken(null)
+        setSessionToken(null)
         if (res.status === 429) {
           setError(ui.admin.tooManyRequests)
         } else {
@@ -112,15 +129,18 @@ export default function AdminPage() {
         }
         return
       }
-      const data = (await res.json()) as { csrfToken?: string }
+      const data = (await res.json()) as { csrfToken?: string; sessionToken?: string }
       if (!data.csrfToken) {
         setAuthenticated(false)
         setCsrfToken(null)
+        setSessionToken(null)
         setError(ui.admin.authError)
         return
       }
+      issuedToken = data.sessionToken ?? null
       setPassword('')
       setCsrfToken(data.csrfToken)
+      setSessionToken(issuedToken)
       setAuthenticated(true)
       setTab('messages')
       setMessagePage(0)
@@ -132,7 +152,7 @@ export default function AdminPage() {
       setLoading(false)
     }
     if (signedIn) {
-      await fetchMessages(0)
+      await fetchMessages(0, issuedToken, true)
     }
   }
 
@@ -150,13 +170,14 @@ export default function AdminPage() {
       await fetch(apiUrl('/api/admin/logout'), {
         method: 'POST',
         credentials: 'include',
-        headers: csrfToken ? { 'X-CSRF-TOKEN': csrfToken } : {},
+        headers: adminAuthHeaders(csrfToken, sessionToken),
       })
     } catch {
       // Session clear is best-effort.
     }
     setAuthenticated(false)
     setCsrfToken(null)
+    setSessionToken(null)
     setMessages(null)
     setMessagePage(0)
     setMessageTotalPages(0)
@@ -173,12 +194,13 @@ export default function AdminPage() {
       const res = await fetch(apiUrl(`/api/admin/messages/${id}`), {
         method: 'DELETE',
         credentials: 'include',
-        headers: { 'X-CSRF-TOKEN': csrfToken },
+        headers: adminAuthHeaders(csrfToken, sessionToken),
       })
       if (!res.ok) {
         if (res.status === 401 || res.status === 403) {
           setAuthenticated(false)
           setCsrfToken(null)
+          setSessionToken(null)
           setError(ui.admin.authError)
         } else {
           setError(ui.admin.deleteMessageFailed)
@@ -214,6 +236,9 @@ export default function AdminPage() {
               type="text"
               name="username"
               autoComplete="username"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
               className="field-control"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
@@ -226,6 +251,9 @@ export default function AdminPage() {
               type="password"
               name="password"
               autoComplete="current-password"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
               className="field-control"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -364,6 +392,7 @@ export default function AdminPage() {
             >
               <AdminContentEditors
                 csrfToken={csrfToken}
+                sessionToken={sessionToken}
                 panel={tab}
                 reloadToken={contentReloadToken}
               />

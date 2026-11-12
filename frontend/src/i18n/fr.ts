@@ -308,6 +308,8 @@ export const uiFr: UiCopy = {
     pageStatus: 'Page {page} sur {total}',
     messagesCount: 'au total',
     authError: 'Authentification échouée.',
+    sessionError:
+      'Le mot de passe a été accepté, mais ce navigateur n’a pas conservé la session admin. Autorisez les cookies pour ce site, puis réessayez.',
     tooManyRequests: 'Trop de tentatives de connexion. Réessayez sous peu.',
     logout: 'Se déconnecter',
     unreachable: 'Impossible de joindre l’API. Le backend tourne-t-il sur le port 8080 ?',
