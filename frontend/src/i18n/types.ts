@@ -172,6 +172,9 @@ export type UiCopy = {
     refreshing: string
     empty: string
     listHeading: string
+    tabsLabel: string
+    messagesTab: string
+    cvTab: string
     authError: string
     tooManyRequests: string
     logout: string

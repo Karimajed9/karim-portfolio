@@ -3,8 +3,13 @@ import { apiUrl } from '../api'
 import { useLocale } from '../i18n/LocaleContext'
 import StatusBanner from './StatusBanner'
 
+export type AdminEditorPanel = 'experience' | 'projects' | 'skills' | 'education' | 'cv'
+
 type AuthProps = {
   csrfToken: string
+  panel: AdminEditorPanel
+  /** Bump to re-fetch public content after Refresh. */
+  reloadToken?: number
 }
 
 type ExperienceItem = {
@@ -66,7 +71,11 @@ async function readJson<T>(path: string): Promise<T> {
   return (await res.json()) as T
 }
 
-export default function AdminContentEditors({ csrfToken }: AuthProps) {
+export default function AdminContentEditors({
+  csrfToken,
+  panel,
+  reloadToken = 0,
+}: AuthProps) {
   const { ui } = useLocale()
   const [experience, setExperience] = useState<ExperienceItem[]>([])
   const [projects, setProjects] = useState<ProjectItem[]>([])
@@ -107,7 +116,12 @@ export default function AdminContentEditors({ csrfToken }: AuthProps) {
 
   useEffect(() => {
     void reload().catch(() => setError(ui.admin.unreachable))
-  }, [csrfToken, ui.admin.unreachable])
+  }, [csrfToken, reloadToken, ui.admin.unreachable])
+
+  useEffect(() => {
+    setStatus(null)
+    setError(null)
+  }, [panel])
 
   async function mutate(
     key: string,
@@ -181,8 +195,7 @@ export default function AdminContentEditors({ csrfToken }: AuthProps) {
   }
 
   return (
-    <div className="mt-10 space-y-10">
-      <h2 className="section-label">{ui.admin.contentHeading}</h2>
+    <div className="mt-6 space-y-6">
       {status ? (
         <StatusBanner tone="success" role="status">
           {status}
@@ -194,9 +207,10 @@ export default function AdminContentEditors({ csrfToken }: AuthProps) {
         </StatusBanner>
       ) : null}
 
+      {panel === 'experience' ? (
       <section className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h3 className="text-xl font-semibold tracking-tight">{ui.admin.experienceHeading}</h3>
+          <h2 className="section-label">{ui.admin.experienceHeading}</h2>
           <button
             type="button"
             className="btn btn-secondary"
@@ -377,10 +391,12 @@ export default function AdminContentEditors({ csrfToken }: AuthProps) {
           )
         })}
       </section>
+      ) : null}
 
+      {panel === 'projects' ? (
       <section className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h3 className="text-xl font-semibold tracking-tight">{ui.admin.projectsHeading}</h3>
+          <h2 className="section-label">{ui.admin.projectsHeading}</h2>
           <button
             type="button"
             className="btn btn-secondary"
@@ -501,10 +517,12 @@ export default function AdminContentEditors({ csrfToken }: AuthProps) {
           )
         })}
       </section>
+      ) : null}
 
+      {panel === 'skills' ? (
       <section className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h3 className="text-xl font-semibold tracking-tight">{ui.admin.skillsHeading}</h3>
+          <h2 className="section-label">{ui.admin.skillsHeading}</h2>
           <button
             type="button"
             className="btn btn-secondary"
@@ -612,10 +630,12 @@ export default function AdminContentEditors({ csrfToken }: AuthProps) {
           )
         })}
       </section>
+      ) : null}
 
+      {panel === 'education' ? (
       <section className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h3 className="text-xl font-semibold tracking-tight">{ui.admin.educationHeading}</h3>
+          <h2 className="section-label">{ui.admin.educationHeading}</h2>
           <button
             type="button"
             className="btn btn-secondary"
@@ -795,9 +815,11 @@ export default function AdminContentEditors({ csrfToken }: AuthProps) {
           )
         })}
       </section>
+      ) : null}
 
+      {panel === 'cv' ? (
       <section className="space-y-4">
-        <h3 className="text-xl font-semibold tracking-tight">{ui.admin.cvHeading}</h3>
+        <h2 className="section-label">{ui.admin.cvHeading}</h2>
         <p className="prose-quiet">{ui.admin.cvHint}</p>
         <div className="grid gap-4 md:grid-cols-2">
           <div className="field">
@@ -844,6 +866,7 @@ export default function AdminContentEditors({ csrfToken }: AuthProps) {
           </div>
         </div>
       </section>
+      ) : null}
     </div>
   )
 }

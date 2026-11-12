@@ -1058,6 +1058,40 @@
     background: color-mix(in srgb, var(--color-accent) 16%, var(--color-surface));
   }
 
+  .admin-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 1.5rem;
+  }
+
+  .admin-tab {
+    padding: 0.45rem 0.7rem;
+    border: 1px solid var(--color-line);
+    background: var(--color-surface);
+    color: var(--color-muted);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .admin-tab:hover {
+    color: var(--color-ink);
+  }
+
+  .admin-tab.is-active {
+    border-color: var(--color-accent);
+    color: var(--color-ink);
+    background: color-mix(in srgb, var(--color-accent) 16%, var(--color-surface));
+  }
+
+  .admin-tab:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
   .site-footer {
     border-top: 1px solid var(--color-line);
     padding: 2rem var(--page-pad-x) 2.5rem;

@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import { apiUrl } from '../api'
-import AdminContentEditors from '../components/AdminContentEditors'
+import AdminContentEditors, {
+  type AdminEditorPanel,
+} from '../components/AdminContentEditors'
 import SectionHeading from '../components/SectionHeading'
 import StatusBanner from '../components/StatusBanner'
 import { useLocale } from '../i18n/LocaleContext'
@@ -13,6 +15,8 @@ type ContactMessage = {
   createdAt: string
 }
 
+type AdminTab = 'messages' | AdminEditorPanel
+
 export default function AdminPage() {
   const { locale, ui } = useLocale()
   const [username, setUsername] = useState('')
@@ -22,6 +26,17 @@ export default function AdminPage() {
   const [messages, setMessages] = useState<ContactMessage[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [tab, setTab] = useState<AdminTab>('messages')
+  const [contentReloadToken, setContentReloadToken] = useState(0)
+
+  const tabs: { id: AdminTab; label: string }[] = [
+    { id: 'messages', label: ui.admin.messagesTab },
+    { id: 'experience', label: ui.admin.experienceHeading },
+    { id: 'projects', label: ui.admin.projectsHeading },
+    { id: 'skills', label: ui.admin.skillsHeading },
+    { id: 'education', label: ui.admin.educationHeading },
+    { id: 'cv', label: ui.admin.cvTab },
+  ]
 
   async function fetchMessages() {
     setError(null)
@@ -89,6 +104,7 @@ export default function AdminPage() {
       setPassword('')
       setCsrfToken(data.csrfToken)
       setAuthenticated(true)
+      setTab('messages')
       signedIn = true
     } catch {
       setError(ui.admin.unreachable)
@@ -102,7 +118,11 @@ export default function AdminPage() {
   }
 
   async function handleRefresh() {
-    await fetchMessages()
+    if (tab === 'messages') {
+      await fetchMessages()
+      return
+    }
+    setContentReloadToken((n) => n + 1)
   }
 
   async function handleLogout() {
@@ -120,6 +140,7 @@ export default function AdminPage() {
     setCsrfToken(null)
     setMessages(null)
     setPassword('')
+    setTab('messages')
   }
 
   return (
@@ -175,7 +196,7 @@ export default function AdminPage() {
             <button
               type="button"
               className="btn btn-secondary"
-              onClick={handleRefresh}
+              onClick={() => void handleRefresh()}
               disabled={loading}
             >
               {loading ? ui.admin.refreshing : ui.admin.refresh}
@@ -185,29 +206,67 @@ export default function AdminPage() {
             </button>
           </div>
 
-          <AdminContentEditors csrfToken={csrfToken} />
-
-          <div className="mt-10">
-            <h2 className="section-label">{ui.admin.listHeading}</h2>
-            {messages == null ? null : messages.length === 0 ? (
-              <p className="prose-quiet">{ui.admin.empty}</p>
-            ) : (
-              <ul className="mt-4 space-y-6">
-                {messages.map((msg) => (
-                  <li key={msg.id} className="border border-line bg-surface p-5">
-                    <p className="font-semibold text-ink">
-                      {msg.name}{' '}
-                      <span className="font-normal text-muted">· {msg.email}</span>
-                    </p>
-                    <p className="mt-1 font-mono text-xs tracking-wide text-muted">
-                      {new Date(msg.createdAt).toLocaleString(locale)}
-                    </p>
-                    <p className="mt-3 prose-quiet">{msg.message}</p>
-                  </li>
-                ))}
-              </ul>
-            )}
+          <div
+            className="admin-tabs"
+            role="tablist"
+            aria-label={ui.admin.tabsLabel}
+          >
+            {tabs.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                role="tab"
+                id={`admin-tab-${item.id}`}
+                aria-selected={tab === item.id}
+                aria-controls={`admin-panel-${item.id}`}
+                className={`admin-tab${tab === item.id ? ' is-active' : ''}`}
+                onClick={() => setTab(item.id)}
+              >
+                {item.label}
+              </button>
+            ))}
           </div>
+
+          {tab === 'messages' ? (
+            <div
+              className="mt-8"
+              role="tabpanel"
+              id="admin-panel-messages"
+              aria-labelledby="admin-tab-messages"
+            >
+              <h2 className="section-label">{ui.admin.listHeading}</h2>
+              {messages == null ? null : messages.length === 0 ? (
+                <p className="prose-quiet">{ui.admin.empty}</p>
+              ) : (
+                <ul className="mt-4 space-y-6">
+                  {messages.map((msg) => (
+                    <li key={msg.id} className="border border-line bg-surface p-5">
+                      <p className="font-semibold text-ink">
+                        {msg.name}{' '}
+                        <span className="font-normal text-muted">· {msg.email}</span>
+                      </p>
+                      <p className="mt-1 font-mono text-xs tracking-wide text-muted">
+                        {new Date(msg.createdAt).toLocaleString(locale)}
+                      </p>
+                      <p className="mt-3 prose-quiet">{msg.message}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ) : (
+            <div
+              role="tabpanel"
+              id={`admin-panel-${tab}`}
+              aria-labelledby={`admin-tab-${tab}`}
+            >
+              <AdminContentEditors
+                csrfToken={csrfToken}
+                panel={tab}
+                reloadToken={contentReloadToken}
+              />
+            </div>
+          )}
         </div>
       )}
     </section>
