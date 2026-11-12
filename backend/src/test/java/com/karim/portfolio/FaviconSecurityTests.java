@@ -16,7 +16,14 @@ import org.springframework.test.web.servlet.MockMvc;
  * Slice test: favicon probes must be public and return the KM mark (200).
  */
 @WebMvcTest(controllers = FaviconController.class)
-@Import({SecurityConfig.class, ContactRateLimiter.class, AdminLoginRateLimiter.class})
+@Import({
+    SecurityConfig.class,
+    ContactRateLimiter.class,
+    AdminLoginRateLimiter.class,
+    // Bearer login is wired into the security chain, so the slice needs those beans.
+    AdminSessionTokens.class,
+    AdminCredentials.class
+})
 class FaviconSecurityTests {
 
 	@Autowired
