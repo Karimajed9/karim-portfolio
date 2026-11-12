@@ -26,7 +26,7 @@ describe('apiUrl', () => {
 describe('health probe messaging', () => {
   it('maps probe results to fallback reasons', () => {
     expect(fallbackReasonFromHealth('ok')).toBe('loading')
-    expect(fallbackReasonFromHealth('timeout')).toBe('warming')
+    expect(fallbackReasonFromHealth('timeout')).toBe('offline')
     expect(fallbackReasonFromHealth('unreachable')).toBe('offline')
   })
 
@@ -81,6 +81,22 @@ describe('api cache', () => {
     expect(readApiCache('/api/skills')).toEqual([{ id: 2, name: 'fresh' }])
   })
 
+  it('labels cache vs network sources for fetchJsonCached', async () => {
+    writeApiCache('/api/skills', [{ id: 1, name: 'cached' }])
+    const sources: string[] = []
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => [{ id: 2, name: 'fresh' }],
+      }),
+    )
+
+    await fetchJsonCached('/api/skills', (_data, source) => sources.push(source))
+    expect(sources).toEqual(['cache', 'network'])
+  })
+
   it('calls onSlow when fetch exceeds threshold and cache is empty', async () => {
     vi.useFakeTimers()
     const onData = vi.fn()
@@ -115,7 +131,7 @@ describe('api cache', () => {
     })
     await pending
 
-    expect(onData).toHaveBeenCalledWith([{ id: 3, name: 'live' }])
+    expect(onData).toHaveBeenCalledWith([{ id: 3, name: 'live' }], 'network')
     expect(readApiCache('/api/skills')).toEqual([{ id: 3, name: 'live' }])
   })
 
@@ -143,13 +159,41 @@ describe('api cache', () => {
 
     await vi.advanceTimersByTimeAsync(SLOW_FETCH_MS + 1000)
     expect(onSlow).not.toHaveBeenCalled()
-    expect(onData).toHaveBeenCalledWith([{ id: 1, name: 'cached' }])
+    expect(onData).toHaveBeenCalledWith([{ id: 1, name: 'cached' }], 'cache')
 
     resolveFetch({
       ok: true,
       json: async () => [{ id: 2, name: 'fresh' }],
     })
     await pending
+  })
+
+  it('loadWithStaticFallback still banners offline when cache exists but network fails', async () => {
+    writeApiCache('/api/experience', [{ id: 1, name: 'cached' }])
+    const updates: Array<{ data: unknown; meta: { usingStatic: boolean; reason?: string } }> = []
+    const fetchMock = vi.fn((input: RequestInfo | URL) => {
+      const url = String(input)
+      if (url.includes('/api/health')) {
+        return Promise.reject(new TypeError('Failed to fetch'))
+      }
+      return Promise.reject(new TypeError('Failed to fetch'))
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await loadWithStaticFallback(
+      '/api/experience',
+      [{ id: 0, name: 'static' }],
+      (data, meta) => updates.push({ data, meta }),
+    )
+
+    expect(updates.some((u) => u.meta.reason === 'offline')).toBe(true)
+    expect(updates.at(-1)).toEqual({
+      data: [{ id: 1, name: 'cached' }],
+      meta: { usingStatic: true, reason: 'offline' },
+    })
+    expect(fetchMock.mock.calls.some(([input]) => String(input).includes('/api/health'))).toBe(
+      true,
+    )
   })
 
   it('probeApiHealth returns timeout when the request hangs', async () => {
@@ -177,7 +221,7 @@ describe('api cache', () => {
     await expect(probeApiHealth(50)).resolves.toBe('unreachable')
   })
 
-  it('loadWithStaticFallback shows warming on slow hang then swaps to live', async () => {
+  it('loadWithStaticFallback shows warming while slow then loading when health is reachable', async () => {
     vi.useFakeTimers()
     const updates: Array<{ data: unknown; meta: { usingStatic: boolean; reason?: string } }> = []
     const staticFallback = [{ id: 0, name: 'static' }]
@@ -185,16 +229,10 @@ describe('api cache', () => {
     let resolveSkills!: (value: { ok: boolean; json: () => Promise<unknown> }) => void
     vi.stubGlobal(
       'fetch',
-      vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      vi.fn((input: RequestInfo | URL) => {
         const url = String(input)
         if (url.includes('/api/health')) {
-          return new Promise((_resolve, reject) => {
-            init?.signal?.addEventListener('abort', () => {
-              const err = new Error('Aborted')
-              err.name = 'AbortError'
-              reject(err)
-            })
-          })
+          return Promise.resolve({ ok: true, json: async () => ({ status: 'ok' }) })
         }
         return new Promise((resolve) => {
           resolveSkills = resolve
@@ -215,8 +253,8 @@ describe('api cache', () => {
       meta: { usingStatic: true, reason: 'warming' },
     })
 
-    await vi.advanceTimersByTimeAsync(HEALTH_PROBE_MS)
-    expect(updates.at(-1)?.meta).toEqual({ usingStatic: true, reason: 'warming' })
+    await Promise.resolve()
+    expect(updates.at(-1)?.meta).toEqual({ usingStatic: true, reason: 'loading' })
 
     resolveSkills({
       ok: true,
@@ -229,6 +267,44 @@ describe('api cache', () => {
       meta: { usingStatic: false },
     })
     expect(readApiCache('/api/skills')).toEqual([{ id: 9, name: 'live' }])
+  })
+
+  it('loadWithStaticFallback marks offline when health probe is cancelled', async () => {
+    vi.useFakeTimers()
+    const updates: Array<{ data: unknown; meta: { usingStatic: boolean; reason?: string } }> = []
+    const staticFallback = [{ id: 0, name: 'static' }]
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input)
+        if (url.includes('/api/health')) {
+          return new Promise((_resolve, reject) => {
+            init?.signal?.addEventListener('abort', () => {
+              const err = new Error('Aborted')
+              err.name = 'AbortError'
+              reject(err)
+            })
+          })
+        }
+        return Promise.resolve({ ok: false, status: 502 })
+      }),
+    )
+
+    const pending = loadWithStaticFallback(
+      '/api/skills',
+      staticFallback,
+      (data, meta) => updates.push({ data, meta }),
+      { healthProbeMs: HEALTH_PROBE_MS },
+    )
+
+    await vi.advanceTimersByTimeAsync(HEALTH_PROBE_MS)
+    await pending
+
+    expect(updates.at(-1)).toEqual({
+      data: staticFallback,
+      meta: { usingStatic: true, reason: 'offline' },
+    })
   })
 
   it('loadWithStaticFallback marks offline when health is unreachable', async () => {
@@ -280,5 +356,31 @@ describe('api cache', () => {
       data: staticFallback,
       meta: { usingStatic: true, reason: 'loading' },
     })
+  })
+
+  it('loadWithStaticFallback treats empty 200 arrays as live success', async () => {
+    const updates: Array<{ data: unknown; meta: { usingStatic: boolean; reason?: string } }> = []
+    const staticFallback = [{ id: 0, name: 'static' }]
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: RequestInfo | URL) => {
+        const url = String(input)
+        if (url.includes('/api/health')) {
+          return Promise.resolve({ ok: true, json: async () => ({ status: 'ok' }) })
+        }
+        return Promise.resolve({ ok: true, json: async () => [] })
+      }),
+    )
+
+    await loadWithStaticFallback('/api/projects', staticFallback, (data, meta) =>
+      updates.push({ data, meta }),
+    )
+
+    expect(updates.at(-1)).toEqual({
+      data: [],
+      meta: { usingStatic: false },
+    })
+    expect(readApiCache('/api/projects')).toEqual([])
   })
 })

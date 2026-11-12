@@ -1058,6 +1058,40 @@
     background: color-mix(in srgb, var(--color-accent) 16%, var(--color-surface));
   }
 
+  .admin-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 1.5rem;
+  }
+
+  .admin-tab {
+    padding: 0.45rem 0.7rem;
+    border: 1px solid var(--color-line);
+    background: var(--color-surface);
+    color: var(--color-muted);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .admin-tab:hover {
+    color: var(--color-ink);
+  }
+
+  .admin-tab.is-active {
+    border-color: var(--color-accent);
+    color: var(--color-ink);
+    background: color-mix(in srgb, var(--color-accent) 16%, var(--color-surface));
+  }
+
+  .admin-tab:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
   .site-footer {
     border-top: 1px solid var(--color-line);
     padding: 2rem var(--page-pad-x) 2.5rem;
@@ -1111,6 +1145,152 @@
     .mobile-menu-toggle {
       display: none;
     }
+  }
+
+}
+
+/* Narrow viewports only — desktop component rules stay intact above. */
+@media (max-width: 959px) {
+  :root {
+    --page-pad-x: clamp(16px, 4.5vw, 28px);
+    --nav-h: 3.75rem;
+  }
+
+  body {
+    overflow-x: clip;
+  }
+
+  .site-header-nav {
+    display: none;
+  }
+
+  .site-header-inner {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .site-header .mobile-sections {
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  .page-columns {
+    gap: 0;
+  }
+
+  .arch-section {
+    padding-bottom: clamp(56px, 14vw, 96px);
+  }
+
+  .arch-section--hero {
+    padding: 1.75rem 0 2.75rem;
+  }
+
+  .hero-grid {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.75rem;
+  }
+
+  .hero-copy,
+  .board {
+    flex: 1 1 auto;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .hero-name {
+    margin-left: 0;
+    font-size: clamp(52px, 15vw, 72px);
+    line-height: 0.9;
+  }
+
+  .hero-role {
+    font-size: clamp(18px, 5vw, 24px);
+  }
+
+  .hero-meta {
+    font-size: 11px;
+    letter-spacing: 0.04em;
+  }
+
+  .hero-actions .btn {
+    width: 100%;
+    justify-content: center;
+    box-sizing: border-box;
+  }
+
+  .board {
+    box-sizing: border-box;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .board-head {
+    flex-wrap: wrap;
+    gap: 6px 12px;
+  }
+
+  .board-grid {
+    font-size: clamp(11px, 3.05vw, 16px);
+  }
+
+  .board-foot {
+    font-size: 13px;
+  }
+
+  .section-title {
+    font-size: clamp(28px, 8vw, 40px);
+  }
+
+  .profile-lede {
+    font-size: clamp(18px, 5vw, 24px);
+  }
+
+  .job-meta,
+  .skill-label,
+  .edu-year {
+    flex: 1 1 100%;
+  }
+
+  .job-body,
+  .skill-items {
+    flex: 1 1 100%;
+  }
+
+  .contact-email {
+    font-size: clamp(18px, 6.2vw, 28px);
+  }
+
+  .mobility-headline {
+    max-width: none;
+    font-size: clamp(24px, 7vw, 34px);
+  }
+
+  .flip-cell {
+    width: 22px;
+    height: 30px;
+    font-size: 17px;
+  }
+
+  .status-banner--overlay {
+    top: calc(var(--nav-h) + 0.4rem);
+    left: var(--page-pad-x);
+    right: var(--page-pad-x);
+    width: auto;
+    max-width: none;
+    transform: none;
+    box-sizing: border-box;
+    padding: 0.65rem 0.75rem;
+  }
+
+  .status-banner--dismissible {
+    align-items: flex-start;
+  }
+
+  .status-banner-message {
+    overflow-wrap: anywhere;
+    text-wrap: pretty;
   }
 }
 

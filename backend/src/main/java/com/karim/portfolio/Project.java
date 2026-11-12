@@ -22,4 +22,9 @@ public class Project {
   public String getSummary() { return summary; }
   public String getTags() { return tags; }
   public String getHref() { return href; }
+
+  public void setName(String name) { this.name = name; }
+  public void setSummary(String summary) { this.summary = summary; }
+  public void setTags(String tags) { this.tags = tags; }
+  public void setHref(String href) { this.href = href; }
 }

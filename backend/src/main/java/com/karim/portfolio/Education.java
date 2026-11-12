@@ -28,4 +28,12 @@ public class Education {
   public String getStartDate() { return startDate; }
   public String getEndDate() { return endDate; }
   public Integer getSortOrder() { return sortOrder; }
+
+  public void setSchool(String school) { this.school = school; }
+  public void setCity(String city) { this.city = city; }
+  public void setDegree(String degree) { this.degree = degree; }
+  public void setCountry(String country) { this.country = country; }
+  public void setStartDate(String startDate) { this.startDate = startDate; }
+  public void setEndDate(String endDate) { this.endDate = endDate; }
+  public void setSortOrder(Integer sortOrder) { this.sortOrder = sortOrder; }
 }

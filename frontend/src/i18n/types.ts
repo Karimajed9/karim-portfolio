@@ -156,6 +156,10 @@ export type UiCopy = {
     loading: string
     dismiss: string
   }
+  contentUpdate: {
+    message: string
+    dismiss: string
+  }
   admin: {
     title: string
     signedIn: string
@@ -168,7 +172,50 @@ export type UiCopy = {
     refreshing: string
     empty: string
     listHeading: string
+    tabsLabel: string
+    messagesTab: string
+    cvTab: string
     authError: string
+    tooManyRequests: string
+    logout: string
     unreachable: string
+    contentHeading: string
+    experienceHeading: string
+    projectsHeading: string
+    skillsHeading: string
+    educationHeading: string
+    add: string
+    save: string
+    saving: string
+    remove: string
+    saved: string
+    saveFailed: string
+    company: string
+    role: string
+    startDate: string
+    endDate: string
+    location: string
+    highlights: string
+    highlightsHint: string
+    sortOrder: string
+    name: string
+    summary: string
+    tags: string
+    tagsHint: string
+    href: string
+    category: string
+    school: string
+    city: string
+    degree: string
+    country: string
+    cvHeading: string
+    cvHint: string
+    cvEn: string
+    cvFr: string
+    cvUploadEn: string
+    cvUploadFr: string
+    cvPickFile: string
+    cvUploadFailed: string
+    cvSaved: string
   }
 }

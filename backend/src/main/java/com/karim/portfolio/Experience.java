@@ -28,4 +28,12 @@ public class Experience {
   public String getLocation() { return location; }
   public String getHighlights() { return highlights; }
   public Integer getSortOrder() { return sortOrder; }
+
+  public void setCompany(String company) { this.company = company; }
+  public void setRole(String role) { this.role = role; }
+  public void setStartDate(String startDate) { this.startDate = startDate; }
+  public void setEndDate(String endDate) { this.endDate = endDate; }
+  public void setLocation(String location) { this.location = location; }
+  public void setHighlights(String highlights) { this.highlights = highlights; }
+  public void setSortOrder(Integer sortOrder) { this.sortOrder = sortOrder; }
 }

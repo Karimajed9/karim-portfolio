@@ -4,7 +4,18 @@ import DeparturesBoard from '../components/DeparturesBoard'
 import FlipDigits from '../components/FlipDigits'
 import SectionHeading from '../components/SectionHeading'
 import { useLocale } from '../i18n/LocaleContext'
+import {
+  buildStaticAbout,
+  buildStaticExperience,
+  buildStaticProjects,
+  buildStaticSkills,
+  toEducationViews,
+  toExperienceViews,
+  toProjectViews,
+  toSkillGroups,
+} from '../lib/contentApi'
 import { cvEnPath, cvFrPath } from '../lib/cv'
+import { useStaticApiResource } from '../lib/useStaticApiResource'
 
 const SECTION_IDS = [
   'profile',
@@ -71,6 +82,38 @@ export default function HomePage() {
     }
   }
 
+  const staticExperience = useMemo(() => buildStaticExperience(site), [site])
+  const staticProjects = useMemo(() => buildStaticProjects(site), [site])
+  const staticSkills = useMemo(() => buildStaticSkills(site), [site])
+  const staticAbout = useMemo(() => buildStaticAbout(site), [site])
+  const { data: experienceData } = useStaticApiResource(
+    '/api/experience',
+    staticExperience,
+    locale,
+  )
+  const { data: projectsData } = useStaticApiResource(
+    '/api/projects',
+    staticProjects,
+    locale,
+  )
+  const { data: skillsData } = useStaticApiResource(
+    '/api/skills',
+    staticSkills,
+    locale,
+  )
+  const { data: aboutData } = useStaticApiResource(
+    '/api/about',
+    staticAbout,
+    locale,
+  )
+  const experience = useMemo(() => toExperienceViews(experienceData), [experienceData])
+  const projects = useMemo(
+    () => toProjectViews(projectsData, site.projects.items),
+    [projectsData, site.projects.items],
+  )
+  const skills = useMemo(() => toSkillGroups(skillsData), [skillsData])
+  const education = useMemo(() => toEducationViews(aboutData), [aboutData])
+
   const [firstName, ...rest] = site.name.split(' ')
   const lastName = rest.join(' ')
   const preferredCv = locale === 'fr' ? cvFrPath : cvEnPath
@@ -115,13 +158,6 @@ export default function HomePage() {
               </a>
             ))}
           </nav>
-          <a href="#mobility" className="section-rail-aside">
-            <span className="section-rail-aside-dot" aria-hidden="true" />
-            <span>{site.mobility.boardFoot}</span>
-          </a>
-          <a href={preferredCv} className="project-card-link section-rail-cv" download>
-            {ui.cv.download}
-          </a>
         </aside>
 
         <div className="content-column">
@@ -146,8 +182,8 @@ export default function HomePage() {
 
           <section id="experience" className="arch-section">
             <SectionHeading title={ui.experience.title} index="02" />
-            {site.experience.map((job) => (
-              <article key={`${job.company}-${job.startDate}`} className="job">
+            {experience.map((job) => (
+              <article key={job.id} className="job">
                 <div className="job-meta">
                   <div>
                     {job.startDate} –{' '}
@@ -179,8 +215,8 @@ export default function HomePage() {
           <section id="projects" className="arch-section">
             <SectionHeading title={ui.projects.title} index="03" />
             <div className="project-grid">
-              {site.projects.items.map((project) => (
-                <article key={project.name}>
+              {projects.map((project) => (
+                <article key={project.id}>
                   <div className="project-card-visual">
                     <div className="project-card-mark">
                       {project.mark}
@@ -205,7 +241,7 @@ export default function HomePage() {
 
           <section id="skills" className="arch-section">
             <SectionHeading title={ui.skills.title} index="04" />
-            {site.skills.map((group) => (
+            {skills.map((group) => (
               <div key={group.category} className="skill-row">
                 <div className="skill-label">{group.category}</div>
                 <ul className="skill-items">
@@ -219,8 +255,8 @@ export default function HomePage() {
 
           <section id="education" className="arch-section">
             <SectionHeading title={ui.education.title} index="05" />
-            {site.about.education.map((item) => (
-              <article key={`${item.school}-${item.degree}`} className="edu-row">
+            {education.map((item) => (
+              <article key={item.id} className="edu-row">
                 <div className="edu-year">{item.yearLabel}</div>
                 <div>
                   <h3 className="edu-degree">{item.degree}</h3>
