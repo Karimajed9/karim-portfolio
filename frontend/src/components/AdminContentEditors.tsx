@@ -777,32 +777,48 @@ export default function AdminContentEditors({
                       onChange={(e) => patch({ liveDemoUrl: e.target.value })}
                     />
                   </label>
-                  <div className="field md:col-span-2 space-y-3">
-                    <span className="field-label">{ui.admin.coverImage}</span>
-                    <p className="prose-quiet text-sm">{ui.admin.coverImageHint}</p>
+                  <div className="field md:col-span-2 admin-cover-field">
+                    <span className="field-label" id={`admin-cover-label-${index}`}>
+                      {ui.admin.coverImage}
+                    </span>
+                    <p className="prose-quiet">{ui.admin.coverImageHint}</p>
                     {row.coverImageUrl ? (
                       <img
                         src={publicAssetUrl(row.coverImageUrl)}
                         alt=""
-                        className="max-h-40 w-auto border border-line object-cover"
+                        className="admin-cover-preview"
                       />
                     ) : null}
-                    <label className="field">
-                      <span className="field-label">{ui.admin.coverImageUpload}</span>
+                    <div className="admin-cover-actions">
                       <input
-                        className="field-control"
+                        id={`admin-cover-file-${index}`}
+                        className="admin-file-input"
                         type="file"
                         accept="image/jpeg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp,.gif"
                         disabled={busyKey === `cover-${index}`}
+                        aria-labelledby={`admin-cover-label-${index}`}
                         onChange={(e) => {
                           const file = e.target.files?.[0] ?? null
                           void uploadProjectCover(index, file)
                           e.target.value = ''
                         }}
                       />
-                    </label>
-                    <label className="field">
-                      <span className="field-label">{ui.admin.coverImage}</span>
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        disabled={busyKey === `cover-${index}`}
+                        onClick={() => {
+                          const input = document.getElementById(`admin-cover-file-${index}`)
+                          if (input instanceof HTMLInputElement) input.click()
+                        }}
+                      >
+                        {busyKey === `cover-${index}`
+                          ? ui.admin.saving
+                          : ui.admin.coverImageUpload}
+                      </button>
+                    </div>
+                    <label className="field admin-cover-url">
+                      <span className="field-label">{ui.admin.coverImageUrl}</span>
                       <input
                         className="field-control"
                         value={row.coverImageUrl}

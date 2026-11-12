@@ -263,6 +263,7 @@ export type UiCopy = {
     coverImage: string
     coverImageHint: string
     coverImageUpload: string
+    coverImageUrl: string
     coverImagePick: string
     coverImageFailed: string
     coverImageSaved: string
