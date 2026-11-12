@@ -18,7 +18,8 @@ export default function ContentUpdateBanner() {
   const [outdated, setOutdated] = useState(false)
   const [dismissed, setDismissed] = useState(false)
 
-  const isAdmin = location.pathname.includes('/admin')
+  const isAdmin =
+    location.pathname === '/admin' || location.pathname.endsWith('/admin')
 
   useEffect(() => {
     if (isAdmin) return

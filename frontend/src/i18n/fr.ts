@@ -281,7 +281,7 @@ export const uiFr: UiCopy = {
     save: 'Enregistrer',
     saving: 'Enregistrement…',
     remove: 'Supprimer',
-    saved: 'Enregistré. Les pages publiques afficheront ceci au prochain chargement.',
+    saved: 'Enregistré. Actualisez une page ouverte pour voir la dernière version.',
     saveFailed: 'Enregistrement impossible. Vérifiez les champs et réessayez.',
     company: 'Entreprise',
     role: 'Poste',

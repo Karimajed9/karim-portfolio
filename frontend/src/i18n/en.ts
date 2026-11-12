@@ -281,7 +281,7 @@ export const uiEn: UiCopy = {
     save: 'Save',
     saving: 'Saving…',
     remove: 'Delete',
-    saved: 'Saved. Public pages will show this on the next load.',
+    saved: 'Saved. Refresh an open page to see the latest.',
     saveFailed: 'Could not save. Check the fields and try again.',
     company: 'Company',
     role: 'Role',

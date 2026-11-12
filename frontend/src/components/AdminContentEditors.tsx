@@ -77,6 +77,8 @@ export default function AdminContentEditors({ csrfToken }: AuthProps) {
   const [busyKey, setBusyKey] = useState<string | null>(null)
   const [cvEnFile, setCvEnFile] = useState<File | null>(null)
   const [cvFrFile, setCvFrFile] = useState<File | null>(null)
+  const [cvEnInputKey, setCvEnInputKey] = useState(0)
+  const [cvFrInputKey, setCvFrInputKey] = useState(0)
 
   async function reload() {
     setError(null)
@@ -146,7 +148,7 @@ export default function AdminContentEditors({ csrfToken }: AuthProps) {
       setError(ui.admin.cvPickFile)
       return
     }
-    setBusyKey(`cv-${slot}`)
+    setBusyKey(slot)
     setStatus(null)
     setError(null)
     try {
@@ -163,8 +165,13 @@ export default function AdminContentEditors({ csrfToken }: AuthProps) {
         setError(ui.admin.cvUploadFailed)
         return
       }
-      if (slot === 'cv-en') setCvEnFile(null)
-      else setCvFrFile(null)
+      if (slot === 'cv-en') {
+        setCvEnFile(null)
+        setCvEnInputKey((n) => n + 1)
+      } else {
+        setCvFrFile(null)
+        setCvFrInputKey((n) => n + 1)
+      }
       setStatus(ui.admin.cvSaved)
     } catch {
       setError(ui.admin.unreachable)
@@ -793,9 +800,13 @@ export default function AdminContentEditors({ csrfToken }: AuthProps) {
         <h3 className="text-xl font-semibold tracking-tight">{ui.admin.cvHeading}</h3>
         <p className="prose-quiet">{ui.admin.cvHint}</p>
         <div className="grid gap-4 md:grid-cols-2">
-          <label className="field">
-            <span className="field-label">{ui.admin.cvEn}</span>
+          <div className="field">
+            <label className="field-label" htmlFor="admin-cv-en">
+              {ui.admin.cvEn}
+            </label>
             <input
+              id="admin-cv-en"
+              key={`en-${cvEnInputKey}`}
               type="file"
               accept="application/pdf,.pdf"
               className="field-control"
@@ -804,15 +815,19 @@ export default function AdminContentEditors({ csrfToken }: AuthProps) {
             <button
               type="button"
               className="btn btn-primary mt-3"
-              disabled={busyKey === 'cv-cv-en'}
+              disabled={busyKey === 'cv-en'}
               onClick={() => void uploadCv('cv-en', cvEnFile)}
             >
-              {busyKey === 'cv-cv-en' ? ui.admin.saving : ui.admin.cvUploadEn}
+              {busyKey === 'cv-en' ? ui.admin.saving : ui.admin.cvUploadEn}
             </button>
-          </label>
-          <label className="field">
-            <span className="field-label">{ui.admin.cvFr}</span>
+          </div>
+          <div className="field">
+            <label className="field-label" htmlFor="admin-cv-fr">
+              {ui.admin.cvFr}
+            </label>
             <input
+              id="admin-cv-fr"
+              key={`fr-${cvFrInputKey}`}
               type="file"
               accept="application/pdf,.pdf"
               className="field-control"
@@ -821,12 +836,12 @@ export default function AdminContentEditors({ csrfToken }: AuthProps) {
             <button
               type="button"
               className="btn btn-primary mt-3"
-              disabled={busyKey === 'cv-cv-fr'}
+              disabled={busyKey === 'cv-fr'}
               onClick={() => void uploadCv('cv-fr', cvFrFile)}
             >
-              {busyKey === 'cv-cv-fr' ? ui.admin.saving : ui.admin.cvUploadFr}
+              {busyKey === 'cv-fr' ? ui.admin.saving : ui.admin.cvUploadFr}
             </button>
-          </label>
+          </div>
         </div>
       </section>
     </div>

@@ -61,6 +61,7 @@ export default function AdminPage() {
     setMessages(null)
     setError(null)
     setLoading(true)
+    let signedIn = false
     try {
       const res = await fetch(apiUrl('/api/admin/login'), {
         method: 'POST',
@@ -79,14 +80,24 @@ export default function AdminPage() {
         return
       }
       const data = (await res.json()) as { csrfToken?: string }
+      if (!data.csrfToken) {
+        setAuthenticated(false)
+        setCsrfToken(null)
+        setError(ui.admin.authError)
+        return
+      }
       setPassword('')
-      setCsrfToken(data.csrfToken ?? null)
+      setCsrfToken(data.csrfToken)
       setAuthenticated(true)
-      await fetchMessages()
+      signedIn = true
     } catch {
       setError(ui.admin.unreachable)
+      return
     } finally {
       setLoading(false)
+    }
+    if (signedIn) {
+      await fetchMessages()
     }
   }
 

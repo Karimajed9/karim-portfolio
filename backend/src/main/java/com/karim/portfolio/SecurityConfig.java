@@ -55,7 +55,7 @@ public class SecurityConfig {
         .csrf(csrf -> csrf
             .csrfTokenRepository(csrfTokenRepository)
             .csrfTokenRequestHandler(csrfHandler)
-            .ignoringRequestMatchers("/api/admin/login"))
+            .ignoringRequestMatchers("/api/admin/login", "/api/admin/logout"))
         .sessionManagement(session -> session
             .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
         .authorizeHttpRequests(auth -> auth
