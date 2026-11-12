@@ -17,4 +17,8 @@ describe('publicAssetUrl', () => {
       'https://cdn.example.com/cover.png',
     )
   })
+
+  it('routes API media paths through the API base', () => {
+    expect(publicAssetUrl('/media/uploads/cover.png')).toMatch(/\/media\/uploads\/cover\.png$/)
+  })
 })

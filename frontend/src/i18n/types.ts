@@ -261,6 +261,11 @@ export type UiCopy = {
     href: string
     slug: string
     coverImage: string
+    coverImageHint: string
+    coverImageUpload: string
+    coverImagePick: string
+    coverImageFailed: string
+    coverImageSaved: string
     liveDemoUrl: string
     mark: string
     overview: string

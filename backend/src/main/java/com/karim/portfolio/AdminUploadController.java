@@ -17,7 +17,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 /**
  * Admin multipart uploads. Optional {@code slot=cv-en|cv-fr} overwrites the
- * stable public CV PDFs; otherwise stores under a unique uploads/ key.
+ * stable public CV PDFs; otherwise stores an image under a unique uploads/ key
+ * and returns a public {@code /media/...} URL for cover fields.
  */
 @RestController
 public class AdminUploadController {
@@ -43,15 +44,41 @@ public class AdminUploadController {
       return storeCv(file, cvKey.get());
     }
 
+    return storeImage(file);
+  }
+
+  private Map<String, String> storeImage(MultipartFile file) throws IOException {
+    if (file.getSize() > MediaFiles.MAX_BYTES) {
+      throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "Image too large");
+    }
+
     String original = file.getOriginalFilename() != null ? file.getOriginalFilename() : "upload.bin";
+    if (!MediaFiles.allowedImage(file.getContentType(), original)) {
+      throw new ResponseStatusException(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Image only");
+    }
+
+    byte[] bytes = file.getBytes();
+    if (bytes.length > MediaFiles.MAX_BYTES) {
+      throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "Image too large");
+    }
+    if (!MediaFiles.looksLikeImage(bytes)) {
+      throw new ResponseStatusException(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Image only");
+    }
+
     String safeName = original.replaceAll("[^a-zA-Z0-9._-]", "_");
     String key = "uploads/" + UUID.randomUUID() + "-" + safeName;
+    String contentType = file.getContentType() == null || file.getContentType().isBlank()
+        ? MediaType.APPLICATION_OCTET_STREAM_VALUE
+        : file.getContentType();
+
     StoredBlob stored = blobStorage.store(
         key,
-        file.getContentType(),
-        file.getInputStream(),
-        file.getSize());
-    return Map.of("key", stored.key(), "url", stored.url());
+        contentType,
+        new ByteArrayInputStream(bytes),
+        bytes.length);
+    contentRevision.bump();
+
+    return Map.of("key", stored.key(), "url", MediaFiles.publicPath(stored.key()));
   }
 
   private Map<String, String> storeCv(MultipartFile file, String key) throws IOException {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { apiUrl } from '../api'
 import { useLocale } from '../i18n/LocaleContext'
+import { publicAssetUrl } from '../lib/publicAsset'
 import StatusBanner from './StatusBanner'
 
 export type AdminEditorPanel = 'experience' | 'projects' | 'skills' | 'education' | 'cv'
@@ -342,6 +343,45 @@ export default function AdminContentEditors({
         setCvFrInputKey((n) => n + 1)
       }
       setStatus(ui.admin.cvSaved)
+    } catch {
+      setError(ui.admin.unreachable)
+    } finally {
+      setBusyKey(null)
+    }
+  }
+
+  async function uploadProjectCover(index: number, file: File | null) {
+    if (!file) {
+      setError(ui.admin.coverImagePick)
+      return
+    }
+    const busy = `cover-${index}`
+    setBusyKey(busy)
+    setStatus(null)
+    setError(null)
+    try {
+      const body = new FormData()
+      body.append('file', file)
+      const res = await fetch(apiUrl('/api/admin/uploads'), {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'X-CSRF-TOKEN': csrfToken },
+        body,
+      })
+      if (!res.ok) {
+        setError(ui.admin.coverImageFailed)
+        return
+      }
+      const payload = (await res.json()) as { url?: string }
+      const url = (payload.url ?? '').trim()
+      if (!url) {
+        setError(ui.admin.coverImageFailed)
+        return
+      }
+      setProjects((rows) =>
+        rows.map((item, i) => (i === index ? { ...item, coverImageUrl: url } : item)),
+      )
+      setStatus(ui.admin.coverImageSaved)
     } catch {
       setError(ui.admin.unreachable)
     } finally {
@@ -737,14 +777,40 @@ export default function AdminContentEditors({
                       onChange={(e) => patch({ liveDemoUrl: e.target.value })}
                     />
                   </label>
-                  <label className="field">
+                  <div className="field md:col-span-2 space-y-3">
                     <span className="field-label">{ui.admin.coverImage}</span>
-                    <input
-                      className="field-control"
-                      value={row.coverImageUrl}
-                      onChange={(e) => patch({ coverImageUrl: e.target.value })}
-                    />
-                  </label>
+                    <p className="prose-quiet text-sm">{ui.admin.coverImageHint}</p>
+                    {row.coverImageUrl ? (
+                      <img
+                        src={publicAssetUrl(row.coverImageUrl)}
+                        alt=""
+                        className="max-h-40 w-auto border border-line object-cover"
+                      />
+                    ) : null}
+                    <label className="field">
+                      <span className="field-label">{ui.admin.coverImageUpload}</span>
+                      <input
+                        className="field-control"
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp,.gif"
+                        disabled={busyKey === `cover-${index}`}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] ?? null
+                          void uploadProjectCover(index, file)
+                          e.target.value = ''
+                        }}
+                      />
+                    </label>
+                    <label className="field">
+                      <span className="field-label">{ui.admin.coverImage}</span>
+                      <input
+                        className="field-control"
+                        value={row.coverImageUrl}
+                        onChange={(e) => patch({ coverImageUrl: e.target.value })}
+                        placeholder="/media/uploads/…"
+                      />
+                    </label>
+                  </div>
                   <label className="field">
                     <span className="field-label">{ui.admin.mark}</span>
                     <input

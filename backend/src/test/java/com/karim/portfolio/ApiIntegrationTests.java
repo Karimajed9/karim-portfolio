@@ -160,6 +160,37 @@ class ApiIntegrationTests {
 	}
 
 	@Test
+	void adminCanUploadProjectCoverImage() throws Exception {
+		SessionAuth auth = loginAsAdmin();
+		byte[] png = new byte[] {
+				(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
+				0, 0, 0, 0, 0, 0, 0, 0
+		};
+		MockMultipartFile file = new MockMultipartFile(
+				"file",
+				"cover.png",
+				"image/png",
+				png);
+
+		MvcResult upload = mockMvc.perform(multipart("/api/admin/uploads")
+						.file(file)
+						.session(auth.session())
+						.header("X-CSRF-TOKEN", auth.csrfToken()))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.url").isString())
+				.andReturn();
+
+		String url = JsonPath.read(upload.getResponse().getContentAsString(), "$.url");
+		org.junit.jupiter.api.Assertions.assertTrue(
+				url.startsWith("/media/uploads/"),
+				() -> "expected /media/uploads/ URL, got " + url);
+
+		mockMvc.perform(get(url))
+				.andExpect(status().isOk())
+				.andExpect(content().contentTypeCompatibleWith(MediaType.IMAGE_PNG));
+	}
+
+	@Test
 	void adminProjectWriteRequiresAuth() throws Exception {
 		mockMvc.perform(post("/api/admin/projects")
 						.contentType(MediaType.APPLICATION_JSON)
