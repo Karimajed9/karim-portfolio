@@ -29,6 +29,27 @@ export type ApiSkill = {
   sortOrder: number
 }
 
+/** Education row inside `GET /api/about`. */
+export type ApiEducation = {
+  id: number
+  school: string
+  city: string
+  degree: string
+  country: string
+  startDate: string
+  endDate: string
+  sortOrder?: number
+}
+
+/** Wire shape of `GET /api/about` (only `education` is rendered from this payload). */
+export type ApiAbout = {
+  summary: string
+  goals: string
+  professionalInterests: string
+  personalInterests: string
+  education: ApiEducation[]
+}
+
 export type ExperienceView = {
   id: number
   company: string
@@ -51,6 +72,17 @@ export type ProjectView = {
 export type SkillGroupView = {
   category: string
   items: string[]
+}
+
+export type EducationView = {
+  id: number
+  school: string
+  city: string
+  degree: string
+  country: string
+  startDate: string
+  endDate: string
+  yearLabel: string
 }
 
 export function splitHighlights(value: string | null | undefined): string[] {
@@ -101,6 +133,31 @@ export function buildStaticSkills(site: SiteContent): ApiSkill[] {
       sortOrder: itemIndex + 1,
     })),
   )
+}
+
+export function buildStaticAbout(site: SiteContent): ApiAbout {
+  return {
+    summary: site.about.summary,
+    goals: site.about.goals,
+    professionalInterests: site.about.professionalInterests.join(','),
+    personalInterests: site.about.personalInterests.join(','),
+    education: site.about.education.map((item, index) => ({
+      id: index + 1,
+      school: item.school,
+      city: item.city,
+      degree: item.degree,
+      country: item.country,
+      startDate: item.startDate,
+      endDate: item.endDate,
+      sortOrder: index + 1,
+    })),
+  }
+}
+
+export function educationYearLabel(endDate: string, fallback?: string): string {
+  if (fallback) return fallback
+  const match = endDate.match(/(?:19|20)\d{2}/)
+  return match?.[0] ?? endDate
 }
 
 export function projectMark(
@@ -157,5 +214,20 @@ export function toSkillGroups(rows: ApiSkill[]): SkillGroupView[] {
       .slice()
       .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
       .map((item) => item.name),
+  }))
+}
+
+/** Map `/api/about` to education rows only — profile copy stays on bundled site data. */
+export function toEducationViews(about: ApiAbout): EducationView[] {
+  const rows = about.education ?? []
+  return rows.map((row) => ({
+    id: row.id,
+    school: row.school,
+    city: row.city,
+    degree: row.degree,
+    country: row.country,
+    startDate: row.startDate,
+    endDate: row.endDate,
+    yearLabel: educationYearLabel(row.endDate),
   }))
 }

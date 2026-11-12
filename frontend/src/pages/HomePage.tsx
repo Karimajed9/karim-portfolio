@@ -6,9 +6,11 @@ import FlipDigits from '../components/FlipDigits'
 import SectionHeading from '../components/SectionHeading'
 import { useLocale } from '../i18n/LocaleContext'
 import {
+  buildStaticAbout,
   buildStaticExperience,
   buildStaticProjects,
   buildStaticSkills,
+  toEducationViews,
   toExperienceViews,
   toProjectViews,
   toSkillGroups,
@@ -84,6 +86,7 @@ export default function HomePage() {
   const staticExperience = useMemo(() => buildStaticExperience(site), [site])
   const staticProjects = useMemo(() => buildStaticProjects(site), [site])
   const staticSkills = useMemo(() => buildStaticSkills(site), [site])
+  const staticAbout = useMemo(() => buildStaticAbout(site), [site])
   const { data: experienceData, fallbackReason: experienceFallback } = useStaticApiResource(
     '/api/experience',
     staticExperience,
@@ -99,13 +102,20 @@ export default function HomePage() {
     staticSkills,
     locale,
   )
+  const { data: aboutData, fallbackReason: aboutFallback } = useStaticApiResource(
+    '/api/about',
+    staticAbout,
+    locale,
+  )
   const experience = useMemo(() => toExperienceViews(experienceData), [experienceData])
   const projects = useMemo(
     () => toProjectViews(projectsData, site.projects.items),
     [projectsData, site.projects.items],
   )
   const skills = useMemo(() => toSkillGroups(skillsData), [skillsData])
-  const fallbackReason = experienceFallback ?? projectsFallback ?? skillsFallback
+  const education = useMemo(() => toEducationViews(aboutData), [aboutData])
+  const fallbackReason =
+    experienceFallback ?? projectsFallback ?? skillsFallback ?? aboutFallback
 
   const [firstName, ...rest] = site.name.split(' ')
   const lastName = rest.join(' ')
@@ -256,8 +266,8 @@ export default function HomePage() {
 
           <section id="education" className="arch-section">
             <SectionHeading title={ui.education.title} index="05" />
-            {site.about.education.map((item) => (
-              <article key={`${item.school}-${item.degree}`} className="edu-row">
+            {education.map((item) => (
+              <article key={item.id} className="edu-row">
                 <div className="edu-year">{item.yearLabel}</div>
                 <div>
                   <h3 className="edu-degree">{item.degree}</h3>

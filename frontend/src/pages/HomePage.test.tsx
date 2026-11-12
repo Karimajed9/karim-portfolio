@@ -14,10 +14,21 @@ function jsonResponse(body: unknown, ok = true) {
   }
 }
 
+function emptyAbout() {
+  return {
+    summary: 'unused',
+    goals: 'unused',
+    professionalInterests: '',
+    personalInterests: '',
+    education: [] as unknown[],
+  }
+}
+
 function mockContentApis(handlers: {
   experience?: () => Promise<unknown> | unknown
   projects?: () => Promise<unknown> | unknown
   skills?: () => Promise<unknown> | unknown
+  about?: () => Promise<unknown> | unknown
   health?: () => Promise<unknown> | unknown
 }) {
   return vi.fn(async (input: RequestInfo | URL) => {
@@ -40,6 +51,12 @@ function mockContentApis(handlers: {
     }
     if (url.includes('/api/skills')) {
       const value = handlers.skills ? await handlers.skills() : []
+      return typeof value === 'object' && value !== null && 'ok' in (value as object)
+        ? value
+        : jsonResponse(value)
+    }
+    if (url.includes('/api/about')) {
+      const value = handlers.about ? await handlers.about() : emptyAbout()
       return typeof value === 'object' && value !== null && 'ok' in (value as object)
         ? value
         : jsonResponse(value)
@@ -87,6 +104,20 @@ describe('HomePage', () => {
         skills: () => [
           { id: 1, category: 'API Skills', name: 'LiveSkill', sortOrder: 1 },
         ],
+        about: () => ({
+          ...emptyAbout(),
+          education: [
+            {
+              id: 1,
+              school: 'API University',
+              city: 'Montréal',
+              degree: 'API Degree',
+              country: 'Canada',
+              startDate: 'September 2020',
+              endDate: 'August 2021',
+            },
+          ],
+        }),
       }),
     )
 
@@ -103,15 +134,19 @@ describe('HomePage', () => {
     expect(screen.getByRole('heading', { name: /Core technical skills/i })).toBeInTheDocument()
     // Bundled static paints immediately before the network resolves.
     expect(screen.getByText(siteEn.experience[0]!.company)).toBeInTheDocument()
+    // Profile copy stays bundled even after /api/about resolves.
+    expect(screen.getByText(siteEn.about.summary)).toBeInTheDocument()
 
     await waitFor(() => {
       expect(screen.getByText('API Co')).toBeInTheDocument()
       expect(screen.getByRole('heading', { name: 'API Project' })).toBeInTheDocument()
       expect(screen.getByText('LiveSkill')).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: 'API Degree' })).toBeInTheDocument()
     })
+    expect(screen.getByText(siteEn.about.summary)).toBeInTheDocument()
   })
 
-  it('swaps in live experience, projects, and skills on success without dropping static first paint', async () => {
+  it('swaps in live experience, projects, skills, and education on success without dropping static first paint', async () => {
     const fetchMock = mockContentApis({
       experience: () => [
         {
@@ -137,6 +172,21 @@ describe('HomePage', () => {
         { id: 1, category: 'Cloud', name: 'Azure Functions', sortOrder: 1 },
         { id: 2, category: 'Cloud', name: 'Logic Apps', sortOrder: 2 },
       ],
+      about: () => ({
+        ...emptyAbout(),
+        summary: 'Should not replace profile copy',
+        education: [
+          {
+            id: 9,
+            school: 'Live University',
+            city: 'Montréal',
+            degree: 'Live Degree',
+            country: 'Canada',
+            startDate: 'September 2020',
+            endDate: 'August 2021',
+          },
+        ],
+      }),
     })
     vi.stubGlobal('fetch', fetchMock)
 
@@ -151,6 +201,7 @@ describe('HomePage', () => {
     expect(screen.getByText(siteEn.experience[0]!.company)).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: siteEn.projects.items[0]!.name })).toBeInTheDocument()
     expect(screen.getByText(siteEn.skills[0]!.items[0]!)).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: siteEn.about.education[0]!.degree })).toBeInTheDocument()
 
     await waitFor(() => {
       expect(screen.getByText('Live Experience Co')).toBeInTheDocument()
@@ -158,7 +209,12 @@ describe('HomePage', () => {
       expect(screen.getByRole('heading', { name: 'Live Portfolio' })).toBeInTheDocument()
       expect(screen.getByText('Azure Functions')).toBeInTheDocument()
       expect(screen.getByText('Logic Apps')).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: 'Live Degree' })).toBeInTheDocument()
+      expect(screen.getByText(/Live University/)).toBeInTheDocument()
     })
+
+    expect(screen.getByText(siteEn.about.summary)).toBeInTheDocument()
+    expect(screen.queryByText('Should not replace profile copy')).not.toBeInTheDocument()
 
     const experienceCalls = fetchMock.mock.calls.filter(([input]) =>
       String(input).includes('/api/experience'),
@@ -167,12 +223,15 @@ describe('HomePage', () => {
       String(input).includes('/api/projects'),
     )
     const skillCalls = fetchMock.mock.calls.filter(([input]) => String(input).includes('/api/skills'))
+    const aboutCalls = fetchMock.mock.calls.filter(([input]) => String(input).includes('/api/about'))
     expect(experienceCalls).toHaveLength(1)
     expect(projectCalls).toHaveLength(1)
     expect(skillCalls).toHaveLength(1)
+    expect(aboutCalls).toHaveLength(1)
     expect(String(experienceCalls[0]![0])).toBe(apiUrl('/api/experience'))
     expect(String(projectCalls[0]![0])).toBe(apiUrl('/api/projects'))
     expect(String(skillCalls[0]![0])).toBe(apiUrl('/api/skills'))
+    expect(String(aboutCalls[0]![0])).toBe(apiUrl('/api/about'))
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
   })
 
@@ -181,6 +240,7 @@ describe('HomePage', () => {
       experience: () => jsonResponse(null, false),
       projects: () => jsonResponse(null, false),
       skills: () => jsonResponse(null, false),
+      about: () => jsonResponse(null, false),
       health: () => Promise.reject(new TypeError('Failed to fetch')),
     })
     vi.stubGlobal('fetch', fetchMock)
@@ -279,6 +339,20 @@ describe('HomePage', () => {
     writeApiCache('/api/skills', [
       { id: 1, category: 'Cached', name: 'CachedSkill', sortOrder: 1 },
     ])
+    writeApiCache('/api/about', {
+      ...emptyAbout(),
+      education: [
+        {
+          id: 1,
+          school: 'Cached U',
+          city: 'Montréal',
+          degree: 'Cached Degree',
+          country: 'Canada',
+          startDate: '2020',
+          endDate: '2021',
+        },
+      ],
+    })
 
     vi.stubGlobal(
       'fetch',
@@ -286,6 +360,7 @@ describe('HomePage', () => {
         experience: () => [],
         projects: () => [],
         skills: () => [],
+        about: () => emptyAbout(),
       }),
     )
 
@@ -303,6 +378,7 @@ describe('HomePage', () => {
       expect(screen.queryByText('Cached Co')).not.toBeInTheDocument()
       expect(screen.queryByRole('heading', { name: 'Cached Project' })).not.toBeInTheDocument()
       expect(screen.queryByText('CachedSkill')).not.toBeInTheDocument()
+      expect(screen.queryByRole('heading', { name: 'Cached Degree' })).not.toBeInTheDocument()
     })
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
   })
@@ -313,6 +389,7 @@ describe('HomePage', () => {
     let resolveExperience!: (value: unknown) => void
     let resolveProjects!: (value: unknown) => void
     let resolveSkills!: (value: unknown) => void
+    let resolveAbout!: (value: unknown) => void
 
     vi.stubGlobal(
       'fetch',
@@ -340,6 +417,11 @@ describe('HomePage', () => {
         if (url.includes('/api/skills')) {
           return new Promise((resolve) => {
             resolveSkills = resolve
+          })
+        }
+        if (url.includes('/api/about')) {
+          return new Promise((resolve) => {
+            resolveAbout = resolve
           })
         }
         return Promise.resolve(jsonResponse(null, false))
@@ -391,6 +473,22 @@ describe('HomePage', () => {
       resolveSkills(
         jsonResponse([{ id: 2, category: 'Delayed', name: 'DelayedSkill', sortOrder: 1 }]),
       )
+      resolveAbout(
+        jsonResponse({
+          ...emptyAbout(),
+          education: [
+            {
+              id: 2,
+              school: 'Delayed U',
+              city: 'Montréal',
+              degree: 'Delayed Degree',
+              country: 'Canada',
+              startDate: '2020',
+              endDate: '2021',
+            },
+          ],
+        }),
+      )
     })
 
     await act(async () => {
@@ -400,6 +498,7 @@ describe('HomePage', () => {
     expect(screen.getByText('Delayed Co')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Delayed Project' })).toBeInTheDocument()
     expect(screen.getByText('DelayedSkill')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Delayed Degree' })).toBeInTheDocument()
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
   })
 })
