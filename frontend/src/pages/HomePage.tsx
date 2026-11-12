@@ -143,6 +143,7 @@ export default function HomePage() {
               <span>{lastName}</span>
             </h1>
             <p className="hero-role">{site.shortTitle}</p>
+            <p className="hero-summary">{site.heroSummary}</p>
             <p className="hero-meta">{site.metaLine}</p>
             <div className="hero-actions">
               <a href="#contact" className="btn btn-primary">
@@ -175,14 +176,6 @@ export default function HomePage() {
         </aside>
 
         <div className="content-column">
-          <nav className="mobile-sections" aria-label={ui.nav.sections}>
-            {sections.map((section) => (
-              <a key={section.id} href={`#${section.id}`}>
-                {section.num} {section.label}
-              </a>
-            ))}
-          </nav>
-
           <section id="profile" className="arch-section">
             <SectionHeading title={ui.sections.profile} index="01" />
             <p className="profile-lede">{site.about.summary}</p>

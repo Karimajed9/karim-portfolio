@@ -6,6 +6,7 @@ export type SiteContent = {
   shortTitle: string
   description: string
   metaLine: string
+  heroSummary: string
   githubUrl: string
   linkedInUrl: string
   about: {

@@ -1225,26 +1225,47 @@
     line-height: 1.55;
   }
 
-  .mobile-sections {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.65rem 1.1rem;
-    margin: 0 0 1.5rem;
-    padding: 1rem 0;
-    border-top: 1px solid var(--color-line);
+  .mobile-nav-backdrop {
+    position: absolute;
+    inset: 0;
+    background: var(--color-bg);
+  }
+
+  .mobile-nav-panel {
+    position: relative;
+    z-index: 1;
+    max-height: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    background: var(--color-bg);
     border-bottom: 1px solid var(--color-line);
-    font-family: var(--font-mono);
-    font-size: 12px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--color-muted);
+    padding: 0.25rem var(--page-pad-x) 0.75rem;
+  }
+
+  .mobile-nav-panel a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid var(--color-line);
+    font-size: 16px;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    color: var(--color-ink);
+  }
+
+  .mobile-nav-panel a:hover,
+  .mobile-nav-panel a:focus-visible {
+    color: var(--color-accent);
+  }
+
+  .mobile-nav-panel a:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
   }
 
   @media (min-width: 960px) {
-    .mobile-sections {
-      display: none;
-    }
-
     .mobile-menu-toggle {
       display: none;
     }
@@ -1533,11 +1554,23 @@
 
 }
 
+/* Mobile-only additions. Hidden here so the desktop layout stays unchanged. */
+.hero-summary,
+.relocation-banner,
+.mobile-nav-layer {
+  display: none;
+}
+
 /* Narrow viewports only — desktop component rules stay intact above. */
 @media (max-width: 959px) {
   :root {
-    --page-pad-x: clamp(16px, 4.5vw, 28px);
-    --nav-h: 3.75rem;
+    --page-pad-x: clamp(20px, 5.2vw, 24px);
+    --nav-h: 4rem;
+  }
+
+  html.nav-menu-open,
+  html.nav-menu-open body {
+    overflow: hidden;
   }
 
   body {
@@ -1549,12 +1582,29 @@
   }
 
   .site-header-inner {
-    padding-top: 0.75rem;
-    padding-bottom: 0.75rem;
+    box-sizing: border-box;
+    min-height: var(--nav-h);
+    padding-top: 0;
+    padding-bottom: 0;
   }
 
-  .site-header .mobile-sections {
-    border-bottom: 1px solid var(--color-line);
+  .settings-trigger {
+    width: 44px;
+    height: 44px;
+  }
+
+  .mobile-nav-layer {
+    display: block;
+    position: fixed;
+    z-index: 45;
+    top: var(--nav-h);
+    right: 0;
+    bottom: 0;
+    left: 0;
+  }
+
+  .mobile-nav-panel {
+    max-height: calc(100dvh - var(--nav-h));
   }
 
   .page-columns {
@@ -1562,21 +1612,21 @@
   }
 
   .arch-section {
-    padding-bottom: clamp(56px, 14vw, 96px);
+    padding: 18px 0 40px;
   }
 
   .arch-section--hero {
-    padding: 1.75rem 0 2.75rem;
+    padding: 14px 0 16px;
   }
 
   .hero-grid {
     flex-direction: column;
     align-items: stretch;
-    gap: 1.75rem;
+    gap: 12px;
   }
 
   .hero-copy,
-  .board {
+  .relocation-banner {
     flex: 1 1 auto;
     width: 100%;
     max-width: 100%;
@@ -1584,51 +1634,114 @@
   }
 
   .hero-name {
-    margin-left: 0;
-    font-size: clamp(52px, 15vw, 72px);
-    line-height: 0.9;
+    margin: 0 0 10px;
+    font-size: clamp(36px, 11.2vw, 54px);
+    line-height: 0.88;
+    letter-spacing: -0.05em;
+  }
+
+  .hero-name span {
+    white-space: nowrap;
   }
 
   .hero-role {
-    font-size: clamp(18px, 5vw, 24px);
+    font-size: clamp(19px, 4.8vw, 22px);
+    line-height: 1.25;
+  }
+
+  .hero-summary {
+    display: block;
+    margin: 10px 0 0;
+    max-width: 38em;
+    font-size: 15px;
+    line-height: 1.45;
+    letter-spacing: -0.011em;
+    color: var(--color-ink-soft);
+    text-wrap: pretty;
   }
 
   .hero-meta {
-    font-size: 11px;
-    letter-spacing: 0.04em;
+    margin-top: 10px;
+    font-size: 12px;
+    line-height: 1.45;
+    letter-spacing: 0.045em;
   }
 
-  .hero-actions .btn {
+  .hero-actions {
+    margin-top: 14px;
+    gap: 10px;
+  }
+
+  .hero-actions .btn,
+  .project-card-cta,
+  .case-links .btn {
     width: 100%;
+    min-height: 54px;
     justify-content: center;
     box-sizing: border-box;
   }
 
+  .hero-actions .btn {
+    padding: 0 18px;
+  }
+
   .board {
-    box-sizing: border-box;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    display: none;
   }
 
-  .board-head {
-    flex-wrap: wrap;
-    gap: 6px 12px;
+  .relocation-banner {
+    display: block;
+    padding: 2px 0 0;
+    color: var(--color-ink);
   }
 
-  .board-grid {
-    font-size: clamp(11px, 3.05vw, 16px);
+  .relocation-banner:hover {
+    color: var(--color-ink);
   }
 
-  .board-foot {
-    font-size: 13px;
+  .relocation-banner-line {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.35;
+    letter-spacing: -0.011em;
+    text-wrap: pretty;
+  }
+
+  .relocation-banner-meta {
+    margin: 4px 0 0;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+
+  .section-head {
+    gap: 12px;
+    margin-bottom: 16px;
+    align-items: flex-start;
   }
 
   .section-title {
-    font-size: clamp(28px, 8vw, 40px);
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: clamp(24px, 6.6vw, 34px);
+    overflow-wrap: break-word;
+    text-wrap: balance;
   }
 
   .profile-lede {
-    font-size: clamp(18px, 5vw, 24px);
+    font-size: clamp(17px, 4.5vw, 22px);
+  }
+
+  .lang-row {
+    margin-top: 14px;
+    gap: 8px 16px;
+  }
+
+  .job {
+    padding: 16px 0;
+    gap: 6px 16px;
   }
 
   .job-meta,
@@ -1642,19 +1755,149 @@
     flex: 1 1 100%;
   }
 
+  .job-role,
+  .edu-degree,
+  .project-card-title,
+  .mobility-card-title {
+    overflow-wrap: break-word;
+  }
+
+  .job-role {
+    font-size: clamp(18px, 5vw, 22px);
+  }
+
+  .job-list {
+    margin-top: 12px;
+    gap: 10px;
+  }
+
+  .project-grid {
+    gap: 28px 16px;
+  }
+
+  .skill-row,
+  .edu-row {
+    padding: 16px 0 18px;
+  }
+
+  .skill-items {
+    font-size: clamp(16px, 4.4vw, 18px);
+    gap: 6px 16px;
+  }
+
   .contact-email {
-    font-size: clamp(18px, 6.2vw, 28px);
+    font-size: clamp(18px, 6.2vw, 26px);
+  }
+
+  .contact-blurb {
+    margin-top: 14px;
+  }
+
+  .contact-form {
+    margin-top: 22px;
   }
 
   .mobility-headline {
     max-width: none;
-    font-size: clamp(24px, 7vw, 34px);
+    font-size: clamp(22px, 6.2vw, 30px);
+  }
+
+  .mobility-grid {
+    margin-top: 22px;
+    gap: 22px;
   }
 
   .flip-cell {
     width: 22px;
     height: 30px;
     font-size: 17px;
+  }
+
+  .flip-row {
+    flex: none;
+  }
+
+  .page-wrap {
+    padding-top: 22px;
+    padding-bottom: 40px;
+  }
+
+  .case-page {
+    padding-bottom: 36px;
+  }
+
+  .case-layout {
+    display: block;
+  }
+
+  .case-nav {
+    display: none;
+  }
+
+  .case-main {
+    gap: 28px;
+  }
+
+  .case-breadcrumb {
+    margin-bottom: 16px;
+  }
+
+  .case-title {
+    font-size: clamp(28px, 8vw, 40px);
+    overflow-wrap: break-word;
+  }
+
+  .case-lede {
+    font-size: 16px;
+  }
+
+  .case-hero-visual {
+    margin-top: 16px;
+    max-width: 100%;
+  }
+
+  .case-hero-image,
+  .project-card-cover,
+  .case-gallery-item img,
+  .admin-cover-preview {
+    max-width: 100%;
+  }
+
+  .case-meta {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px 0;
+  }
+
+  .case-meta dt {
+    margin-top: 12px;
+  }
+
+  .case-meta dt:first-of-type {
+    margin-top: 0;
+  }
+
+  .case-meta dd {
+    overflow-wrap: anywhere;
+  }
+
+  .case-arch-board {
+    padding: 12px;
+  }
+
+  .case-arch-node,
+  .case-arch-node--optional {
+    min-width: 0;
+    padding: 12px;
+  }
+
+  .case-gallery,
+  .project-card-visual,
+  .case-gallery-item {
+    max-width: 100%;
+  }
+
+  .site-footer {
+    padding: 1.25rem var(--page-pad-x) 1.75rem;
   }
 
   .status-banner--overlay {
@@ -1675,6 +1918,29 @@
   .status-banner-message {
     overflow-wrap: anywhere;
     text-wrap: pretty;
+  }
+}
+
+@media (max-width: 959px) and (orientation: landscape) {
+  .arch-section--hero {
+    padding-top: 10px;
+    padding-bottom: 12px;
+  }
+
+  .hero-summary {
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 959px),
+  (max-width: 959px) and (orientation: landscape) {
+  .hero-actions {
+    flex-direction: row;
+  }
+
+  .hero-actions .btn {
+    width: auto;
+    flex: 1 1 0;
   }
 }
 

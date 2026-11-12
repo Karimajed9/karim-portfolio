@@ -29,6 +29,7 @@ export default function DeparturesBoard({ href = '#mobility' }: Props) {
   }
 
   return (
+    <>
     <a
       href={href}
       className="board"
@@ -66,5 +67,12 @@ export default function DeparturesBoard({ href = '#mobility' }: Props) {
         <span>{site.mobility.boardFoot}</span>
       </div>
     </a>
+    <a href={href} className="relocation-banner">
+      <p className="relocation-banner-line">{site.mobility.headline}</p>
+      <p className="relocation-banner-meta">
+        {site.mobility.destinations.map((destination) => destination.name).join(' · ')}
+      </p>
+    </a>
+    </>
   )
 }

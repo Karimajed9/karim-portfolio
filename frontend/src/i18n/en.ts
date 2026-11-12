@@ -8,6 +8,8 @@ export const siteEn: SiteContent = {
   description:
     'Backend software engineer in Montréal with 5+ years of C#/.NET, Azure, and SQL work.',
   metaLine: 'C# / .NET / Azure / SQL · 5+ years of experience · Montréal, Canada',
+  heroSummary:
+    'Backend development for enterprise systems, including cloud integrations, APIs, and SQL data workflows.',
   githubUrl: 'https://github.com/Karimajed9',
   linkedInUrl: 'https://www.linkedin.com/in/karimajed9',
   about: {
