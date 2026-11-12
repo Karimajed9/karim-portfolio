@@ -1,10 +1,18 @@
 import { useEffect, useMemo, useState } from 'react'
+import ApiFallbackBanner from '../components/ApiFallbackBanner'
 import ContactForm from '../components/ContactForm'
 import DeparturesBoard from '../components/DeparturesBoard'
 import FlipDigits from '../components/FlipDigits'
 import SectionHeading from '../components/SectionHeading'
 import { useLocale } from '../i18n/LocaleContext'
+import {
+  buildStaticExperience,
+  buildStaticProjects,
+  toExperienceViews,
+  toProjectViews,
+} from '../lib/contentApi'
 import { cvEnPath, cvFrPath } from '../lib/cv'
+import { useStaticApiResource } from '../lib/useStaticApiResource'
 
 const SECTION_IDS = [
   'profile',
@@ -71,6 +79,25 @@ export default function HomePage() {
     }
   }
 
+  const staticExperience = useMemo(() => buildStaticExperience(site), [site])
+  const staticProjects = useMemo(() => buildStaticProjects(site), [site])
+  const { data: experienceData, fallbackReason: experienceFallback } = useStaticApiResource(
+    '/api/experience',
+    staticExperience,
+    locale,
+  )
+  const { data: projectsData, fallbackReason: projectsFallback } = useStaticApiResource(
+    '/api/projects',
+    staticProjects,
+    locale,
+  )
+  const experience = useMemo(() => toExperienceViews(experienceData), [experienceData])
+  const projects = useMemo(
+    () => toProjectViews(projectsData, site.projects.items),
+    [projectsData, site.projects.items],
+  )
+  const fallbackReason = experienceFallback ?? projectsFallback
+
   const [firstName, ...rest] = site.name.split(' ')
   const lastName = rest.join(' ')
   const preferredCv = locale === 'fr' ? cvFrPath : cvEnPath
@@ -78,6 +105,7 @@ export default function HomePage() {
 
   return (
     <>
+      {fallbackReason ? <ApiFallbackBanner reason={fallbackReason} /> : null}
       <section id="top" className="page-frame arch-section--hero" aria-label={ui.home.introAria}>
         <div className="hero-grid">
           <div className="hero-copy">
@@ -146,8 +174,8 @@ export default function HomePage() {
 
           <section id="experience" className="arch-section">
             <SectionHeading title={ui.experience.title} index="02" />
-            {site.experience.map((job) => (
-              <article key={`${job.company}-${job.startDate}`} className="job">
+            {experience.map((job) => (
+              <article key={job.id} className="job">
                 <div className="job-meta">
                   <div>
                     {job.startDate} –{' '}
@@ -179,8 +207,8 @@ export default function HomePage() {
           <section id="projects" className="arch-section">
             <SectionHeading title={ui.projects.title} index="03" />
             <div className="project-grid">
-              {site.projects.items.map((project) => (
-                <article key={project.name}>
+              {projects.map((project) => (
+                <article key={project.id}>
                   <div className="project-card-visual">
                     <div className="project-card-mark">
                       {project.mark}

@@ -281,4 +281,30 @@ describe('api cache', () => {
       meta: { usingStatic: true, reason: 'loading' },
     })
   })
+
+  it('loadWithStaticFallback treats empty 200 arrays as live success', async () => {
+    const updates: Array<{ data: unknown; meta: { usingStatic: boolean; reason?: string } }> = []
+    const staticFallback = [{ id: 0, name: 'static' }]
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: RequestInfo | URL) => {
+        const url = String(input)
+        if (url.includes('/api/health')) {
+          return Promise.resolve({ ok: true, json: async () => ({ status: 'ok' }) })
+        }
+        return Promise.resolve({ ok: true, json: async () => [] })
+      }),
+    )
+
+    await loadWithStaticFallback('/api/projects', staticFallback, (data, meta) =>
+      updates.push({ data, meta }),
+    )
+
+    expect(updates.at(-1)).toEqual({
+      data: [],
+      meta: { usingStatic: false },
+    })
+    expect(readApiCache('/api/projects')).toEqual([])
+  })
 })
