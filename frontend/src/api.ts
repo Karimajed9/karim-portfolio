@@ -144,6 +144,8 @@ export function messageForFallbackReason(reason: ApiFallbackReason): string {
   }
 }
 
+export type FetchJsonSource = 'cache' | 'network'
+
 /**
  * Stale-while-revalidate GET helper.
  * Calls `onData` with localStorage cache immediately (if any), then fetches
@@ -153,12 +155,12 @@ export function messageForFallbackReason(reason: ApiFallbackReason): string {
  */
 export async function fetchJsonCached<T>(
   path: string,
-  onData: (data: T) => void,
+  onData: (data: T, source: FetchJsonSource) => void,
   options?: FetchJsonCachedOptions,
 ): Promise<void> {
   const cached = readApiCache<T>(path)
   if (cached != null) {
-    onData(cached)
+    onData(cached, 'cache')
   }
 
   const slowAfterMs = options?.slowAfterMs ?? SLOW_FETCH_MS
@@ -176,7 +178,7 @@ export async function fetchJsonCached<T>(
     }
     const data = (await res.json()) as T
     writeApiCache(path, data)
-    onData(data)
+    onData(data, 'network')
   } finally {
     if (slowTimer != null) clearTimeout(slowTimer)
   }
@@ -189,8 +191,11 @@ export type LoadWithStaticFallbackOptions = Pick<FetchJsonCachedOptions, 'slowAf
 /**
  * Page-loader helper: serve live/cached API data, or `site.ts` static fallback.
  * - No cache + slow network → static + reason refined via /api/health probe
- * - Success → live meta
- * - Failure → static + offline/warming/loading from health probe
+ * - Network success (including empty `[]`) → live meta, no banner
+ * - Network failure → keep cache/static + offline/warming/loading from health probe
+ *
+ * Important: a cache hit must not count as "live settled". Otherwise a later
+ * connection-refused/502 never probes /api/health or shows the offline banner.
  */
 export async function loadWithStaticFallback<T>(
   path: string,
@@ -199,13 +204,16 @@ export async function loadWithStaticFallback<T>(
   options?: LoadWithStaticFallbackOptions,
 ): Promise<void> {
   const healthProbeMs = options?.healthProbeMs ?? HEALTH_PROBE_MS
-  let liveSettled = false
+  const cached = readApiCache<T>(path)
+  const fallbackData = cached ?? staticFallback
+  let networkSucceeded = false
 
-  const publishStatic = async (preliminary: ApiFallbackReason) => {
-    onUpdate(staticFallback, { usingStatic: true, reason: preliminary })
+  const publishFallback = async (preliminary: ApiFallbackReason) => {
+    if (networkSucceeded) return
+    onUpdate(fallbackData, { usingStatic: true, reason: preliminary })
     const health = await probeApiHealth(healthProbeMs)
-    if (!liveSettled) {
-      onUpdate(staticFallback, {
+    if (!networkSucceeded) {
+      onUpdate(fallbackData, {
         usingStatic: true,
         reason: fallbackReasonFromHealth(health),
       })
@@ -215,21 +223,24 @@ export async function loadWithStaticFallback<T>(
   try {
     await fetchJsonCached<T>(
       path,
-      (data) => {
-        liveSettled = true
+      (data, source) => {
+        if (source === 'network') {
+          networkSucceeded = true
+          onUpdate(data, { usingStatic: false })
+          return
+        }
+        // Cache seed for immediate paint — still waiting on the network.
         onUpdate(data, { usingStatic: false })
       },
       {
         slowAfterMs: options?.slowAfterMs,
         onSlow: () => {
-          void publishStatic('warming')
+          void publishFallback('warming')
         },
       },
     )
   } catch {
-    if (!liveSettled) {
-      await publishStatic('offline')
-    }
+    await publishFallback('offline')
   }
 }
 

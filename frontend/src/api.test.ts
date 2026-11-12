@@ -81,6 +81,22 @@ describe('api cache', () => {
     expect(readApiCache('/api/skills')).toEqual([{ id: 2, name: 'fresh' }])
   })
 
+  it('labels cache vs network sources for fetchJsonCached', async () => {
+    writeApiCache('/api/skills', [{ id: 1, name: 'cached' }])
+    const sources: string[] = []
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => [{ id: 2, name: 'fresh' }],
+      }),
+    )
+
+    await fetchJsonCached('/api/skills', (_data, source) => sources.push(source))
+    expect(sources).toEqual(['cache', 'network'])
+  })
+
   it('calls onSlow when fetch exceeds threshold and cache is empty', async () => {
     vi.useFakeTimers()
     const onData = vi.fn()
@@ -115,7 +131,7 @@ describe('api cache', () => {
     })
     await pending
 
-    expect(onData).toHaveBeenCalledWith([{ id: 3, name: 'live' }])
+    expect(onData).toHaveBeenCalledWith([{ id: 3, name: 'live' }], 'network')
     expect(readApiCache('/api/skills')).toEqual([{ id: 3, name: 'live' }])
   })
 
@@ -143,13 +159,41 @@ describe('api cache', () => {
 
     await vi.advanceTimersByTimeAsync(SLOW_FETCH_MS + 1000)
     expect(onSlow).not.toHaveBeenCalled()
-    expect(onData).toHaveBeenCalledWith([{ id: 1, name: 'cached' }])
+    expect(onData).toHaveBeenCalledWith([{ id: 1, name: 'cached' }], 'cache')
 
     resolveFetch({
       ok: true,
       json: async () => [{ id: 2, name: 'fresh' }],
     })
     await pending
+  })
+
+  it('loadWithStaticFallback still banners offline when cache exists but network fails', async () => {
+    writeApiCache('/api/experience', [{ id: 1, name: 'cached' }])
+    const updates: Array<{ data: unknown; meta: { usingStatic: boolean; reason?: string } }> = []
+    const fetchMock = vi.fn((input: RequestInfo | URL) => {
+      const url = String(input)
+      if (url.includes('/api/health')) {
+        return Promise.reject(new TypeError('Failed to fetch'))
+      }
+      return Promise.reject(new TypeError('Failed to fetch'))
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await loadWithStaticFallback(
+      '/api/experience',
+      [{ id: 0, name: 'static' }],
+      (data, meta) => updates.push({ data, meta }),
+    )
+
+    expect(updates.some((u) => u.meta.reason === 'offline')).toBe(true)
+    expect(updates.at(-1)).toEqual({
+      data: [{ id: 1, name: 'cached' }],
+      meta: { usingStatic: true, reason: 'offline' },
+    })
+    expect(fetchMock.mock.calls.some(([input]) => String(input).includes('/api/health'))).toBe(
+      true,
+    )
   })
 
   it('probeApiHealth returns timeout when the request hangs', async () => {

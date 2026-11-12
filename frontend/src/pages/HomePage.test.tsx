@@ -156,14 +156,12 @@ describe('HomePage', () => {
   })
 
   it('keeps bundled fallback and shows offline banner when content requests fail', async () => {
-    vi.stubGlobal(
-      'fetch',
-      mockContentApis({
-        experience: () => jsonResponse(null, false),
-        projects: () => jsonResponse(null, false),
-        health: () => Promise.reject(new TypeError('Failed to fetch')),
-      }),
-    )
+    const fetchMock = mockContentApis({
+      experience: () => jsonResponse(null, false),
+      projects: () => jsonResponse(null, false),
+      health: () => Promise.reject(new TypeError('Failed to fetch')),
+    })
+    vi.stubGlobal('fetch', fetchMock)
 
     render(
       <AppProviders>
@@ -180,6 +178,59 @@ describe('HomePage', () => {
     })
     expect(screen.getByText(siteEn.experience[0]!.company)).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: siteEn.projects.items[0]!.name })).toBeInTheDocument()
+    expect(fetchMock.mock.calls.some(([input]) => String(input).includes('/api/health'))).toBe(
+      true,
+    )
+  })
+
+  it('shows offline banner and probes health when cached content revalidate fails', async () => {
+    writeApiCache('/api/experience', [
+      {
+        id: 1,
+        company: 'Cached Co',
+        role: 'Cached Role',
+        startDate: '2020',
+        endDate: '2021',
+        location: 'Montréal',
+        highlights: 'Cached highlight',
+      },
+    ])
+    writeApiCache('/api/projects', [
+      {
+        id: 1,
+        name: 'Cached Project',
+        summary: 'Cached',
+        tags: 'React',
+        href: 'https://example.com/cached',
+      },
+    ])
+
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input)
+      if (url.includes('/api/health')) {
+        return Promise.reject(new TypeError('Failed to fetch'))
+      }
+      return Promise.reject(new TypeError('Failed to fetch'))
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    render(
+      <AppProviders>
+        <MemoryRouter>
+          <HomePage />
+        </MemoryRouter>
+      </AppProviders>,
+    )
+
+    expect(screen.getByText('Cached Co')).toBeInTheDocument()
+
+    await waitFor(() => {
+      expect(screen.getByRole('status')).toHaveTextContent(/can't reach the api/i)
+    })
+    expect(screen.getByText('Cached Co')).toBeInTheDocument()
+    expect(fetchMock.mock.calls.some(([input]) => String(input).includes('/api/health'))).toBe(
+      true,
+    )
   })
 
   it('treats empty 200 arrays as success and clears the fallback banner', async () => {
