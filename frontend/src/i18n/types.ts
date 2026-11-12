@@ -170,5 +170,34 @@ export type UiCopy = {
     listHeading: string
     authError: string
     unreachable: string
+    contentHeading: string
+    experienceHeading: string
+    projectsHeading: string
+    skillsHeading: string
+    educationHeading: string
+    add: string
+    save: string
+    saving: string
+    remove: string
+    saved: string
+    saveFailed: string
+    company: string
+    role: string
+    startDate: string
+    endDate: string
+    location: string
+    highlights: string
+    highlightsHint: string
+    sortOrder: string
+    name: string
+    summary: string
+    tags: string
+    tagsHint: string
+    href: string
+    category: string
+    school: string
+    city: string
+    degree: string
+    country: string
   }
 }

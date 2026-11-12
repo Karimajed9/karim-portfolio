@@ -20,4 +20,8 @@ public class Skill {
   public String getCategory() { return category; }
   public String getName() { return name; }
   public Integer getSortOrder() { return sortOrder; }
+
+  public void setCategory(String category) { this.category = category; }
+  public void setName(String name) { this.name = name; }
+  public void setSortOrder(Integer sortOrder) { this.sortOrder = sortOrder; }
 }

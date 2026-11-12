@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { apiUrl } from '../api'
+import AdminContentEditors from '../components/AdminContentEditors'
 import SectionHeading from '../components/SectionHeading'
 import StatusBanner from '../components/StatusBanner'
 import { useLocale } from '../i18n/LocaleContext'
@@ -119,7 +120,7 @@ export default function AdminPage() {
         </div>
       )}
 
-      {authenticated && messages && (
+      {authenticated && (
         <div className="mt-2">
           <button
             type="button"
@@ -130,9 +131,11 @@ export default function AdminPage() {
             {loading ? ui.admin.refreshing : ui.admin.refresh}
           </button>
 
+          <AdminContentEditors authHeader={basicAuthHeader(username, password)} />
+
           <div className="mt-10">
             <h2 className="section-label">{ui.admin.listHeading}</h2>
-            {messages.length === 0 ? (
+            {messages == null ? null : messages.length === 0 ? (
               <p className="prose-quiet">{ui.admin.empty}</p>
             ) : (
               <ul className="mt-4 space-y-6">
