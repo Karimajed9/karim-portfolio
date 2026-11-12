@@ -95,11 +95,20 @@ class ApiIntegrationTests {
 						.header("X-CSRF-TOKEN", auth.csrfToken())
 						.contentType(MediaType.APPLICATION_JSON)
 						.content("""
-								{"nameEn":"Admin Project","nameFr":"Projet admin","summaryEn":"Created in test","summaryFr":"Créé en test","tagsEn":"Java","tagsFr":"Java","href":"https://example.com/admin"}
+								{"slug":"admin-project","nameEn":"Admin Project","nameFr":"Projet admin","summaryEn":"Created in test","summaryFr":"Créé en test","tagsEn":"Java","tagsFr":"Java","href":"https://example.com/admin","categoryEn":"Test","statusEn":"Planned","sortOrder":99}
 								"""))
 				.andExpect(status().isCreated())
 				.andExpect(jsonPath("$.nameEn").value("Admin Project"))
-				.andExpect(jsonPath("$.nameFr").value("Projet admin"));
+				.andExpect(jsonPath("$.nameFr").value("Projet admin"))
+				.andExpect(jsonPath("$.slug").value("admin-project"));
+
+		mockMvc.perform(get("/api/projects/personal-portfolio-platform"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.slug").value("personal-portfolio-platform"))
+				.andExpect(jsonPath("$.nameEn").value("Personal Portfolio Platform"));
+
+		mockMvc.perform(get("/api/projects/missing-slug"))
+				.andExpect(status().isNotFound());
 
 		long after = readRevision();
 		org.junit.jupiter.api.Assertions.assertTrue(after > before);
@@ -155,7 +164,7 @@ class ApiIntegrationTests {
 		mockMvc.perform(post("/api/admin/projects")
 						.contentType(MediaType.APPLICATION_JSON)
 						.content("""
-								{"nameEn":"X","summaryEn":"Y","tagsEn":"a","href":"https://example.com"}
+								{"slug":"x","nameEn":"X","summaryEn":"Y","tagsEn":"a","href":"https://example.com","sortOrder":0}
 								"""))
 				.andExpect(status().isUnauthorized());
 	}

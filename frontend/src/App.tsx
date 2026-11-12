@@ -3,6 +3,7 @@ import HomePage from './pages/HomePage'
 import ContactPage from './pages/ContactPage'
 import AdminPage from './pages/AdminPage'
 import NotFoundPage from './pages/NotFoundPage'
+import ProjectCaseStudyPage from './pages/ProjectCaseStudyPage'
 import Layout from './components/Layout'
 import { LocaleProvider } from './i18n/LocaleContext'
 import { ThemeProvider } from './theme/ThemeContext'
@@ -29,6 +30,7 @@ function App() {
               <Route path="about" element={<Navigate to="/#profile" replace />} />
               <Route path="skills" element={<Navigate to="/#skills" replace />} />
               <Route path="experience" element={<Navigate to="/#experience" replace />} />
+              <Route path="projects/:slug" element={<ProjectCaseStudyPage />} />
               <Route path="projects" element={<Navigate to="/#projects" replace />} />
               <Route path="*" element={<NotFoundPage />} />
             </Route>

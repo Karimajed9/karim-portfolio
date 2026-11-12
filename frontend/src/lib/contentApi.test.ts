@@ -36,8 +36,13 @@ describe('contentApi adapters', () => {
     expect(toExperienceViews(experience, 'en')[0]?.highlights.length).toBeGreaterThan(0)
 
     const projects = buildStaticProjects(siteEn, 'en')
+    expect(projects[0]?.slug).toBe(siteEn.projects.items[0]?.slug)
     expect(projects[0]?.tagsEn).toContain(',')
-    expect(toProjectViews(projects, siteEn.projects.items, 'en')[0]?.mark).toBe('KM')
+    expect(projects[0]?.featuresEn).toContain('|||')
+    const view = toProjectViews(projects, siteEn.projects.items, 'en')[0]
+    expect(view?.mark).toBe('KM')
+    expect(view?.features.length).toBeGreaterThan(0)
+    expect(view?.slug).toBe('personal-portfolio-platform')
 
     const skills = buildStaticSkills(siteEn, 'en')
     expect(skills.length).toBeGreaterThan(0)

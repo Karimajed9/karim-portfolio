@@ -114,6 +114,7 @@ describe('HomePage', () => {
         projects: () => [
           {
             id: 1,
+            slug: 'api-project',
             nameEn: 'API Project',
             nameFr: '',
             summaryEn: 'From API',
@@ -121,6 +122,9 @@ describe('HomePage', () => {
             tagsEn: 'React,TypeScript',
             tagsFr: '',
             href: 'https://example.com',
+            categoryEn: 'Personal project',
+            statusEn: 'In progress',
+            mark: 'AP',
           },
         ],
         skills: () => [
@@ -193,6 +197,7 @@ describe('HomePage', () => {
       projects: () => [
         {
           id: 3,
+          slug: 'live-portfolio',
           nameEn: 'Live Portfolio',
           nameFr: '',
           summaryEn: 'Fetched project',
@@ -200,6 +205,9 @@ describe('HomePage', () => {
           tagsEn: 'Java,Spring Boot',
           tagsFr: '',
           href: 'https://github.com/example/live',
+          categoryEn: 'Personal project',
+          statusEn: 'In progress',
+          mark: 'LP',
         },
       ],
       skills: () => [
@@ -246,6 +254,10 @@ describe('HomePage', () => {
 
     expect(screen.getByText(siteEn.experience[0]!.company)).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: siteEn.projects.items[0]!.name })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Explore Case Study/i })).toHaveAttribute(
+      'href',
+      `/projects/${siteEn.projects.items[0]!.slug}`,
+    )
     expect(screen.getByText(siteEn.skills[0]!.items[0]!)).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: siteEn.about.education[0]!.degree })).toBeInTheDocument()
 
@@ -324,6 +336,7 @@ describe('HomePage', () => {
     writeApiCache('/api/projects', [
       {
         id: 1,
+        slug: 'cached-project',
         nameEn: 'Cached Project',
         nameFr: '',
         summaryEn: 'Cached',
@@ -331,6 +344,7 @@ describe('HomePage', () => {
         tagsEn: 'React',
         tagsFr: '',
         href: 'https://example.com/cached',
+        mark: 'CP',
       },
     ])
 
@@ -375,6 +389,7 @@ describe('HomePage', () => {
     writeApiCache('/api/projects', [
       {
         id: 1,
+        slug: 'cached-project',
         nameEn: 'Cached Project',
         nameFr: '',
         summaryEn: 'Cached',
@@ -382,6 +397,7 @@ describe('HomePage', () => {
         tagsEn: 'React',
         tagsFr: '',
         href: 'https://example.com/cached',
+        mark: 'CP',
       },
     ])
     writeApiCache('/api/skills', [
@@ -514,6 +530,7 @@ describe('HomePage', () => {
         jsonResponse([
           {
             id: 2,
+            slug: 'delayed-project',
             nameEn: 'Delayed Project',
             nameFr: '',
             summaryEn: 'Slow payload',
@@ -521,6 +538,7 @@ describe('HomePage', () => {
             tagsEn: 'TypeScript',
             tagsFr: '',
             href: 'https://example.com/delayed',
+            mark: 'DP',
           },
         ]),
       )

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import ContactForm from '../components/ContactForm'
 import DeparturesBoard from '../components/DeparturesBoard'
 import FlipDigits from '../components/FlipDigits'
@@ -228,24 +229,61 @@ export default function HomePage() {
             <SectionHeading title={ui.projects.title} index="03" />
             <div className="project-grid">
               {projects.map((project) => (
-                <article key={project.id}>
-                  <div className="project-card-visual">
-                    <div className="project-card-mark">
+                <article key={project.id} className="project-card">
+                  <div className="project-card-visual project-card-visual--cover">
+                    {project.coverImageUrl ? (
+                      <img
+                        src={project.coverImageUrl}
+                        alt=""
+                        className="project-card-cover"
+                        onError={(event) => {
+                          event.currentTarget.style.display = 'none'
+                          const fallback = event.currentTarget.nextElementSibling
+                          if (fallback instanceof HTMLElement) {
+                            fallback.hidden = false
+                          }
+                        }}
+                      />
+                    ) : null}
+                    <div
+                      className="project-card-mark"
+                      hidden={Boolean(project.coverImageUrl)}
+                    >
                       {project.mark}
                       <span>.</span>
                     </div>
                   </div>
+                  <div className="project-card-meta">
+                    {[project.category, project.status].filter(Boolean).join(' · ')}
+                  </div>
                   <div className="project-card-tags">{project.tags.join(' · ')}</div>
                   <h3 className="project-card-title">{project.name}</h3>
                   <p className="project-card-summary">{project.summary}</p>
-                  <a
-                    href={project.href}
-                    className="project-card-link"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {ui.projects.viewRepo} ↗
-                  </a>
+                  <div className="project-card-actions">
+                    <Link to={`/projects/${project.slug}`} className="project-card-link">
+                      {ui.projects.explore} →
+                    </Link>
+                    {project.href ? (
+                      <a
+                        href={project.href}
+                        className="project-card-link"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {ui.projects.github} ↗
+                      </a>
+                    ) : null}
+                    {project.liveDemoUrl ? (
+                      <a
+                        href={project.liveDemoUrl}
+                        className="project-card-link"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {ui.projects.liveDemo} ↗
+                      </a>
+                    ) : null}
+                  </div>
                 </article>
               ))}
             </div>

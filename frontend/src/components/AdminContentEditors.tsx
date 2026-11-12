@@ -29,6 +29,7 @@ type ExperienceItem = {
 
 type ProjectItem = {
   id?: number
+  slug: string
   nameEn: string
   nameFr: string
   summaryEn: string
@@ -36,6 +37,75 @@ type ProjectItem = {
   tagsEn: string
   tagsFr: string
   href: string
+  categoryEn: string
+  categoryFr: string
+  statusEn: string
+  statusFr: string
+  coverImageUrl: string
+  liveDemoUrl: string
+  roleEn: string
+  roleFr: string
+  overviewEn: string
+  overviewFr: string
+  problemEn: string
+  problemFr: string
+  architectureImageUrl: string
+  architectureCaptionEn: string
+  architectureCaptionFr: string
+  featuresEn: string
+  featuresFr: string
+  tradeoffsEn: string
+  tradeoffsFr: string
+  challengesEn: string
+  challengesFr: string
+  testingEn: string
+  testingFr: string
+  galleryUrls: string
+  lessonsEn: string
+  lessonsFr: string
+  mark: string
+  sortOrder: number
+}
+
+function emptyProject(sortOrder: number): ProjectItem {
+  return {
+    slug: '',
+    nameEn: '',
+    nameFr: '',
+    summaryEn: '',
+    summaryFr: '',
+    tagsEn: '',
+    tagsFr: '',
+    href: '',
+    categoryEn: '',
+    categoryFr: '',
+    statusEn: '',
+    statusFr: '',
+    coverImageUrl: '',
+    liveDemoUrl: '',
+    roleEn: '',
+    roleFr: '',
+    overviewEn: '',
+    overviewFr: '',
+    problemEn: '',
+    problemFr: '',
+    architectureImageUrl: '',
+    architectureCaptionEn: '',
+    architectureCaptionFr: '',
+    featuresEn: '',
+    featuresFr: '',
+    tradeoffsEn: '',
+    tradeoffsFr: '',
+    challengesEn: '',
+    challengesFr: '',
+    testingEn: '',
+    testingFr: '',
+    galleryUrls: '',
+    lessonsEn: '',
+    lessonsFr: '',
+    mark: '',
+    sortOrder,
+  }
 }
 
 type SkillItem = {
@@ -132,8 +202,10 @@ export default function AdminContentEditors({
       })),
     )
     setProjects(
-      projectRows.map((row) => ({
+      projectRows.map((row, index) => ({
+        ...emptyProject(row.sortOrder ?? index + 1),
         ...row,
+        slug: emptyToString(row.slug),
         nameEn: emptyToString(row.nameEn),
         nameFr: emptyToString(row.nameFr),
         summaryEn: emptyToString(row.summaryEn),
@@ -141,6 +213,34 @@ export default function AdminContentEditors({
         tagsEn: emptyToString(row.tagsEn),
         tagsFr: emptyToString(row.tagsFr),
         href: emptyToString(row.href),
+        categoryEn: emptyToString(row.categoryEn),
+        categoryFr: emptyToString(row.categoryFr),
+        statusEn: emptyToString(row.statusEn),
+        statusFr: emptyToString(row.statusFr),
+        coverImageUrl: emptyToString(row.coverImageUrl),
+        liveDemoUrl: emptyToString(row.liveDemoUrl),
+        roleEn: emptyToString(row.roleEn),
+        roleFr: emptyToString(row.roleFr),
+        overviewEn: emptyToString(row.overviewEn),
+        overviewFr: emptyToString(row.overviewFr),
+        problemEn: emptyToString(row.problemEn),
+        problemFr: emptyToString(row.problemFr),
+        architectureImageUrl: emptyToString(row.architectureImageUrl),
+        architectureCaptionEn: emptyToString(row.architectureCaptionEn),
+        architectureCaptionFr: emptyToString(row.architectureCaptionFr),
+        featuresEn: highlightsToLines(emptyToString(row.featuresEn)),
+        featuresFr: highlightsToLines(emptyToString(row.featuresFr)),
+        tradeoffsEn: highlightsToLines(emptyToString(row.tradeoffsEn)),
+        tradeoffsFr: highlightsToLines(emptyToString(row.tradeoffsFr)),
+        challengesEn: highlightsToLines(emptyToString(row.challengesEn)),
+        challengesFr: highlightsToLines(emptyToString(row.challengesFr)),
+        testingEn: emptyToString(row.testingEn),
+        testingFr: emptyToString(row.testingFr),
+        galleryUrls: emptyToString(row.galleryUrls).replace(/,/g, '\n'),
+        lessonsEn: highlightsToLines(emptyToString(row.lessonsEn)),
+        lessonsFr: highlightsToLines(emptyToString(row.lessonsFr)),
+        mark: emptyToString(row.mark),
+        sortOrder: row.sortOrder ?? index + 1,
       })),
     )
     setSkills(
@@ -525,18 +625,7 @@ export default function AdminContentEditors({
               type="button"
               className="btn btn-secondary"
               onClick={() =>
-                setProjects((rows) => [
-                  ...rows,
-                  {
-                    nameEn: '',
-                    nameFr: '',
-                    summaryEn: '',
-                    summaryFr: '',
-                    tagsEn: '',
-                    tagsFr: '',
-                    href: '',
-                  },
-                ])
+                setProjects((rows) => [...rows, emptyProject(rows.length + 1)])
               }
             >
               {ui.admin.add}
@@ -544,21 +633,36 @@ export default function AdminContentEditors({
           </div>
           {projects.map((row, index) => {
             const key = `project-${row.id ?? `new-${index}`}`
+            const patch = (partial: Partial<ProjectItem>) =>
+              setProjects((rows) =>
+                rows.map((item, i) => (i === index ? { ...item, ...partial } : item)),
+              )
             return (
               <article key={key} className="border border-line bg-surface p-5 space-y-4">
                 <div className="grid gap-4 md:grid-cols-2">
+                  <label className="field">
+                    <span className="field-label">{ui.admin.slug}</span>
+                    <input
+                      className="field-control"
+                      value={row.slug}
+                      onChange={(e) => patch({ slug: e.target.value })}
+                    />
+                  </label>
+                  <label className="field">
+                    <span className="field-label">{ui.admin.sortOrder}</span>
+                    <input
+                      type="number"
+                      className="field-control"
+                      value={row.sortOrder}
+                      onChange={(e) => patch({ sortOrder: Number(e.target.value) || 0 })}
+                    />
+                  </label>
                   <label className="field">
                     <span className="field-label">{labelEn(ui.admin.name)}</span>
                     <input
                       className="field-control"
                       value={row.nameEn}
-                      onChange={(e) =>
-                        setProjects((rows) =>
-                          rows.map((item, i) =>
-                            i === index ? { ...item, nameEn: e.target.value } : item,
-                          ),
-                        )
-                      }
+                      onChange={(e) => patch({ nameEn: e.target.value })}
                     />
                   </label>
                   <label className="field">
@@ -566,27 +670,87 @@ export default function AdminContentEditors({
                     <input
                       className="field-control"
                       value={row.nameFr}
-                      onChange={(e) =>
-                        setProjects((rows) =>
-                          rows.map((item, i) =>
-                            i === index ? { ...item, nameFr: e.target.value } : item,
-                          ),
-                        )
-                      }
+                      onChange={(e) => patch({ nameFr: e.target.value })}
                     />
                   </label>
-                  <label className="field md:col-span-2">
+                  <label className="field">
+                    <span className="field-label">{labelEn(ui.admin.category)}</span>
+                    <input
+                      className="field-control"
+                      value={row.categoryEn}
+                      onChange={(e) => patch({ categoryEn: e.target.value })}
+                    />
+                  </label>
+                  <label className="field">
+                    <span className="field-label">{labelFr(ui.admin.category)}</span>
+                    <input
+                      className="field-control"
+                      value={row.categoryFr}
+                      onChange={(e) => patch({ categoryFr: e.target.value })}
+                    />
+                  </label>
+                  <label className="field">
+                    <span className="field-label">{labelEn(ui.admin.status)}</span>
+                    <input
+                      className="field-control"
+                      value={row.statusEn}
+                      onChange={(e) => patch({ statusEn: e.target.value })}
+                    />
+                  </label>
+                  <label className="field">
+                    <span className="field-label">{labelFr(ui.admin.status)}</span>
+                    <input
+                      className="field-control"
+                      value={row.statusFr}
+                      onChange={(e) => patch({ statusFr: e.target.value })}
+                    />
+                  </label>
+                  <label className="field">
+                    <span className="field-label">{labelEn(ui.admin.role)}</span>
+                    <input
+                      className="field-control"
+                      value={row.roleEn}
+                      onChange={(e) => patch({ roleEn: e.target.value })}
+                    />
+                  </label>
+                  <label className="field">
+                    <span className="field-label">{labelFr(ui.admin.role)}</span>
+                    <input
+                      className="field-control"
+                      value={row.roleFr}
+                      onChange={(e) => patch({ roleFr: e.target.value })}
+                    />
+                  </label>
+                  <label className="field">
                     <span className="field-label">{ui.admin.href}</span>
                     <input
                       className="field-control"
                       value={row.href}
-                      onChange={(e) =>
-                        setProjects((rows) =>
-                          rows.map((item, i) =>
-                            i === index ? { ...item, href: e.target.value } : item,
-                          ),
-                        )
-                      }
+                      onChange={(e) => patch({ href: e.target.value })}
+                    />
+                  </label>
+                  <label className="field">
+                    <span className="field-label">{ui.admin.liveDemoUrl}</span>
+                    <input
+                      className="field-control"
+                      value={row.liveDemoUrl}
+                      onChange={(e) => patch({ liveDemoUrl: e.target.value })}
+                    />
+                  </label>
+                  <label className="field">
+                    <span className="field-label">{ui.admin.coverImage}</span>
+                    <input
+                      className="field-control"
+                      value={row.coverImageUrl}
+                      onChange={(e) => patch({ coverImageUrl: e.target.value })}
+                    />
+                  </label>
+                  <label className="field">
+                    <span className="field-label">{ui.admin.mark}</span>
+                    <input
+                      className="field-control"
+                      value={row.mark}
+                      onChange={(e) => patch({ mark: e.target.value })}
                     />
                   </label>
                 </div>
@@ -596,13 +760,7 @@ export default function AdminContentEditors({
                     <textarea
                       className="field-control min-h-24"
                       value={row.summaryEn}
-                      onChange={(e) =>
-                        setProjects((rows) =>
-                          rows.map((item, i) =>
-                            i === index ? { ...item, summaryEn: e.target.value } : item,
-                          ),
-                        )
-                      }
+                      onChange={(e) => patch({ summaryEn: e.target.value })}
                     />
                   </label>
                   <label className="field">
@@ -610,13 +768,39 @@ export default function AdminContentEditors({
                     <textarea
                       className="field-control min-h-24"
                       value={row.summaryFr}
-                      onChange={(e) =>
-                        setProjects((rows) =>
-                          rows.map((item, i) =>
-                            i === index ? { ...item, summaryFr: e.target.value } : item,
-                          ),
-                        )
-                      }
+                      onChange={(e) => patch({ summaryFr: e.target.value })}
+                    />
+                  </label>
+                  <label className="field">
+                    <span className="field-label">{labelEn(ui.admin.overview)}</span>
+                    <textarea
+                      className="field-control min-h-24"
+                      value={row.overviewEn}
+                      onChange={(e) => patch({ overviewEn: e.target.value })}
+                    />
+                  </label>
+                  <label className="field">
+                    <span className="field-label">{labelFr(ui.admin.overview)}</span>
+                    <textarea
+                      className="field-control min-h-24"
+                      value={row.overviewFr}
+                      onChange={(e) => patch({ overviewFr: e.target.value })}
+                    />
+                  </label>
+                  <label className="field">
+                    <span className="field-label">{labelEn(ui.admin.problem)}</span>
+                    <textarea
+                      className="field-control min-h-24"
+                      value={row.problemEn}
+                      onChange={(e) => patch({ problemEn: e.target.value })}
+                    />
+                  </label>
+                  <label className="field">
+                    <span className="field-label">{labelFr(ui.admin.problem)}</span>
+                    <textarea
+                      className="field-control min-h-24"
+                      value={row.problemFr}
+                      onChange={(e) => patch({ problemFr: e.target.value })}
                     />
                   </label>
                   <label className="field">
@@ -624,13 +808,7 @@ export default function AdminContentEditors({
                     <input
                       className="field-control"
                       value={row.tagsEn}
-                      onChange={(e) =>
-                        setProjects((rows) =>
-                          rows.map((item, i) =>
-                            i === index ? { ...item, tagsEn: e.target.value } : item,
-                          ),
-                        )
-                      }
+                      onChange={(e) => patch({ tagsEn: e.target.value })}
                     />
                     <span className="text-sm text-muted">{ui.admin.tagsHint}</span>
                   </label>
@@ -639,15 +817,124 @@ export default function AdminContentEditors({
                     <input
                       className="field-control"
                       value={row.tagsFr}
-                      onChange={(e) =>
-                        setProjects((rows) =>
-                          rows.map((item, i) =>
-                            i === index ? { ...item, tagsFr: e.target.value } : item,
-                          ),
-                        )
-                      }
+                      onChange={(e) => patch({ tagsFr: e.target.value })}
                     />
                     <span className="text-sm text-muted">{ui.admin.tagsHint}</span>
+                  </label>
+                  <label className="field">
+                    <span className="field-label">{ui.admin.architectureImage}</span>
+                    <input
+                      className="field-control"
+                      value={row.architectureImageUrl}
+                      onChange={(e) => patch({ architectureImageUrl: e.target.value })}
+                    />
+                  </label>
+                  <label className="field">
+                    <span className="field-label">{ui.admin.gallery}</span>
+                    <textarea
+                      className="field-control min-h-20"
+                      value={row.galleryUrls}
+                      onChange={(e) => patch({ galleryUrls: e.target.value })}
+                    />
+                    <span className="text-sm text-muted">{ui.admin.galleryHint}</span>
+                  </label>
+                  <label className="field">
+                    <span className="field-label">{labelEn(ui.admin.architectureCaption)}</span>
+                    <textarea
+                      className="field-control min-h-24"
+                      value={row.architectureCaptionEn}
+                      onChange={(e) => patch({ architectureCaptionEn: e.target.value })}
+                    />
+                  </label>
+                  <label className="field">
+                    <span className="field-label">{labelFr(ui.admin.architectureCaption)}</span>
+                    <textarea
+                      className="field-control min-h-24"
+                      value={row.architectureCaptionFr}
+                      onChange={(e) => patch({ architectureCaptionFr: e.target.value })}
+                    />
+                  </label>
+                  <label className="field">
+                    <span className="field-label">{labelEn(ui.admin.features)}</span>
+                    <textarea
+                      className="field-control min-h-28"
+                      value={row.featuresEn}
+                      onChange={(e) => patch({ featuresEn: e.target.value })}
+                    />
+                    <span className="text-sm text-muted">{ui.admin.highlightsHint}</span>
+                  </label>
+                  <label className="field">
+                    <span className="field-label">{labelFr(ui.admin.features)}</span>
+                    <textarea
+                      className="field-control min-h-28"
+                      value={row.featuresFr}
+                      onChange={(e) => patch({ featuresFr: e.target.value })}
+                    />
+                    <span className="text-sm text-muted">{ui.admin.highlightsHint}</span>
+                  </label>
+                  <label className="field">
+                    <span className="field-label">{labelEn(ui.admin.tradeoffs)}</span>
+                    <textarea
+                      className="field-control min-h-24"
+                      value={row.tradeoffsEn}
+                      onChange={(e) => patch({ tradeoffsEn: e.target.value })}
+                    />
+                  </label>
+                  <label className="field">
+                    <span className="field-label">{labelFr(ui.admin.tradeoffs)}</span>
+                    <textarea
+                      className="field-control min-h-24"
+                      value={row.tradeoffsFr}
+                      onChange={(e) => patch({ tradeoffsFr: e.target.value })}
+                    />
+                  </label>
+                  <label className="field">
+                    <span className="field-label">{labelEn(ui.admin.challenges)}</span>
+                    <textarea
+                      className="field-control min-h-24"
+                      value={row.challengesEn}
+                      onChange={(e) => patch({ challengesEn: e.target.value })}
+                    />
+                  </label>
+                  <label className="field">
+                    <span className="field-label">{labelFr(ui.admin.challenges)}</span>
+                    <textarea
+                      className="field-control min-h-24"
+                      value={row.challengesFr}
+                      onChange={(e) => patch({ challengesFr: e.target.value })}
+                    />
+                  </label>
+                  <label className="field">
+                    <span className="field-label">{labelEn(ui.admin.testing)}</span>
+                    <textarea
+                      className="field-control min-h-24"
+                      value={row.testingEn}
+                      onChange={(e) => patch({ testingEn: e.target.value })}
+                    />
+                  </label>
+                  <label className="field">
+                    <span className="field-label">{labelFr(ui.admin.testing)}</span>
+                    <textarea
+                      className="field-control min-h-24"
+                      value={row.testingFr}
+                      onChange={(e) => patch({ testingFr: e.target.value })}
+                    />
+                  </label>
+                  <label className="field">
+                    <span className="field-label">{labelEn(ui.admin.lessons)}</span>
+                    <textarea
+                      className="field-control min-h-24"
+                      value={row.lessonsEn}
+                      onChange={(e) => patch({ lessonsEn: e.target.value })}
+                    />
+                  </label>
+                  <label className="field">
+                    <span className="field-label">{labelFr(ui.admin.lessons)}</span>
+                    <textarea
+                      className="field-control min-h-24"
+                      value={row.lessonsFr}
+                      onChange={(e) => patch({ lessonsFr: e.target.value })}
+                    />
                   </label>
                 </div>
                 <div className="flex flex-wrap gap-3">
@@ -661,6 +948,7 @@ export default function AdminContentEditors({
                         row.id == null ? 'POST' : 'PUT',
                         row.id == null ? '/api/admin/projects' : `/api/admin/projects/${row.id}`,
                         {
+                          slug: row.slug,
                           nameEn: row.nameEn,
                           nameFr: row.nameFr,
                           summaryEn: row.summaryEn,
@@ -668,6 +956,38 @@ export default function AdminContentEditors({
                           tagsEn: row.tagsEn,
                           tagsFr: row.tagsFr,
                           href: row.href,
+                          categoryEn: row.categoryEn,
+                          categoryFr: row.categoryFr,
+                          statusEn: row.statusEn,
+                          statusFr: row.statusFr,
+                          coverImageUrl: row.coverImageUrl,
+                          liveDemoUrl: row.liveDemoUrl,
+                          roleEn: row.roleEn,
+                          roleFr: row.roleFr,
+                          overviewEn: row.overviewEn,
+                          overviewFr: row.overviewFr,
+                          problemEn: row.problemEn,
+                          problemFr: row.problemFr,
+                          architectureImageUrl: row.architectureImageUrl,
+                          architectureCaptionEn: row.architectureCaptionEn,
+                          architectureCaptionFr: row.architectureCaptionFr,
+                          featuresEn: linesToHighlights(row.featuresEn),
+                          featuresFr: linesToHighlights(row.featuresFr),
+                          tradeoffsEn: linesToHighlights(row.tradeoffsEn),
+                          tradeoffsFr: linesToHighlights(row.tradeoffsFr),
+                          challengesEn: linesToHighlights(row.challengesEn),
+                          challengesFr: linesToHighlights(row.challengesFr),
+                          testingEn: row.testingEn,
+                          testingFr: row.testingFr,
+                          galleryUrls: row.galleryUrls
+                            .split(/\r?\n/)
+                            .map((part) => part.trim())
+                            .filter(Boolean)
+                            .join(','),
+                          lessonsEn: linesToHighlights(row.lessonsEn),
+                          lessonsFr: linesToHighlights(row.lessonsFr),
+                          mark: row.mark,
+                          sortOrder: row.sortOrder,
                         },
                       )
                     }
