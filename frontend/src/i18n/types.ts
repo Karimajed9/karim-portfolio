@@ -156,7 +156,6 @@ export type UiCopy = {
     lessons: string
     links: string
     nextProject: string
-    plannedNote: string
     sectionNav: string
     missingCover: string
     missingImage: string

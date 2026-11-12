@@ -48,7 +48,8 @@ describe('ProjectCaseStudyPage', () => {
       }),
     ).toBeInTheDocument()
     expect(screen.getByText(siteEn.projects.items[0]!.overview)).toBeInTheDocument()
-    expect(screen.getByText(/Paid Azure hosting stays planned/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/Azure Static Web Apps/i).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/Render/i).length).toBeGreaterThan(0)
     const cover = document.querySelector('.case-hero-image')
     expect(cover).toHaveAttribute(
       'src',

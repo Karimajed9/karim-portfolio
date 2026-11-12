@@ -231,7 +231,6 @@ export const uiEn: UiCopy = {
     lessons: 'Lessons',
     links: 'Links',
     nextProject: 'Next project',
-    plannedNote: 'Planned — not shipped in this repo yet.',
     sectionNav: 'Case study sections',
     missingCover: 'Cover image not available',
     missingImage: 'Image not available',

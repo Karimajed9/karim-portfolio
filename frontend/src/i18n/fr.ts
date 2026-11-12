@@ -231,7 +231,6 @@ export const uiFr: UiCopy = {
     lessons: 'Leçons',
     links: 'Liens',
     nextProject: 'Projet suivant',
-    plannedNote: 'Planifié — pas encore livré dans ce dépôt.',
     sectionNav: 'Sections de l’étude de cas',
     missingCover: 'Image de couverture indisponible',
     missingImage: 'Image indisponible',
