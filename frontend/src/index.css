@@ -1450,6 +1450,10 @@
     .case-nav a:hover {
       color: var(--color-ink);
     }
+
+    .case-nav a.is-active {
+      color: var(--color-accent);
+    }
   }
 
 }

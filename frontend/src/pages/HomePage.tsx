@@ -16,6 +16,7 @@ import {
   toSkillGroups,
 } from '../lib/contentApi'
 import { cvEnPath, cvFrPath } from '../lib/cv'
+import { publicAssetUrl } from '../lib/publicAsset'
 import { useStaticApiResource } from '../lib/useStaticApiResource'
 
 const SECTION_IDS = [
@@ -233,7 +234,7 @@ export default function HomePage() {
                   <div className="project-card-visual project-card-visual--cover">
                     {project.coverImageUrl ? (
                       <img
-                        src={project.coverImageUrl}
+                        src={publicAssetUrl(project.coverImageUrl)}
                         alt=""
                         className="project-card-cover"
                         onError={(event) => {

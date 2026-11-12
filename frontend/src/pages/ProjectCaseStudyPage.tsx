@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import ArchitectureDiagram from '../components/ArchitectureDiagram'
 import SectionHeading from '../components/SectionHeading'
@@ -9,6 +9,7 @@ import {
   nextProject,
   toProjectViews,
 } from '../lib/contentApi'
+import { publicAssetUrl } from '../lib/publicAsset'
 import { useStaticApiResource } from '../lib/useStaticApiResource'
 
 const SECTIONS = [
@@ -37,6 +38,10 @@ function Cover({
   missingLabel: string
 }) {
   const [failed, setFailed] = useState(false)
+  useEffect(() => {
+    setFailed(false)
+  }, [src])
+
   if (!src || failed) {
     return (
       <div className="case-hero-visual case-hero-visual--fallback" role="img" aria-label={missingLabel}>
@@ -61,6 +66,10 @@ function Cover({
 
 function GalleryImage({ src, missingLabel }: { src: string; missingLabel: string }) {
   const [failed, setFailed] = useState(false)
+  useEffect(() => {
+    setFailed(false)
+  }, [src])
+
   if (failed) {
     return (
       <div className="case-gallery-item case-gallery-item--fallback" role="img" aria-label={missingLabel}>
@@ -78,6 +87,7 @@ function GalleryImage({ src, missingLabel }: { src: string; missingLabel: string
 export default function ProjectCaseStudyPage() {
   const { slug = '' } = useParams()
   const { locale, site, ui } = useLocale()
+  const [activeSection, setActiveSection] = useState<SectionId | null>(null)
   const staticProjects = useMemo(
     () => buildStaticProjects(site, locale),
     [site, locale],
@@ -121,6 +131,37 @@ export default function ProjectCaseStudyPage() {
     return true
   })
 
+  useEffect(() => {
+    setActiveSection(visibleSections[0] ?? null)
+  }, [slug, project?.id])
+
+  useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined' || visibleSections.length === 0) {
+      return
+    }
+
+    const nodes = visibleSections
+      .map((id) => document.getElementById(id))
+      .filter((node): node is HTMLElement => Boolean(node))
+    if (nodes.length === 0) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]
+        const id = visible?.target.id
+        if (id && visibleSections.includes(id as SectionId)) {
+          setActiveSection(id as SectionId)
+        }
+      },
+      { rootMargin: '-25% 0px -55% 0px', threshold: [0.1, 0.25, 0.5, 0.75] },
+    )
+
+    nodes.forEach((node) => observer.observe(node))
+    return () => observer.disconnect()
+  }, [visibleSections.join('|'), project?.id, slug])
+
   if (!project) {
     return (
       <section className="page-wrap case-page">
@@ -131,6 +172,9 @@ export default function ProjectCaseStudyPage() {
       </section>
     )
   }
+
+  const coverSrc = publicAssetUrl(project.coverImageUrl)
+  const architectureSrc = publicAssetUrl(project.architectureImageUrl)
 
   return (
     <section className="page-wrap case-page">
@@ -147,7 +191,13 @@ export default function ProjectCaseStudyPage() {
           <ul>
             {visibleSections.map((id) => (
               <li key={id}>
-                <a href={`#${id}`}>{sectionLabels[id]}</a>
+                <a
+                  href={`#${id}`}
+                  className={activeSection === id ? 'is-active' : undefined}
+                  aria-current={activeSection === id ? 'true' : undefined}
+                >
+                  {sectionLabels[id]}
+                </a>
               </li>
             ))}
           </ul>
@@ -161,7 +211,7 @@ export default function ProjectCaseStudyPage() {
             <h1 className="case-title">{project.name}</h1>
             {project.summary ? <p className="case-lede">{project.summary}</p> : null}
             <Cover
-              src={project.coverImageUrl}
+              src={coverSrc}
               mark={project.mark}
               missingLabel={ui.caseStudy.missingCover}
             />
@@ -227,15 +277,15 @@ export default function ProjectCaseStudyPage() {
 
           <section id="architecture" className="case-section">
             <SectionHeading title={ui.caseStudy.architecture} index="04" />
-            {project.architectureImageUrl ? (
+            {architectureSrc ? (
               <GalleryImage
-                src={project.architectureImageUrl}
+                src={architectureSrc}
                 missingLabel={ui.caseStudy.missingImage}
               />
             ) : (
               <ArchitectureDiagram caption={project.architectureCaption} />
             )}
-            {project.architectureImageUrl && project.architectureCaption ? (
+            {architectureSrc && project.architectureCaption ? (
               <p className="case-arch-caption">{project.architectureCaption}</p>
             ) : null}
           </section>
@@ -287,7 +337,7 @@ export default function ProjectCaseStudyPage() {
                 {project.galleryUrls.map((src) => (
                   <GalleryImage
                     key={src}
-                    src={src}
+                    src={publicAssetUrl(src)}
                     missingLabel={ui.caseStudy.missingImage}
                   />
                 ))}

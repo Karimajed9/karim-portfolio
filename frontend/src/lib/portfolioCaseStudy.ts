@@ -1,3 +1,5 @@
+import { PORTFOLIO_COVER_PATH } from './publicAsset'
+
 /** Verified case-study copy for Personal Portfolio Platform — no invented metrics. */
 
 export const PORTFOLIO_SLUG = 'personal-portfolio-platform'
@@ -12,7 +14,7 @@ export const portfolioCaseStudyEn = {
   mark: 'KM',
   category: 'Personal project',
   status: 'In progress',
-  coverImageUrl: '',
+  coverImageUrl: PORTFOLIO_COVER_PATH,
   liveDemoUrl: 'https://karimmajed.com',
   role: 'Solo full-stack engineer',
   overview:
@@ -64,7 +66,7 @@ export const portfolioCaseStudyFr = {
   mark: 'KM',
   category: 'Projet personnel',
   status: 'En cours',
-  coverImageUrl: '',
+  coverImageUrl: PORTFOLIO_COVER_PATH,
   liveDemoUrl: 'https://karimmajed.com',
   role: 'Ingénieur full-stack solo',
   overview:

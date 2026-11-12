@@ -5,6 +5,7 @@ import AdminPage from './pages/AdminPage'
 import NotFoundPage from './pages/NotFoundPage'
 import ProjectCaseStudyPage from './pages/ProjectCaseStudyPage'
 import Layout from './components/Layout'
+import ScrollToTop from './components/ScrollToTop'
 import { LocaleProvider } from './i18n/LocaleContext'
 import { ThemeProvider } from './theme/ThemeContext'
 
@@ -21,6 +22,7 @@ function App() {
             updates, which keeps the outgoing page painted until the destination
             commits — that reads as a Home flash when leaving `/`. */}
         <BrowserRouter basename={routerBasename} useTransitions={false}>
+          <ScrollToTop />
           <Routes>
             <Route element={<Layout />}>
               <Route index element={<HomePage />} />

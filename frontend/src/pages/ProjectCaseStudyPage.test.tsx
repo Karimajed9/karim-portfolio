@@ -2,6 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { PORTFOLIO_SLUG } from '../lib/portfolioCaseStudy'
+import { publicAssetUrl } from '../lib/publicAsset'
 import { siteEn } from '../i18n/en'
 import { resetApiBannerState } from '../lib/apiBannerState'
 import { AppProviders } from '../test/providers'
@@ -48,6 +49,13 @@ describe('ProjectCaseStudyPage', () => {
     ).toBeInTheDocument()
     expect(screen.getByText(siteEn.projects.items[0]!.overview)).toBeInTheDocument()
     expect(screen.getByText(/Paid Azure hosting stays planned/i)).toBeInTheDocument()
+    const cover = document.querySelector('.case-hero-image')
+    expect(cover).toHaveAttribute(
+      'src',
+      publicAssetUrl(siteEn.projects.items[0]!.coverImageUrl),
+    )
+    const overviewLink = document.querySelector('.case-nav a[href="#overview"]')
+    expect(overviewLink?.classList.contains('is-active')).toBe(true)
     const githubLinks = screen.getAllByRole('link', { name: /GitHub/i })
     expect(githubLinks.length).toBeGreaterThan(0)
     expect(githubLinks[0]).toHaveAttribute('href', siteEn.projects.items[0]!.href)
