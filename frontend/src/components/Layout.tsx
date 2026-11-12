@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { useLocale } from '../i18n/LocaleContext'
 import { cvEnPath, cvFrPath } from '../lib/cv'
+import ApiBannerHost from './ApiBannerHost'
 import ContentUpdateBanner from './ContentUpdateBanner'
 import SettingsMenu from './SettingsMenu'
 
@@ -105,6 +106,7 @@ export default function Layout() {
         ) : null}
       </header>
 
+      <ApiBannerHost />
       <ContentUpdateBanner />
 
       <main id="main-content" className="site-main">

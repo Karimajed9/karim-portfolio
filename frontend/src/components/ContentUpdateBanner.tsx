@@ -4,21 +4,20 @@ import {
   apiUrl,
   fallbackReasonFromHealth,
   probeApiHealth,
-  type ApiFallbackReason,
 } from '../api'
+import { reportApiDown, reportApiUp } from '../lib/apiBannerState'
 import { useLocale } from '../i18n/LocaleContext'
-import ApiFallbackBanner from './ApiFallbackBanner'
 
 /** How often open tabs check for admin content changes. */
 export const CONTENT_REVISION_POLL_MS = 20_000
 
 /**
  * Dismissible “refresh for latest” notice when admin content changed after
- * this page view started. Does not auto-reload. Cleared only for this view
- * (component state) — a full reload shows fresh content without the banner.
+ * this page view started. Does not auto-reload.
  *
- * Failed polls (502, refused, network error) show the same offline API banner
- * as a failed experience/projects fetch. Empty/successful bodies stay quiet.
+ * Failed polls report the shared offline API banner. A successful poll
+ * (HTTP 200) clears that banner — including recovery after an earlier failure.
+ * Empty revision payloads stay quiet for the update notice but still clear offline.
  */
 export default function ContentUpdateBanner() {
   const { ui } = useLocale()
@@ -26,9 +25,6 @@ export default function ContentUpdateBanner() {
   const baselineRef = useRef<number | null>(null)
   const [outdated, setOutdated] = useState(false)
   const [dismissed, setDismissed] = useState(false)
-  const [connectivityReason, setConnectivityReason] = useState<ApiFallbackReason | null>(
-    null,
-  )
 
   const isAdmin =
     location.pathname === '/admin' || location.pathname.endsWith('/admin')
@@ -37,29 +33,34 @@ export default function ContentUpdateBanner() {
     if (isAdmin) return
 
     let cancelled = false
+    let pollSeq = 0
 
-    async function markUnreachable() {
+    async function markUnreachable(seq: number) {
       const health = await probeApiHealth()
-      if (cancelled) return
-      setConnectivityReason(fallbackReasonFromHealth(health))
+      if (cancelled || seq !== pollSeq) return
+      reportApiDown(fallbackReasonFromHealth(health))
       setOutdated(false)
     }
 
     async function poll() {
+      const seq = ++pollSeq
       try {
         const res = await fetch(apiUrl('/api/content-revision'))
-        if (cancelled) return
+        if (cancelled || seq !== pollSeq) return
         if (!res.ok) {
-          await markUnreachable()
+          await markUnreachable(seq)
           return
         }
         const data = (await res.json()) as { revision?: number }
-        if (cancelled) return
+        if (cancelled || seq !== pollSeq) return
+
+        // Any successful content-revision clears offline/warming banners.
+        reportApiUp()
+
         const revision = typeof data.revision === 'number' ? data.revision : null
-        // Empty / malformed success body: stay quiet (not offline, not outdated).
+        // Empty body: offline cleared above; no “content updated” notice.
         if (revision == null) return
 
-        setConnectivityReason(null)
         if (baselineRef.current == null) {
           baselineRef.current = revision
           return
@@ -68,8 +69,8 @@ export default function ContentUpdateBanner() {
           setOutdated(true)
         }
       } catch {
-        if (!cancelled) {
-          await markUnreachable()
+        if (!cancelled && seq === pollSeq) {
+          await markUnreachable(seq)
         }
       }
     }
@@ -85,13 +86,7 @@ export default function ContentUpdateBanner() {
     }
   }, [isAdmin])
 
-  if (isAdmin) return null
-
-  if (connectivityReason) {
-    return <ApiFallbackBanner reason={connectivityReason} />
-  }
-
-  if (dismissed || !outdated) return null
+  if (isAdmin || dismissed || !outdated) return null
 
   return (
     <div

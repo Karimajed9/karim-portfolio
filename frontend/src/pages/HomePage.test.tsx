@@ -2,9 +2,22 @@ import { act, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { apiUrl, SLOW_FETCH_MS, writeApiCache } from '../api'
+import ApiBannerHost from '../components/ApiBannerHost'
 import { siteEn } from '../i18n/en'
+import { resetApiBannerState } from '../lib/apiBannerState'
 import { AppProviders } from '../test/providers'
 import HomePage from './HomePage'
+
+function renderHome() {
+  return render(
+    <AppProviders>
+      <MemoryRouter>
+        <ApiBannerHost />
+        <HomePage />
+      </MemoryRouter>
+    </AppProviders>,
+  )
+}
 
 function jsonResponse(body: unknown, ok = true) {
   return {
@@ -69,12 +82,14 @@ describe('HomePage', () => {
   beforeEach(() => {
     localStorage.clear()
     sessionStorage.clear()
+    resetApiBannerState()
     vi.restoreAllMocks()
   })
 
   afterEach(() => {
     vi.useRealTimers()
     vi.unstubAllGlobals()
+    resetApiBannerState()
   })
 
   it('renders the portfolio name as the hero heading', async () => {
@@ -121,13 +136,7 @@ describe('HomePage', () => {
       }),
     )
 
-    render(
-      <AppProviders>
-        <MemoryRouter>
-          <HomePage />
-        </MemoryRouter>
-      </AppProviders>,
-    )
+    renderHome()
 
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/Karim\s*Majed/)
     expect(screen.getByRole('link', { name: /Get in touch/i })).toHaveAttribute('href', '#contact')
@@ -190,13 +199,7 @@ describe('HomePage', () => {
     })
     vi.stubGlobal('fetch', fetchMock)
 
-    render(
-      <AppProviders>
-        <MemoryRouter>
-          <HomePage />
-        </MemoryRouter>
-      </AppProviders>,
-    )
+    renderHome()
 
     expect(screen.getByText(siteEn.experience[0]!.company)).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: siteEn.projects.items[0]!.name })).toBeInTheDocument()
@@ -245,13 +248,7 @@ describe('HomePage', () => {
     })
     vi.stubGlobal('fetch', fetchMock)
 
-    render(
-      <AppProviders>
-        <MemoryRouter>
-          <HomePage />
-        </MemoryRouter>
-      </AppProviders>,
-    )
+    renderHome()
 
     expect(screen.getByText(siteEn.experience[0]!.company)).toBeInTheDocument()
 
@@ -296,13 +293,7 @@ describe('HomePage', () => {
     })
     vi.stubGlobal('fetch', fetchMock)
 
-    render(
-      <AppProviders>
-        <MemoryRouter>
-          <HomePage />
-        </MemoryRouter>
-      </AppProviders>,
-    )
+    renderHome()
 
     expect(screen.getByText('Cached Co')).toBeInTheDocument()
 
@@ -364,13 +355,7 @@ describe('HomePage', () => {
       }),
     )
 
-    render(
-      <AppProviders>
-        <MemoryRouter>
-          <HomePage />
-        </MemoryRouter>
-      </AppProviders>,
-    )
+    renderHome()
 
     expect(screen.getByText('Cached Co')).toBeInTheDocument()
 
@@ -428,13 +413,7 @@ describe('HomePage', () => {
       }),
     )
 
-    render(
-      <AppProviders>
-        <MemoryRouter>
-          <HomePage />
-        </MemoryRouter>
-      </AppProviders>,
-    )
+    renderHome()
 
     expect(screen.getByText(siteEn.experience[0]!.company)).toBeInTheDocument()
 

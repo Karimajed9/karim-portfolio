@@ -3,12 +3,15 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { LocaleProvider } from '../i18n/LocaleContext'
+import { resetApiBannerState } from '../lib/apiBannerState'
+import ApiBannerHost from './ApiBannerHost'
 import ContentUpdateBanner from './ContentUpdateBanner'
 
 function renderBanner(path = '/') {
   return render(
     <LocaleProvider>
       <MemoryRouter initialEntries={[path]}>
+        <ApiBannerHost />
         <ContentUpdateBanner />
       </MemoryRouter>
     </LocaleProvider>,
@@ -17,6 +20,7 @@ function renderBanner(path = '/') {
 
 describe('ContentUpdateBanner', () => {
   beforeEach(() => {
+    resetApiBannerState()
     vi.stubGlobal(
       'fetch',
       vi.fn(async () =>
@@ -31,6 +35,7 @@ describe('ContentUpdateBanner', () => {
   afterEach(() => {
     vi.unstubAllGlobals()
     vi.restoreAllMocks()
+    resetApiBannerState()
   })
 
   it('stays hidden while revision is unchanged', async () => {
@@ -82,6 +87,36 @@ describe('ContentUpdateBanner', () => {
     expect(screen.queryByText(/refresh the page/i)).toBeNull()
   })
 
+  it('clears the offline banner when content-revision succeeds again', async () => {
+    let revisionOk = false
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input)
+        if (url.includes('/api/health')) {
+          return Promise.reject(new TypeError('Failed to fetch'))
+        }
+        if (!revisionOk) {
+          return Promise.resolve({ ok: false, status: 502, json: async () => ({}) })
+        }
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ revision: 3 }),
+        })
+      }),
+    )
+
+    renderBanner()
+    expect(await screen.findByText(/can't reach the api/i)).toBeInTheDocument()
+
+    revisionOk = true
+    window.dispatchEvent(new Event('focus'))
+
+    await waitFor(() => {
+      expect(screen.queryByText(/can't reach the api/i)).toBeNull()
+    })
+  })
+
   it('shows offline when content-revision fetch throws', async () => {
     vi.stubGlobal(
       'fetch',
@@ -111,7 +146,8 @@ describe('ContentUpdateBanner', () => {
 
     renderBanner()
     await waitFor(() => expect(fetch).toHaveBeenCalled())
-    expect(screen.queryByRole('status')).toBeNull()
+    expect(screen.queryByText(/refresh the page/i)).toBeNull()
+    expect(screen.queryByText(/can't reach the api/i)).toBeNull()
   })
 
   it('does not render on the admin route', async () => {

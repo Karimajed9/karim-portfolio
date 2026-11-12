@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react'
-import ApiFallbackBanner from '../components/ApiFallbackBanner'
 import ContactForm from '../components/ContactForm'
 import DeparturesBoard from '../components/DeparturesBoard'
 import FlipDigits from '../components/FlipDigits'
@@ -87,22 +86,22 @@ export default function HomePage() {
   const staticProjects = useMemo(() => buildStaticProjects(site), [site])
   const staticSkills = useMemo(() => buildStaticSkills(site), [site])
   const staticAbout = useMemo(() => buildStaticAbout(site), [site])
-  const { data: experienceData, fallbackReason: experienceFallback } = useStaticApiResource(
+  const { data: experienceData } = useStaticApiResource(
     '/api/experience',
     staticExperience,
     locale,
   )
-  const { data: projectsData, fallbackReason: projectsFallback } = useStaticApiResource(
+  const { data: projectsData } = useStaticApiResource(
     '/api/projects',
     staticProjects,
     locale,
   )
-  const { data: skillsData, fallbackReason: skillsFallback } = useStaticApiResource(
+  const { data: skillsData } = useStaticApiResource(
     '/api/skills',
     staticSkills,
     locale,
   )
-  const { data: aboutData, fallbackReason: aboutFallback } = useStaticApiResource(
+  const { data: aboutData } = useStaticApiResource(
     '/api/about',
     staticAbout,
     locale,
@@ -114,8 +113,6 @@ export default function HomePage() {
   )
   const skills = useMemo(() => toSkillGroups(skillsData), [skillsData])
   const education = useMemo(() => toEducationViews(aboutData), [aboutData])
-  const fallbackReason =
-    experienceFallback ?? projectsFallback ?? skillsFallback ?? aboutFallback
 
   const [firstName, ...rest] = site.name.split(' ')
   const lastName = rest.join(' ')
@@ -124,7 +121,6 @@ export default function HomePage() {
 
   return (
     <>
-      {fallbackReason ? <ApiFallbackBanner reason={fallbackReason} /> : null}
       <section id="top" className="page-frame arch-section--hero" aria-label={ui.home.introAria}>
         <div className="hero-grid">
           <div className="hero-copy">

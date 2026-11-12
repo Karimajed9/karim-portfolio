@@ -4,11 +4,13 @@ import {
   readApiCache,
   type ApiFallbackReason,
 } from '../api'
+import { reportApiDown, reportApiUp } from './apiBannerState'
 import type { Locale } from '../i18n/types'
 
 /**
  * Seeds from static (and EN cache when present) so first paint is full content.
  * French always uses static site copy; English revalidates against the API.
+ * Live success clears the shared API banner; failures report down.
  */
 export function useStaticApiResource<T>(
   path: string,
@@ -29,7 +31,14 @@ export function useStaticApiResource<T>(
       if (!cancelled) {
         setRemote(data)
         setResolvedKey(`${locale}:${path}`)
-        setFallbackReason(meta.usingStatic ? (meta.reason ?? 'offline') : null)
+        if (meta.usingStatic) {
+          const reason = meta.reason ?? 'offline'
+          setFallbackReason(reason)
+          reportApiDown(reason)
+        } else {
+          setFallbackReason(null)
+          reportApiUp()
+        }
       }
     })
 
