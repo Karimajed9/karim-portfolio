@@ -1313,6 +1313,7 @@
     margin: 0;
     padding-top: clamp(8px, 1.5vw, 16px);
     border-top: 1px solid var(--color-line);
+    scroll-margin-top: calc(var(--nav-h) + 0.75rem);
   }
 
   .case-section .section-head {

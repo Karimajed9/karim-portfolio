@@ -145,6 +145,9 @@ export default function ProjectCaseStudyPage() {
       .filter((node): node is HTMLElement => Boolean(node))
     if (nodes.length === 0) return
 
+    const header = document.querySelector('.site-header')
+    const headerOffset = Math.ceil((header?.getBoundingClientRect().height ?? 68) + 12)
+
     const observer = new IntersectionObserver(
       (entries) => {
         const visible = entries
@@ -155,7 +158,10 @@ export default function ProjectCaseStudyPage() {
           setActiveSection(id as SectionId)
         }
       },
-      { rootMargin: '-25% 0px -55% 0px', threshold: [0.1, 0.25, 0.5, 0.75] },
+      {
+        rootMargin: `-${headerOffset}px 0px -55% 0px`,
+        threshold: [0.1, 0.25, 0.5, 0.75],
+      },
     )
 
     nodes.forEach((node) => observer.observe(node))
@@ -195,6 +201,7 @@ export default function ProjectCaseStudyPage() {
                   href={`#${id}`}
                   className={activeSection === id ? 'is-active' : undefined}
                   aria-current={activeSection === id ? 'true' : undefined}
+                  onClick={() => setActiveSection(id)}
                 >
                   {sectionLabels[id]}
                 </a>
