@@ -252,6 +252,10 @@ export const uiFr: UiCopy = {
     loading: 'Chargement des données. Affichage du contenu enregistré un instant.',
     dismiss: 'Fermer le message sur l’API',
   },
+  contentUpdate: {
+    message: 'Le contenu du site a été mis à jour. Actualisez la page pour voir la dernière version.',
+    dismiss: 'Fermer le message de mise à jour',
+  },
   admin: {
     title: 'Admin',
     signedIn: 'Modifiez le contenu du site et consultez les messages.',
@@ -264,7 +268,9 @@ export const uiFr: UiCopy = {
     refreshing: 'Actualisation…',
     empty: 'Aucun message pour le moment.',
     listHeading: 'Messages de contact',
-    authError: 'Nom d’utilisateur ou mot de passe invalide.',
+    authError: 'Authentification échouée.',
+    tooManyRequests: 'Trop de tentatives de connexion. Réessayez sous peu.',
+    logout: 'Se déconnecter',
     unreachable: 'Impossible de joindre l’API. Le backend tourne-t-il sur le port 8080 ?',
     contentHeading: 'Contenu du site',
     experienceHeading: 'Expérience',
@@ -295,5 +301,14 @@ export const uiFr: UiCopy = {
     city: 'Ville',
     degree: 'Diplôme',
     country: 'Pays',
+    cvHeading: 'CV PDF',
+    cvHint: 'Remplacez le CV téléchargeable EN ou FR. PDF uniquement, 5 Mo max. Les liens publics restent identiques.',
+    cvEn: 'CV anglais (PDF)',
+    cvFr: 'CV français (PDF)',
+    cvUploadEn: 'Remplacer le CV anglais',
+    cvUploadFr: 'Remplacer le CV français',
+    cvPickFile: 'Choisissez d’abord un PDF.',
+    cvUploadFailed: 'Échec du téléversement. Utilisez un PDF de moins de 5 Mo.',
+    cvSaved: 'CV mis à jour. Les téléchargements utilisent la même URL.',
   }
 }

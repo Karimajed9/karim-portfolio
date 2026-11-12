@@ -156,6 +156,10 @@ export type UiCopy = {
     loading: string
     dismiss: string
   }
+  contentUpdate: {
+    message: string
+    dismiss: string
+  }
   admin: {
     title: string
     signedIn: string
@@ -169,6 +173,8 @@ export type UiCopy = {
     empty: string
     listHeading: string
     authError: string
+    tooManyRequests: string
+    logout: string
     unreachable: string
     contentHeading: string
     experienceHeading: string
@@ -199,5 +205,14 @@ export type UiCopy = {
     city: string
     degree: string
     country: string
+    cvHeading: string
+    cvHint: string
+    cvEn: string
+    cvFr: string
+    cvUploadEn: string
+    cvUploadFr: string
+    cvPickFile: string
+    cvUploadFailed: string
+    cvSaved: string
   }
 }

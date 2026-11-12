@@ -13,33 +13,27 @@ type ContactMessage = {
   createdAt: string
 }
 
-function basicAuthHeader(username: string, password: string): string {
-  const token = btoa(`${username}:${password}`)
-  return `Basic ${token}`
-}
-
 export default function AdminPage() {
   const { locale, ui } = useLocale()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [authenticated, setAuthenticated] = useState(false)
+  const [csrfToken, setCsrfToken] = useState<string | null>(null)
   const [messages, setMessages] = useState<ContactMessage[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  async function fetchMessages(user: string, pass: string) {
+  async function fetchMessages() {
     setError(null)
     setLoading(true)
-
     try {
       const res = await fetch(apiUrl('/api/admin/messages'), {
-        headers: {
-          Authorization: basicAuthHeader(user, pass),
-        },
+        credentials: 'include',
       })
-
       if (!res.ok) {
         if (res.status === 401 || res.status === 403) {
+          setAuthenticated(false)
+          setCsrfToken(null)
           setError(ui.admin.authError)
         } else {
           setError(
@@ -50,7 +44,6 @@ export default function AdminPage() {
         }
         return false
       }
-
       const data: ContactMessage[] = await res.json()
       setMessages(data)
       setAuthenticated(true)
@@ -66,11 +59,56 @@ export default function AdminPage() {
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setMessages(null)
-    await fetchMessages(username, password)
+    setError(null)
+    setLoading(true)
+    try {
+      const res = await fetch(apiUrl('/api/admin/login'), {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      })
+      if (!res.ok) {
+        setAuthenticated(false)
+        setCsrfToken(null)
+        if (res.status === 429) {
+          setError(ui.admin.tooManyRequests)
+        } else {
+          setError(ui.admin.authError)
+        }
+        return
+      }
+      const data = (await res.json()) as { csrfToken?: string }
+      setPassword('')
+      setCsrfToken(data.csrfToken ?? null)
+      setAuthenticated(true)
+      await fetchMessages()
+    } catch {
+      setError(ui.admin.unreachable)
+    } finally {
+      setLoading(false)
+    }
   }
 
   async function handleRefresh() {
-    await fetchMessages(username, password)
+    await fetchMessages()
+  }
+
+  async function handleLogout() {
+    setError(null)
+    try {
+      await fetch(apiUrl('/api/admin/logout'), {
+        method: 'POST',
+        credentials: 'include',
+        headers: csrfToken ? { 'X-CSRF-TOKEN': csrfToken } : {},
+      })
+    } catch {
+      // Session clear is best-effort.
+    }
+    setAuthenticated(false)
+    setCsrfToken(null)
+    setMessages(null)
+    setPassword('')
   }
 
   return (
@@ -120,18 +158,23 @@ export default function AdminPage() {
         </div>
       )}
 
-      {authenticated && (
+      {authenticated && csrfToken && (
         <div className="mt-2">
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={handleRefresh}
-            disabled={loading}
-          >
-            {loading ? ui.admin.refreshing : ui.admin.refresh}
-          </button>
+          <div className="flex flex-wrap gap-3">
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={handleRefresh}
+              disabled={loading}
+            >
+              {loading ? ui.admin.refreshing : ui.admin.refresh}
+            </button>
+            <button type="button" className="btn btn-secondary" onClick={handleLogout}>
+              {ui.admin.logout}
+            </button>
+          </div>
 
-          <AdminContentEditors authHeader={basicAuthHeader(username, password)} />
+          <AdminContentEditors csrfToken={csrfToken} />
 
           <div className="mt-10">
             <h2 className="section-label">{ui.admin.listHeading}</h2>

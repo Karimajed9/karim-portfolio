@@ -14,9 +14,11 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 public class AdminSkillController {
   private final SkillRepository skills;
+  private final ContentRevision contentRevision;
 
-  public AdminSkillController(SkillRepository skills) {
+  public AdminSkillController(SkillRepository skills, ContentRevision contentRevision) {
     this.skills = skills;
+    this.contentRevision = contentRevision;
   }
 
   @PostMapping("/api/admin/skills")
@@ -24,7 +26,9 @@ public class AdminSkillController {
   public Skill create(@Valid @RequestBody SkillRequest body) {
     Skill row = new Skill();
     apply(row, body);
-    return skills.save(row);
+    Skill saved = skills.save(row);
+    contentRevision.bump();
+    return saved;
   }
 
   @PutMapping("/api/admin/skills/{id}")
@@ -32,7 +36,9 @@ public class AdminSkillController {
     Skill row = skills.findById(id)
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Skill not found"));
     apply(row, body);
-    return skills.save(row);
+    Skill saved = skills.save(row);
+    contentRevision.bump();
+    return saved;
   }
 
   @DeleteMapping("/api/admin/skills/{id}")
@@ -42,6 +48,7 @@ public class AdminSkillController {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Skill not found");
     }
     skills.deleteById(id);
+    contentRevision.bump();
   }
 
   private static void apply(Skill row, SkillRequest body) {

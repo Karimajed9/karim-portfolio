@@ -4,7 +4,7 @@ import { useLocale } from '../i18n/LocaleContext'
 import StatusBanner from './StatusBanner'
 
 type AuthProps = {
-  authHeader: string
+  csrfToken: string
 }
 
 type ExperienceItem = {
@@ -66,7 +66,7 @@ async function readJson<T>(path: string): Promise<T> {
   return (await res.json()) as T
 }
 
-export default function AdminContentEditors({ authHeader }: AuthProps) {
+export default function AdminContentEditors({ csrfToken }: AuthProps) {
   const { ui } = useLocale()
   const [experience, setExperience] = useState<ExperienceItem[]>([])
   const [projects, setProjects] = useState<ProjectItem[]>([])
@@ -75,6 +75,8 @@ export default function AdminContentEditors({ authHeader }: AuthProps) {
   const [status, setStatus] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [busyKey, setBusyKey] = useState<string | null>(null)
+  const [cvEnFile, setCvEnFile] = useState<File | null>(null)
+  const [cvFrFile, setCvFrFile] = useState<File | null>(null)
 
   async function reload() {
     setError(null)
@@ -103,7 +105,7 @@ export default function AdminContentEditors({ authHeader }: AuthProps) {
 
   useEffect(() => {
     void reload().catch(() => setError(ui.admin.unreachable))
-  }, [authHeader, ui.admin.unreachable])
+  }, [csrfToken, ui.admin.unreachable])
 
   async function mutate(
     key: string,
@@ -117,8 +119,9 @@ export default function AdminContentEditors({ authHeader }: AuthProps) {
     try {
       const res = await fetch(apiUrl(path), {
         method,
+        credentials: 'include',
         headers: {
-          Authorization: authHeader,
+          'X-CSRF-TOKEN': csrfToken,
           ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
         },
         body: body !== undefined ? JSON.stringify(body) : undefined,
@@ -133,6 +136,38 @@ export default function AdminContentEditors({ authHeader }: AuthProps) {
     } catch {
       setError(ui.admin.unreachable)
       return false
+    } finally {
+      setBusyKey(null)
+    }
+  }
+
+  async function uploadCv(slot: 'cv-en' | 'cv-fr', file: File | null) {
+    if (!file) {
+      setError(ui.admin.cvPickFile)
+      return
+    }
+    setBusyKey(`cv-${slot}`)
+    setStatus(null)
+    setError(null)
+    try {
+      const body = new FormData()
+      body.append('file', file)
+      body.append('slot', slot)
+      const res = await fetch(apiUrl('/api/admin/uploads'), {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'X-CSRF-TOKEN': csrfToken },
+        body,
+      })
+      if (!res.ok) {
+        setError(ui.admin.cvUploadFailed)
+        return
+      }
+      if (slot === 'cv-en') setCvEnFile(null)
+      else setCvFrFile(null)
+      setStatus(ui.admin.cvSaved)
+    } catch {
+      setError(ui.admin.unreachable)
     } finally {
       setBusyKey(null)
     }
@@ -752,6 +787,47 @@ export default function AdminContentEditors({ authHeader }: AuthProps) {
             </article>
           )
         })}
+      </section>
+
+      <section className="space-y-4">
+        <h3 className="text-xl font-semibold tracking-tight">{ui.admin.cvHeading}</h3>
+        <p className="prose-quiet">{ui.admin.cvHint}</p>
+        <div className="grid gap-4 md:grid-cols-2">
+          <label className="field">
+            <span className="field-label">{ui.admin.cvEn}</span>
+            <input
+              type="file"
+              accept="application/pdf,.pdf"
+              className="field-control"
+              onChange={(e) => setCvEnFile(e.target.files?.[0] ?? null)}
+            />
+            <button
+              type="button"
+              className="btn btn-primary mt-3"
+              disabled={busyKey === 'cv-cv-en'}
+              onClick={() => void uploadCv('cv-en', cvEnFile)}
+            >
+              {busyKey === 'cv-cv-en' ? ui.admin.saving : ui.admin.cvUploadEn}
+            </button>
+          </label>
+          <label className="field">
+            <span className="field-label">{ui.admin.cvFr}</span>
+            <input
+              type="file"
+              accept="application/pdf,.pdf"
+              className="field-control"
+              onChange={(e) => setCvFrFile(e.target.files?.[0] ?? null)}
+            />
+            <button
+              type="button"
+              className="btn btn-primary mt-3"
+              disabled={busyKey === 'cv-cv-fr'}
+              onClick={() => void uploadCv('cv-fr', cvFrFile)}
+            >
+              {busyKey === 'cv-cv-fr' ? ui.admin.saving : ui.admin.cvUploadFr}
+            </button>
+          </label>
+        </div>
       </section>
     </div>
   )

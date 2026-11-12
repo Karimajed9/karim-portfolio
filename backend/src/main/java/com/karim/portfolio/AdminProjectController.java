@@ -14,9 +14,11 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 public class AdminProjectController {
   private final ProjectRepository projects;
+  private final ContentRevision contentRevision;
 
-  public AdminProjectController(ProjectRepository projects) {
+  public AdminProjectController(ProjectRepository projects, ContentRevision contentRevision) {
     this.projects = projects;
+    this.contentRevision = contentRevision;
   }
 
   @PostMapping("/api/admin/projects")
@@ -24,7 +26,9 @@ public class AdminProjectController {
   public Project create(@Valid @RequestBody ProjectRequest body) {
     Project row = new Project();
     apply(row, body);
-    return projects.save(row);
+    Project saved = projects.save(row);
+    contentRevision.bump();
+    return saved;
   }
 
   @PutMapping("/api/admin/projects/{id}")
@@ -32,7 +36,9 @@ public class AdminProjectController {
     Project row = projects.findById(id)
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Project not found"));
     apply(row, body);
-    return projects.save(row);
+    Project saved = projects.save(row);
+    contentRevision.bump();
+    return saved;
   }
 
   @DeleteMapping("/api/admin/projects/{id}")
@@ -42,6 +48,7 @@ public class AdminProjectController {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Project not found");
     }
     projects.deleteById(id);
+    contentRevision.bump();
   }
 
   private static void apply(Project row, ProjectRequest body) {

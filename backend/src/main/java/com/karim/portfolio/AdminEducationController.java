@@ -14,9 +14,11 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 public class AdminEducationController {
   private final EducationRepository education;
+  private final ContentRevision contentRevision;
 
-  public AdminEducationController(EducationRepository education) {
+  public AdminEducationController(EducationRepository education, ContentRevision contentRevision) {
     this.education = education;
+    this.contentRevision = contentRevision;
   }
 
   @PostMapping("/api/admin/education")
@@ -24,7 +26,9 @@ public class AdminEducationController {
   public Education create(@Valid @RequestBody EducationRequest body) {
     Education row = new Education();
     apply(row, body);
-    return education.save(row);
+    Education saved = education.save(row);
+    contentRevision.bump();
+    return saved;
   }
 
   @PutMapping("/api/admin/education/{id}")
@@ -32,7 +36,9 @@ public class AdminEducationController {
     Education row = education.findById(id)
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Education not found"));
     apply(row, body);
-    return education.save(row);
+    Education saved = education.save(row);
+    contentRevision.bump();
+    return saved;
   }
 
   @DeleteMapping("/api/admin/education/{id}")
@@ -42,6 +48,7 @@ public class AdminEducationController {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Education not found");
     }
     education.deleteById(id);
+    contentRevision.bump();
   }
 
   private static void apply(Education row, EducationRequest body) {

@@ -14,9 +14,11 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 public class AdminExperienceController {
   private final ExperienceRepository experience;
+  private final ContentRevision contentRevision;
 
-  public AdminExperienceController(ExperienceRepository experience) {
+  public AdminExperienceController(ExperienceRepository experience, ContentRevision contentRevision) {
     this.experience = experience;
+    this.contentRevision = contentRevision;
   }
 
   @PostMapping("/api/admin/experience")
@@ -24,7 +26,9 @@ public class AdminExperienceController {
   public Experience create(@Valid @RequestBody ExperienceRequest body) {
     Experience row = new Experience();
     apply(row, body);
-    return experience.save(row);
+    Experience saved = experience.save(row);
+    contentRevision.bump();
+    return saved;
   }
 
   @PutMapping("/api/admin/experience/{id}")
@@ -32,7 +36,9 @@ public class AdminExperienceController {
     Experience row = experience.findById(id)
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Experience not found"));
     apply(row, body);
-    return experience.save(row);
+    Experience saved = experience.save(row);
+    contentRevision.bump();
+    return saved;
   }
 
   @DeleteMapping("/api/admin/experience/{id}")
@@ -42,6 +48,7 @@ public class AdminExperienceController {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Experience not found");
     }
     experience.deleteById(id);
+    contentRevision.bump();
   }
 
   private static void apply(Experience row, ExperienceRequest body) {

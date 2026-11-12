@@ -1,6 +1,7 @@
 package com.karim.portfolio.storage;
 
 import java.io.InputStream;
+import java.util.Optional;
 
 /**
  * Abstraction for project image / file uploads.
@@ -20,4 +21,7 @@ public interface BlobStorage {
    * @param contentLength size in bytes
    */
   StoredBlob store(String key, String contentType, InputStream data, long contentLength);
+
+  /** Open a previously stored blob, if present. */
+  Optional<StoredBlobContent> open(String key);
 }
