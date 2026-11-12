@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { apiUrl } from '../api'
+import { adminAuthHeaders } from '../lib/adminSession'
 import { useLocale } from '../i18n/LocaleContext'
 import { publicAssetUrl } from '../lib/publicAsset'
 import StatusBanner from './StatusBanner'
@@ -8,6 +9,7 @@ export type AdminEditorPanel = 'experience' | 'projects' | 'skills' | 'education
 
 type AuthProps = {
   csrfToken: string
+  sessionToken: string | null
   panel: AdminEditorPanel
   /** Bump to re-fetch public content after Refresh. */
   reloadToken?: number
@@ -161,6 +163,7 @@ async function readJson<T>(path: string): Promise<T> {
 
 export default function AdminContentEditors({
   csrfToken,
+  sessionToken,
   panel,
   reloadToken = 0,
 }: AuthProps) {
@@ -292,10 +295,11 @@ export default function AdminContentEditors({
       const res = await fetch(apiUrl(path), {
         method,
         credentials: 'include',
-        headers: {
-          'X-CSRF-TOKEN': csrfToken,
-          ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
-        },
+        headers: adminAuthHeaders(
+          csrfToken,
+          sessionToken,
+          body !== undefined ? { 'Content-Type': 'application/json' } : undefined,
+        ),
         body: body !== undefined ? JSON.stringify(body) : undefined,
       })
       if (!res.ok) {
@@ -328,7 +332,7 @@ export default function AdminContentEditors({
       const res = await fetch(apiUrl('/api/admin/uploads'), {
         method: 'POST',
         credentials: 'include',
-        headers: { 'X-CSRF-TOKEN': csrfToken },
+        headers: adminAuthHeaders(csrfToken, sessionToken),
         body,
       })
       if (!res.ok) {
@@ -365,7 +369,7 @@ export default function AdminContentEditors({
       const res = await fetch(apiUrl('/api/admin/uploads'), {
         method: 'POST',
         credentials: 'include',
-        headers: { 'X-CSRF-TOKEN': csrfToken },
+        headers: adminAuthHeaders(csrfToken, sessionToken),
         body,
       })
       if (!res.ok) {

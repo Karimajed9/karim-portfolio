@@ -308,6 +308,8 @@ export const uiEn: UiCopy = {
     pageStatus: 'Page {page} of {total}',
     messagesCount: 'total',
     authError: 'Authentication failed.',
+    sessionError:
+      'The password was accepted, but this browser did not keep the admin session. Allow cookies for this site, then try again.',
     tooManyRequests: 'Too many sign-in attempts. Try again shortly.',
     logout: 'Sign out',
     unreachable: 'Could not reach the API. Is the backend running on port 8080?',

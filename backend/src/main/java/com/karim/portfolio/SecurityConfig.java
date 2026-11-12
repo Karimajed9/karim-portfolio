@@ -13,7 +13,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
@@ -42,20 +45,41 @@ public class SecurityConfig {
     return new HttpSessionCsrfTokenRepository();
   }
 
+  /**
+   * When the cross-site cookie env is set (Secure + SameSite=None), also mark
+   * the session cookie Partitioned so Safari will store it.
+   */
+  @Bean
+  ServletContextInitializer partitionedSessionCookie(
+      @Value("${server.servlet.session.cookie.secure:false}") boolean secure,
+      @Value("${server.servlet.session.cookie.same-site:lax}") String sameSite) {
+    return SessionCookiePartition.initializer(secure, sameSite);
+  }
+
   @Bean
   SecurityFilterChain securityFilterChain(
-      HttpSecurity http, CsrfTokenRepository csrfTokenRepository) throws Exception {
+      HttpSecurity http,
+      CsrfTokenRepository csrfTokenRepository,
+      AdminSessionTokens sessionTokens,
+      AdminCredentials credentials) throws Exception {
     CsrfTokenRequestAttributeHandler csrfHandler = new CsrfTokenRequestAttributeHandler();
     // Prefer header token from the SPA (returned at login); do not require the
     // XOR-masked deferred token protocol used by some Spring+browser setups.
     csrfHandler.setCsrfRequestAttributeName(null);
+    AdminBearerAuthenticationFilter bearerFilter =
+        new AdminBearerAuthenticationFilter(sessionTokens, credentials);
 
     http
+        .addFilterBefore(bearerFilter, CsrfFilter.class)
         .cors(Customizer.withDefaults())
         .csrf(csrf -> csrf
             .csrfTokenRepository(csrfTokenRepository)
             .csrfTokenRequestHandler(csrfHandler)
-            .ignoringRequestMatchers("/api/admin/login", "/api/admin/logout"))
+            .ignoringRequestMatchers("/api/admin/login", "/api/admin/logout")
+            // A bearer is not sent automatically, so CSRF does not apply. This is
+            // what lets phone admin writes succeed after Safari drops the cookie.
+            .ignoringRequestMatchers(request ->
+                Boolean.TRUE.equals(request.getAttribute(AdminBearerAuthenticationFilter.AUTHENTICATED))))
         .sessionManagement(session -> session
             .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
         .authorizeHttpRequests(auth -> auth
