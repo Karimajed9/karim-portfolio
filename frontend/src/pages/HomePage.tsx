@@ -261,29 +261,34 @@ export default function HomePage() {
                   <h3 className="project-card-title">{project.name}</h3>
                   <p className="project-card-summary">{project.summary}</p>
                   <div className="project-card-actions">
-                    <Link to={`/projects/${project.slug}`} className="project-card-link">
-                      {ui.projects.explore} →
+                    <Link to={`/projects/${project.slug}`} className="project-card-cta">
+                      {ui.projects.explore}
+                      <span aria-hidden="true">→</span>
                     </Link>
-                    {project.href ? (
-                      <a
-                        href={project.href}
-                        className="project-card-link"
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        {ui.projects.github} ↗
-                      </a>
-                    ) : null}
-                    {project.liveDemoUrl ? (
-                      <a
-                        href={project.liveDemoUrl}
-                        className="project-card-link"
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        {ui.projects.liveDemo} ↗
-                      </a>
-                    ) : null}
+                    {(project.href || project.liveDemoUrl) && (
+                      <div className="project-card-secondary">
+                        {project.href ? (
+                          <a
+                            href={project.href}
+                            className="project-card-link"
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {ui.projects.github} ↗
+                          </a>
+                        ) : null}
+                        {project.liveDemoUrl ? (
+                          <a
+                            href={project.liveDemoUrl}
+                            className="project-card-link"
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {ui.projects.liveDemo} ↗
+                          </a>
+                        ) : null}
+                      </div>
+                    )}
                   </div>
                 </article>
               ))}
