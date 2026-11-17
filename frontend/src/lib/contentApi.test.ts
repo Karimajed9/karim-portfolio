@@ -52,6 +52,81 @@ describe('contentApi adapters', () => {
     expect(toEducationViews(about, 'en')[0]?.degree).toBe(siteEn.about.education[0]?.degree)
   })
 
+  it('keeps an explicit cover ahead of a markdown image', () => {
+    const [view] = toProjectViews(
+      [
+        {
+          id: 9,
+          slug: 'marked-up',
+          nameEn: 'Marked Up',
+          nameFr: '',
+          summaryEn: '',
+          summaryFr: '',
+          tagsEn: '',
+          tagsFr: '',
+          href: '',
+          coverImageUrl: 'https://cdn.example.com/cover.png',
+          overviewEn: 'See ![shot](https://cdn.example.com/from-markdown.png)',
+          overviewFr: '',
+          sortOrder: 1,
+        },
+      ],
+      [],
+      'en',
+    )
+    expect(view?.coverImageUrl).toBe('https://cdn.example.com/cover.png')
+  })
+
+  it('promotes a markdown image when the cover field is empty', () => {
+    const [view] = toProjectViews(
+      [
+        {
+          id: 4,
+          slug: siteEn.projects.items[0]!.slug,
+          nameEn: 'With markdown',
+          nameFr: '',
+          summaryEn: '',
+          summaryFr: '',
+          tagsEn: '',
+          tagsFr: '',
+          href: '',
+          coverImageUrl: '',
+          overviewEn: 'Body ![diagram](https://cdn.example.com/diagram.png) text',
+          overviewFr: '',
+          sortOrder: 1,
+        },
+      ],
+      siteEn.projects.items,
+      'en',
+    )
+    expect(view?.coverImageUrl).toBe('https://cdn.example.com/diagram.png')
+  })
+
+  it('unwraps a cover stored as markdown', () => {
+    const [view] = toProjectViews(
+      [
+        {
+          id: 5,
+          slug: 'wrapped',
+          nameEn: 'Wrapped',
+          nameFr: '',
+          summaryEn: '',
+          summaryFr: '',
+          tagsEn: '',
+          tagsFr: '',
+          href: '',
+          coverImageUrl: '![cover](https://cdn.example.com/real.png)',
+          overviewEn: '![other](https://cdn.example.com/other.png)',
+          overviewFr: '',
+          sortOrder: 1,
+        },
+      ],
+      [],
+      'en',
+    )
+    expect(view?.coverImageUrl).toBe('https://cdn.example.com/real.png')
+  })
+
   it('derives a mark when the name is unknown', () => {
     expect(projectMark('Alpha Beta', [])).toBe('AB')
     expect(projectMark('Solo', [])).toBe('SO')

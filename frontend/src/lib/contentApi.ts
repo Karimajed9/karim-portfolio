@@ -1,4 +1,5 @@
 import type { Locale, SiteContent } from '../i18n/types'
+import { markdownImageUrl, preferredImageUrl } from './publicAsset'
 
 /** Wire shape of `GET /api/experience`. */
 export type ApiExperience = {
@@ -373,6 +374,15 @@ export function toProjectViews(
         (row.slug && row.slug.trim()) ||
         staticItems.find((item) => item.name === name)?.slug ||
         `project-${row.id}`
+      const overview = pickLocalized(row.overviewEn, row.overviewFr, locale)
+      const problem = pickLocalized(row.problemEn, row.problemFr, locale)
+      const explicitCover = preferredImageUrl(row.coverImageUrl)
+      const markdownCover = markdownImageUrl(overview) || markdownImageUrl(problem)
+      const bundledCover =
+        staticItems.find((item) => item.slug === slug)?.coverImageUrl?.trim() ?? ''
+      // A real cover wins over a picture buried in markdown. If the payload
+      // only has markdown, or omits the cover, keep a picture on the card.
+      const coverImageUrl = explicitCover || markdownCover || bundledCover
       return {
         id: row.id,
         slug,
@@ -383,11 +393,11 @@ export function toProjectViews(
         mark: projectMark(name, staticItems, slug, row.mark),
         category: pickLocalized(row.categoryEn, row.categoryFr, locale),
         status: pickLocalized(row.statusEn, row.statusFr, locale),
-        coverImageUrl: (row.coverImageUrl ?? '').trim(),
+        coverImageUrl,
         liveDemoUrl: (row.liveDemoUrl ?? '').trim(),
         role: pickLocalized(row.roleEn, row.roleFr, locale),
-        overview: pickLocalized(row.overviewEn, row.overviewFr, locale),
-        problem: pickLocalized(row.problemEn, row.problemFr, locale),
+        overview,
+        problem,
         architectureImageUrl: (row.architectureImageUrl ?? '').trim(),
         architectureCaption: pickLocalized(
           row.architectureCaptionEn,

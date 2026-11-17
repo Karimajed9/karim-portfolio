@@ -37,12 +37,7 @@ function Cover({
   mark: string
   missingLabel: string
 }) {
-  const [failed, setFailed] = useState(false)
-  useEffect(() => {
-    setFailed(false)
-  }, [src])
-
-  if (!src || failed) {
+  if (!src) {
     return (
       <div className="case-hero-visual case-hero-visual--fallback" role="img" aria-label={missingLabel}>
         <div className="project-card-mark">
@@ -54,12 +49,7 @@ function Cover({
   }
   return (
     <div className="case-hero-visual">
-      <img
-        src={src}
-        alt=""
-        className="case-hero-image"
-        onError={() => setFailed(true)}
-      />
+      <img src={src} alt="" className="case-hero-image" />
     </div>
   )
 }

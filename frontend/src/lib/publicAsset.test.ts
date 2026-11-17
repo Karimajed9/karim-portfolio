@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { PORTFOLIO_COVER_PATH, publicAssetUrl } from './publicAsset'
+import { markdownImageUrl, PORTFOLIO_COVER_PATH, preferredImageUrl, publicAssetUrl } from './publicAsset'
 
 describe('publicAssetUrl', () => {
   it('keeps relative public paths under the Vite base', () => {
@@ -15,6 +15,18 @@ describe('publicAssetUrl', () => {
   it('leaves absolute http(s) URLs unchanged', () => {
     expect(publicAssetUrl('https://cdn.example.com/cover.png')).toBe(
       'https://cdn.example.com/cover.png',
+    )
+  })
+
+  it('prefers a bare picture URL over markdown', () => {
+    expect(preferredImageUrl('https://cdn.example.com/cover.png')).toBe(
+      'https://cdn.example.com/cover.png',
+    )
+    expect(markdownImageUrl('See ![shot](https://cdn.example.com/shot.png) here')).toBe(
+      'https://cdn.example.com/shot.png',
+    )
+    expect(preferredImageUrl('![cover](/media/uploads/cover.png)')).toBe(
+      '/media/uploads/cover.png',
     )
   })
 

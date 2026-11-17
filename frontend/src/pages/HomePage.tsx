@@ -230,13 +230,6 @@ export default function HomePage() {
                         src={publicAssetUrl(project.coverImageUrl)}
                         alt=""
                         className="project-card-cover"
-                        onError={(event) => {
-                          event.currentTarget.style.display = 'none'
-                          const fallback = event.currentTarget.nextElementSibling
-                          if (fallback instanceof HTMLElement) {
-                            fallback.hidden = false
-                          }
-                        }}
                       />
                     ) : null}
                     <div

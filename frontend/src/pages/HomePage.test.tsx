@@ -312,9 +312,9 @@ describe('HomePage', () => {
     })
     expect(screen.getByText(siteEn.experience[0]!.company)).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: siteEn.projects.items[0]!.name })).toBeInTheDocument()
-    expect(fetchMock.mock.calls.some(([input]) => String(input).includes('/api/health'))).toBe(
-      true,
-    )
+    expect(
+      fetchMock.mock.calls.filter(([input]) => String(input).includes('/api/health')),
+    ).toHaveLength(1)
   })
 
   it('shows offline banner and probes health when cached content revalidate fails', async () => {
@@ -365,9 +365,58 @@ describe('HomePage', () => {
       expect(screen.getByRole('status')).toHaveTextContent(/can't reach the api/i)
     })
     expect(screen.getByText('Cached Co')).toBeInTheDocument()
-    expect(fetchMock.mock.calls.some(([input]) => String(input).includes('/api/health'))).toBe(
-      true,
+    expect(screen.queryByText(siteEn.experience[0]!.company)).not.toBeInTheDocument()
+    expect(
+      fetchMock.mock.calls.filter(([input]) => String(input).includes('/api/health')),
+    ).toHaveLength(1)
+  })
+
+  it('shows the last stored skills and education when the API is down', async () => {
+    writeApiCache('/api/skills', [
+      {
+        id: 1,
+        categoryEn: 'Cached',
+        categoryFr: '',
+        nameEn: 'CachedSkill',
+        nameFr: '',
+        sortOrder: 1,
+      },
+    ])
+    writeApiCache('/api/about', {
+      ...emptyAbout(),
+      education: [
+        {
+          id: 1,
+          schoolEn: 'Cached U',
+          schoolFr: '',
+          cityEn: 'Montréal',
+          cityFr: '',
+          degreeEn: 'Cached Degree',
+          degreeFr: '',
+          countryEn: 'Canada',
+          countryFr: '',
+          startDate: '2020',
+          endDate: '2021',
+        },
+      ],
+    })
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => Promise.reject(new TypeError('Failed to fetch'))),
     )
+
+    renderHome()
+
+    expect(screen.getByText('CachedSkill')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Cached Degree' })).toBeInTheDocument()
+    expect(screen.queryByText(siteEn.skills[0]!.items[0]!)).not.toBeInTheDocument()
+
+    await waitFor(() => {
+      expect(screen.getByRole('status')).toHaveTextContent(/can't reach the api/i)
+    })
+    expect(screen.getByText('CachedSkill')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Cached Degree' })).toBeInTheDocument()
   })
 
   it('treats empty 200 arrays as success and clears the fallback banner', async () => {

@@ -2,8 +2,17 @@ import { useEffect, useState } from 'react'
 import { apiUrl } from '../api'
 import { adminAuthHeaders } from '../lib/adminSession'
 import { useLocale } from '../i18n/LocaleContext'
-import { publicAssetUrl } from '../lib/publicAsset'
+import { preferredImageUrl, publicAssetUrl } from '../lib/publicAsset'
 import StatusBanner from './StatusBanner'
+
+function RecordSummary({ title, detail }: { title: string; detail?: string }) {
+  return (
+    <div>
+      <p className="font-medium">{title}</p>
+      {detail ? <p className="prose-quiet">{detail}</p> : null}
+    </div>
+  )
+}
 
 export type AdminEditorPanel = 'experience' | 'projects' | 'skills' | 'education' | 'cv'
 
@@ -174,6 +183,8 @@ export default function AdminContentEditors({
   const [education, setEducation] = useState<EducationItem[]>([])
   const [status, setStatus] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [openKeys, setOpenKeys] = useState<string[]>([])
+  const [savedPopup, setSavedPopup] = useState(false)
   const [busyKey, setBusyKey] = useState<string | null>(null)
   const [cvEnFile, setCvEnFile] = useState<File | null>(null)
   const [cvFrFile, setCvFrFile] = useState<File | null>(null)
@@ -182,6 +193,24 @@ export default function AdminContentEditors({
 
   const labelEn = (base: string) => `${base} (${ui.admin.langEn})`
   const labelFr = (base: string) => `${base} (${ui.admin.langFr})`
+
+  useEffect(() => {
+    if (!savedPopup) return
+    const timer = window.setTimeout(() => setSavedPopup(false), 2800)
+    return () => window.clearTimeout(timer)
+  }, [savedPopup])
+
+  function isRecordOpen(key: string, id: number | undefined) {
+    return id == null || openKeys.includes(key)
+  }
+
+  function openRecord(key: string) {
+    setOpenKeys((keys) => (keys.includes(key) ? keys : [...keys, key]))
+  }
+
+  function closeRecord(key: string) {
+    setOpenKeys((keys) => keys.filter((item) => item !== key))
+  }
 
   async function reload() {
     setError(null)
@@ -280,6 +309,7 @@ export default function AdminContentEditors({
   useEffect(() => {
     setStatus(null)
     setError(null)
+    setSavedPopup(false)
   }, [panel])
 
   async function mutate(
@@ -307,7 +337,10 @@ export default function AdminContentEditors({
         return false
       }
       await reload()
-      setStatus(ui.admin.saved)
+      if (method !== 'DELETE') {
+        setSavedPopup(true)
+        setStatus(ui.admin.saved)
+      }
       return true
     } catch {
       setError(ui.admin.unreachable)
@@ -346,6 +379,7 @@ export default function AdminContentEditors({
         setCvFrFile(null)
         setCvFrInputKey((n) => n + 1)
       }
+      setSavedPopup(true)
       setStatus(ui.admin.cvSaved)
     } catch {
       setError(ui.admin.unreachable)
@@ -395,6 +429,11 @@ export default function AdminContentEditors({
 
   return (
     <div className="mt-6 space-y-6">
+      {savedPopup ? (
+        <StatusBanner tone="success" role="status" placement="overlay">
+          {ui.admin.savedPopup}
+        </StatusBanner>
+      ) : null}
       {status ? (
         <StatusBanner tone="success" role="status">
           {status}
@@ -437,8 +476,11 @@ export default function AdminContentEditors({
           </div>
           {experience.map((row, index) => {
             const key = `experience-${row.id ?? `new-${index}`}`
+            const open = isRecordOpen(key, row.id)
             return (
               <article key={key} className="border border-line bg-surface p-5 space-y-4">
+                {open ? (
+                <>
                 <div className="grid gap-4 md:grid-cols-2">
                   <label className="field">
                     <span className="field-label">{labelEn(ui.admin.company)}</span>
@@ -602,12 +644,20 @@ export default function AdminContentEditors({
                     <span className="text-sm text-muted">{ui.admin.highlightsHint}</span>
                   </label>
                 </div>
+                </>
+                ) : (
+                  <RecordSummary
+                    title={row.companyEn || row.companyFr || ui.admin.experienceHeading}
+                    detail={[row.roleEn || row.roleFr, row.startDate].filter(Boolean).join(' · ')}
+                  />
+                )}
                 <div className="flex flex-wrap gap-3">
+                  {open ? (
                   <button
                     type="button"
                     className="btn btn-primary"
                     disabled={busyKey === key}
-                    onClick={() =>
+                    onClick={() => {
                       void mutate(
                         key,
                         row.id == null ? 'POST' : 'PUT',
@@ -627,11 +677,18 @@ export default function AdminContentEditors({
                           highlightsFr: linesToHighlights(row.highlightsFr),
                           sortOrder: row.sortOrder,
                         },
-                      )
-                    }
+                      ).then((ok) => {
+                        if (ok) closeRecord(key)
+                      })
+                    }}
                   >
                     {busyKey === key ? ui.admin.saving : ui.admin.save}
                   </button>
+                  ) : (
+                  <button type="button" className="btn btn-primary" onClick={() => openRecord(key)}>
+                    {ui.admin.edit}
+                  </button>
+                  )}
                   {row.id != null ? (
                     <button
                       type="button"
@@ -677,12 +734,15 @@ export default function AdminContentEditors({
           </div>
           {projects.map((row, index) => {
             const key = `project-${row.id ?? `new-${index}`}`
+            const open = isRecordOpen(key, row.id)
             const patch = (partial: Partial<ProjectItem>) =>
               setProjects((rows) =>
                 rows.map((item, i) => (i === index ? { ...item, ...partial } : item)),
               )
             return (
               <article key={key} className="border border-line bg-surface p-5 space-y-4">
+                {open ? (
+                <>
                 <div className="grid gap-4 md:grid-cols-2">
                   <label className="field">
                     <span className="field-label">{ui.admin.slug}</span>
@@ -788,7 +848,7 @@ export default function AdminContentEditors({
                     <p className="prose-quiet">{ui.admin.coverImageHint}</p>
                     {row.coverImageUrl ? (
                       <img
-                        src={publicAssetUrl(row.coverImageUrl)}
+                        src={publicAssetUrl(preferredImageUrl(row.coverImageUrl) || row.coverImageUrl)}
                         alt=""
                         className="admin-cover-preview"
                       />
@@ -1023,12 +1083,29 @@ export default function AdminContentEditors({
                     />
                   </label>
                 </div>
+                </>
+                ) : (
+                  <div className="space-y-3">
+                    {row.coverImageUrl ? (
+                      <img
+                        src={publicAssetUrl(preferredImageUrl(row.coverImageUrl) || row.coverImageUrl)}
+                        alt=""
+                        className="admin-cover-preview"
+                      />
+                    ) : null}
+                    <RecordSummary
+                      title={row.nameEn || row.nameFr || ui.admin.projectsHeading}
+                      detail={row.slug}
+                    />
+                  </div>
+                )}
                 <div className="flex flex-wrap gap-3">
+                  {open ? (
                   <button
                     type="button"
                     className="btn btn-primary"
                     disabled={busyKey === key}
-                    onClick={() =>
+                    onClick={() => {
                       void mutate(
                         key,
                         row.id == null ? 'POST' : 'PUT',
@@ -1075,11 +1152,18 @@ export default function AdminContentEditors({
                           mark: row.mark,
                           sortOrder: row.sortOrder,
                         },
-                      )
-                    }
+                      ).then((ok) => {
+                        if (ok) closeRecord(key)
+                      })
+                    }}
                   >
                     {busyKey === key ? ui.admin.saving : ui.admin.save}
                   </button>
+                  ) : (
+                  <button type="button" className="btn btn-primary" onClick={() => openRecord(key)}>
+                    {ui.admin.edit}
+                  </button>
+                  )}
                   {row.id != null ? (
                     <button
                       type="button"
@@ -1130,8 +1214,10 @@ export default function AdminContentEditors({
           </div>
           {skills.map((row, index) => {
             const key = `skill-${row.id ?? `new-${index}`}`
+            const open = isRecordOpen(key, row.id)
             return (
               <article key={key} className="border border-line bg-surface p-5 space-y-4">
+                {open ? (
                 <div className="grid gap-4 md:grid-cols-2">
                   <label className="field">
                     <span className="field-label">{labelEn(ui.admin.category)}</span>
@@ -1207,12 +1293,19 @@ export default function AdminContentEditors({
                     />
                   </label>
                 </div>
+                ) : (
+                  <RecordSummary
+                    title={row.nameEn || row.nameFr || ui.admin.skillsHeading}
+                    detail={row.categoryEn || row.categoryFr}
+                  />
+                )}
                 <div className="flex flex-wrap gap-3">
+                  {open ? (
                   <button
                     type="button"
                     className="btn btn-primary"
                     disabled={busyKey === key}
-                    onClick={() =>
+                    onClick={() => {
                       void mutate(
                         key,
                         row.id == null ? 'POST' : 'PUT',
@@ -1224,11 +1317,18 @@ export default function AdminContentEditors({
                           nameFr: row.nameFr,
                           sortOrder: row.sortOrder,
                         },
-                      )
-                    }
+                      ).then((ok) => {
+                        if (ok) closeRecord(key)
+                      })
+                    }}
                   >
                     {busyKey === key ? ui.admin.saving : ui.admin.save}
                   </button>
+                  ) : (
+                  <button type="button" className="btn btn-primary" onClick={() => openRecord(key)}>
+                    {ui.admin.edit}
+                  </button>
+                  )}
                   {row.id != null ? (
                     <button
                       type="button"
@@ -1285,8 +1385,10 @@ export default function AdminContentEditors({
           </div>
           {education.map((row, index) => {
             const key = `education-${row.id ?? `new-${index}`}`
+            const open = isRecordOpen(key, row.id)
             return (
               <article key={key} className="border border-line bg-surface p-5 space-y-4">
+                {open ? (
                 <div className="grid gap-4 md:grid-cols-2">
                   <label className="field">
                     <span className="field-label">{labelEn(ui.admin.school)}</span>
@@ -1446,12 +1548,19 @@ export default function AdminContentEditors({
                     />
                   </label>
                 </div>
+                ) : (
+                  <RecordSummary
+                    title={row.degreeEn || row.degreeFr || ui.admin.educationHeading}
+                    detail={row.schoolEn || row.schoolFr}
+                  />
+                )}
                 <div className="flex flex-wrap gap-3">
+                  {open ? (
                   <button
                     type="button"
                     className="btn btn-primary"
                     disabled={busyKey === key}
-                    onClick={() =>
+                    onClick={() => {
                       void mutate(
                         key,
                         row.id == null ? 'POST' : 'PUT',
@@ -1471,11 +1580,18 @@ export default function AdminContentEditors({
                           endDate: row.endDate,
                           sortOrder: row.sortOrder,
                         },
-                      )
-                    }
+                      ).then((ok) => {
+                        if (ok) closeRecord(key)
+                      })
+                    }}
                   >
                     {busyKey === key ? ui.admin.saving : ui.admin.save}
                   </button>
+                  ) : (
+                  <button type="button" className="btn btn-primary" onClick={() => openRecord(key)}>
+                    {ui.admin.edit}
+                  </button>
+                  )}
                   {row.id != null ? (
                     <button
                       type="button"
