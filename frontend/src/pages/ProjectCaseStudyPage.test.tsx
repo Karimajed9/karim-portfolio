@@ -107,6 +107,51 @@ describe('ProjectCaseStudyPage', () => {
     })
   })
 
+  it('keeps the cover image ahead of markdown in the overview', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input)
+        if (url.includes('/api/projects')) {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => [
+              {
+                id: 7,
+                slug: 'markdown-cover',
+                nameEn: 'Markdown Cover',
+                nameFr: '',
+                summaryEn: 'Summary',
+                summaryFr: '',
+                tagsEn: '',
+                tagsFr: '',
+                href: '',
+                coverImageUrl: 'https://cdn.example.com/cover.png',
+                overviewEn: 'Intro ![shot](https://cdn.example.com/from-markdown.png) more',
+                overviewFr: '',
+                mark: 'MC',
+                sortOrder: 1,
+              },
+            ],
+          }
+        }
+        return { ok: false, status: 404, json: async () => ({}) }
+      }),
+    )
+
+    renderCase('markdown-cover')
+
+    const cover = await waitFor(() => {
+      const image = document.querySelector('.case-hero-image')
+      expect(image).toHaveAttribute('src', 'https://cdn.example.com/cover.png')
+      return image as HTMLImageElement
+    })
+    const overview = screen.getByText(/Intro/)
+    expect(cover.compareDocumentPosition(overview) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(document.querySelectorAll('.case-hero-image')).toHaveLength(1)
+  })
+
   it('shows not-found copy for an unknown slug', async () => {
     vi.stubGlobal(
       'fetch',

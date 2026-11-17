@@ -241,10 +241,12 @@ export type UiCopy = {
     skillsHeading: string
     educationHeading: string
     add: string
+    edit: string
     save: string
     saving: string
     remove: string
     saved: string
+    savedPopup: string
     saveFailed: string
     langEn: string
     langFr: string

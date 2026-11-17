@@ -1,3 +1,5 @@
+import { getApiBannerEpoch } from './lib/apiBannerState'
+
 /**
  * API origin for fetch calls.
  * - Local Vite (`npm run dev`): defaults to http://localhost:8080
@@ -7,6 +9,7 @@
  *   (e.g. https://karim-portfolio-api.onrender.com). If unset/empty, relative
  *   `/api/...` calls fail and pages fall back to static `site.ts` content.
  */
+
 export const apiBase = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080'
 
 const CACHE_PREFIX = 'portfolio-api:'
@@ -60,7 +63,10 @@ function migrateSessionCacheToLocal(): void {
   }
 }
 
-/** Read a cached GET payload if present (even if slightly stale). */
+/**
+ * Last successful payload for `path`, including an empty 200 (`[]` or `{}`).
+ * Null only when nothing has been stored yet.
+ */
 export function readApiCache<T>(path: string): T | null {
   try {
     migrateSessionCacheToLocal()
@@ -84,6 +90,16 @@ export function writeApiCache<T>(path: string, data: T): void {
   }
 }
 
+/**
+ * What to show while the API is down or still starting.
+ * A stored payload wins, even when it is empty. Bundled i18n is only used
+ * when this browser has never stored a successful response for the path.
+ */
+export function payloadOrBundled<T>(path: string, bundled: T): T {
+  const stored = readApiCache<T>(path)
+  return stored ?? bundled
+}
+
 /** Default wait before treating a cold API as "slow" (free-tier wake). */
 export const SLOW_FETCH_MS = 1500
 
@@ -103,43 +119,111 @@ export type StaticLoadMeta = {
   usingStatic: boolean
   /** Present when usingStatic is true. */
   reason?: ApiFallbackReason
+  /** True only for a successful network response, not a cache seed. */
+  live?: boolean
+  /** Banner epoch captured when this fallback started. */
+  bannerEpoch?: number
 }
 
-export type HealthProbeResult = 'ok' | 'timeout' | 'unreachable'
+export type HealthProbeResult = 'ok' | 'timeout' | 'unreachable' | 'cancelled'
 
-/**
- * Quick /api/health check used to distinguish reachable vs down.
- * 502 / connection refused / abort / cancel → unreachable-style results that
- * map to offline. A probe timeout is not treated as a healthy cold start.
- */
-export async function probeApiHealth(
-  timeoutMs = HEALTH_PROBE_MS,
+/** HTTP status of a failed content request. Null means the connection never completed. */
+export class ContentRequestError extends Error {
+  readonly status: number | null
+
+  constructor(status: number | null) {
+    super(status == null ? 'Content request failed' : `Content request failed (${status})`)
+    this.name = 'ContentRequestError'
+    this.status = status
+  }
+}
+
+let healthInflight: Promise<HealthProbeResult> | null = null
+
+/** Test helper. Drops the shared in-flight health probe. */
+export function resetHealthProbeCache(): void {
+  healthInflight = null
+}
+
+async function runHealthProbe(
+  timeoutMs: number,
+  signal?: AbortSignal,
 ): Promise<HealthProbeResult> {
+  if (signal?.aborted) return 'cancelled'
   const controller = new AbortController()
+  const onAbort = () => controller.abort()
+  signal?.addEventListener('abort', onAbort)
   const timer = setTimeout(() => controller.abort(), timeoutMs)
   try {
     const res = await fetch(apiUrl('/api/health'), { signal: controller.signal })
-    // Non-OK (e.g. 502) means the API edge is up but the app is not healthy.
     if (!res.ok) return 'unreachable'
     return 'ok'
   } catch (err) {
-    // AbortError covers our probe timer and browser/proxy cancellation.
+    if (signal?.aborted) return 'cancelled'
     if (err instanceof Error && err.name === 'AbortError') return 'timeout'
     return 'unreachable'
   } finally {
     clearTimeout(timer)
+    signal?.removeEventListener('abort', onAbort)
   }
 }
 
 /**
- * Map health probe → banner reason.
- * Warming is only used while a content request is still slow/pending (onSlow);
- * a failed or cancelled health check is offline, not warming.
+ * One shared /api/health check. Overlapping callers reuse the same request.
+ * A caller whose signal is already aborted does not start another probe.
+ * 502 and connection refused are `unreachable`. Our timer is `timeout`.
+ * An external abort is `cancelled` and is not a confirmed outage.
+ */
+export async function probeApiHealth(
+  timeoutMs = HEALTH_PROBE_MS,
+  signal?: AbortSignal,
+): Promise<HealthProbeResult> {
+  if (signal?.aborted) return 'cancelled'
+  if (!healthInflight) {
+    const pending = runHealthProbe(timeoutMs).finally(() => {
+      if (healthInflight === pending) healthInflight = null
+    })
+    healthInflight = pending
+  }
+  const shared = healthInflight
+  if (!signal) return shared
+  return new Promise((resolve, reject) => {
+    const onAbort = () => {
+      signal.removeEventListener('abort', onAbort)
+      resolve('cancelled')
+    }
+    signal.addEventListener('abort', onAbort)
+    shared.then(
+      (result) => {
+        signal.removeEventListener('abort', onAbort)
+        resolve(signal.aborted ? 'cancelled' : result)
+      },
+      (err) => {
+        signal.removeEventListener('abort', onAbort)
+        reject(err)
+      },
+    )
+  })
+}
+
+/**
+ * Map a finished health probe to a banner reason.
+ * Only a probe that came back down (`unreachable`) is offline.
+ * Ok, timer abort, and external cancellation stay on loading.
  */
 export function fallbackReasonFromHealth(result: HealthProbeResult): ApiFallbackReason {
-  if (result === 'ok') return 'loading'
-  // timeout (cancelled/aborted) and unreachable (502, refused, network) → down
-  return 'offline'
+  if (result === 'unreachable') return 'offline'
+  return 'loading'
+}
+
+function reasonAfterHealth(
+  health: HealthProbeResult,
+  contentFailed: boolean,
+  failureStatus: number | null,
+): ApiFallbackReason {
+  if (health === 'unreachable') return 'offline'
+  if (contentFailed && (failureStatus == null || failureStatus === 502)) return 'offline'
+  return 'loading'
 }
 
 export function messageForFallbackReason(reason: ApiFallbackReason): string {
@@ -183,11 +267,14 @@ export async function fetchJsonCached<T>(
   try {
     const res = await fetch(apiUrl(path))
     if (!res.ok) {
-      throw new Error(`Failed to load ${path}`)
+      throw new ContentRequestError(res.status)
     }
     const data = (await res.json()) as T
     writeApiCache(path, data)
     onData(data, 'network')
+  } catch (err) {
+    if (err instanceof ContentRequestError) throw err
+    throw new ContentRequestError(null)
   } finally {
     if (slowTimer != null) clearTimeout(slowTimer)
   }
@@ -198,12 +285,15 @@ export type LoadWithStaticFallbackOptions = Pick<FetchJsonCachedOptions, 'slowAf
 }
 
 /**
- * Page-loader helper: serve live/cached API data, or `site.ts` static fallback.
- * - No cache + slow network → static + warming while the request is still pending
- * - Health OK while content still pending → loading (reachable, just slow)
- * - Health 502 / refused / cancelled / timed out → offline
- * - Content 502 / network error → offline (refined by health as above)
- * - Network success (including empty `[]`) → live meta, no banner
+ * Page-loader helper: serve live API data, else the last stored payload, else bundled i18n.
+ * - Nothing stored yet + slow network → bundled copy while the request is still pending
+ * - A stored payload (including empty 200) stays on screen while the API is starting or down
+ * - Health OK, or a cancelled/timed-out probe while content is still in flight → loading
+ * - Health 502 / connection refused, or a content 502 / connection refused → offline
+ * - Network success (including empty `[]`) → store it, show it, clear the banner
+ *
+ * The fallback is read again at publish time so a payload stored while this
+ * request was in flight is not replaced by the bundled copy captured at the start.
  *
  * Important: a cache hit must not count as "live settled". Otherwise a later
  * connection-refused/502 never probes /api/health or shows the offline banner.
@@ -215,19 +305,26 @@ export async function loadWithStaticFallback<T>(
   options?: LoadWithStaticFallbackOptions,
 ): Promise<void> {
   const healthProbeMs = options?.healthProbeMs ?? HEALTH_PROBE_MS
-  const cached = readApiCache<T>(path)
-  const fallbackData = cached ?? staticFallback
   let networkSucceeded = false
 
-  const publishFallback = async (preliminary: ApiFallbackReason) => {
+  const publishFallback = async (
+    preliminary: ApiFallbackReason,
+    contentFailed: boolean,
+    failureStatus: number | null,
+  ) => {
     if (networkSucceeded) return
-    onUpdate(fallbackData, { usingStatic: true, reason: preliminary })
+    const bannerEpoch = getApiBannerEpoch()
+    const show = (reason: ApiFallbackReason) => {
+      onUpdate(payloadOrBundled(path, staticFallback), {
+        usingStatic: true,
+        reason,
+        bannerEpoch,
+      })
+    }
+    show(preliminary)
     const health = await probeApiHealth(healthProbeMs)
     if (!networkSucceeded) {
-      onUpdate(fallbackData, {
-        usingStatic: true,
-        reason: fallbackReasonFromHealth(health),
-      })
+      show(reasonAfterHealth(health, contentFailed, failureStatus))
     }
   }
 
@@ -237,22 +334,23 @@ export async function loadWithStaticFallback<T>(
       (data, source) => {
         if (source === 'network') {
           networkSucceeded = true
-          onUpdate(data, { usingStatic: false })
+          onUpdate(data, { usingStatic: false, live: true })
           return
         }
         // Cache seed for immediate paint — still waiting on the network.
-        onUpdate(data, { usingStatic: false })
+        onUpdate(data, { usingStatic: false, live: false })
       },
       {
         slowAfterMs: options?.slowAfterMs,
         onSlow: () => {
-          // Optimistic warming only while the content request is still in flight.
-          void publishFallback('warming')
+          // Still in flight: warming, then loading unless health actually came back down.
+          void publishFallback('warming', false, null)
         },
       },
     )
-  } catch {
-    await publishFallback('offline')
+  } catch (err) {
+    const status = err instanceof ContentRequestError ? err.status : null
+    await publishFallback('offline', true, status)
   }
 }
 

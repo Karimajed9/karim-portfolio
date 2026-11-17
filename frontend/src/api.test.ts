@@ -9,6 +9,7 @@ import {
   messageForFallbackReason,
   probeApiHealth,
   readApiCache,
+  resetHealthProbeCache,
   SLOW_FETCH_MS,
   writeApiCache,
 } from './api'
@@ -26,7 +27,8 @@ describe('apiUrl', () => {
 describe('health probe messaging', () => {
   it('maps probe results to fallback reasons', () => {
     expect(fallbackReasonFromHealth('ok')).toBe('loading')
-    expect(fallbackReasonFromHealth('timeout')).toBe('offline')
+    expect(fallbackReasonFromHealth('timeout')).toBe('loading')
+    expect(fallbackReasonFromHealth('cancelled')).toBe('loading')
     expect(fallbackReasonFromHealth('unreachable')).toBe('offline')
   })
 
@@ -41,6 +43,7 @@ describe('api cache', () => {
   beforeEach(() => {
     localStorage.clear()
     sessionStorage.clear()
+    resetHealthProbeCache()
     vi.restoreAllMocks()
   })
 
@@ -187,10 +190,10 @@ describe('api cache', () => {
     )
 
     expect(updates.some((u) => u.meta.reason === 'offline')).toBe(true)
-    expect(updates.at(-1)).toEqual({
-      data: [{ id: 1, name: 'cached' }],
-      meta: { usingStatic: true, reason: 'offline' },
-    })
+    expect(updates.at(-1)?.data).toEqual([{ id: 1, name: 'cached' }])
+    expect(updates.at(-1)?.meta).toEqual(
+      expect.objectContaining({ usingStatic: true, reason: 'offline' }),
+    )
     expect(fetchMock.mock.calls.some(([input]) => String(input).includes('/api/health'))).toBe(
       true,
     )
@@ -248,13 +251,15 @@ describe('api cache', () => {
     )
 
     await vi.advanceTimersByTimeAsync(SLOW_FETCH_MS)
-    expect(updates[0]).toEqual({
-      data: staticFallback,
-      meta: { usingStatic: true, reason: 'warming' },
-    })
+    expect(updates[0]?.data).toEqual(staticFallback)
+    expect(updates[0]?.meta).toEqual(
+      expect.objectContaining({ usingStatic: true, reason: 'warming' }),
+    )
 
     await Promise.resolve()
-    expect(updates.at(-1)?.meta).toEqual({ usingStatic: true, reason: 'loading' })
+    expect(updates.at(-1)?.meta).toEqual(
+      expect.objectContaining({ usingStatic: true, reason: 'loading' }),
+    )
 
     resolveSkills({
       ok: true,
@@ -264,7 +269,7 @@ describe('api cache', () => {
 
     expect(updates.at(-1)).toEqual({
       data: [{ id: 9, name: 'live' }],
-      meta: { usingStatic: false },
+      meta: { usingStatic: false, live: true },
     })
     expect(readApiCache('/api/skills')).toEqual([{ id: 9, name: 'live' }])
   })
@@ -301,10 +306,34 @@ describe('api cache', () => {
     await vi.advanceTimersByTimeAsync(HEALTH_PROBE_MS)
     await pending
 
-    expect(updates.at(-1)).toEqual({
-      data: staticFallback,
-      meta: { usingStatic: true, reason: 'offline' },
-    })
+    expect(updates.at(-1)?.data).toEqual(staticFallback)
+    expect(updates.at(-1)?.meta).toEqual(
+      expect.objectContaining({ usingStatic: true, reason: 'offline' }),
+    )
+  })
+
+  it('reuses one health probe when several sections fail together', async () => {
+    let healthCalls = 0
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: RequestInfo | URL) => {
+        const url = String(input)
+        if (url.includes('/api/health')) {
+          healthCalls += 1
+          return Promise.reject(new TypeError('Failed to fetch'))
+        }
+        return Promise.resolve({ ok: false, status: 502, json: async () => null })
+      }),
+    )
+
+    await Promise.all([
+      loadWithStaticFallback('/api/projects', [], () => {}),
+      loadWithStaticFallback('/api/experience', [], () => {}),
+      loadWithStaticFallback('/api/skills', [], () => {}),
+      loadWithStaticFallback('/api/about', {}, () => {}),
+    ])
+
+    expect(healthCalls).toBe(1)
   })
 
   it('loadWithStaticFallback marks offline when health is unreachable', async () => {
@@ -326,10 +355,10 @@ describe('api cache', () => {
       updates.push({ data, meta }),
     )
 
-    expect(updates.at(-1)).toEqual({
-      data: staticFallback,
-      meta: { usingStatic: true, reason: 'offline' },
-    })
+    expect(updates.at(-1)?.data).toEqual(staticFallback)
+    expect(updates.at(-1)?.meta).toEqual(
+      expect.objectContaining({ usingStatic: true, reason: 'offline' }),
+    )
     expect(readApiCache('/api/skills')).toBeNull()
   })
 
@@ -352,10 +381,10 @@ describe('api cache', () => {
       updates.push({ data, meta }),
     )
 
-    expect(updates.at(-1)).toEqual({
-      data: staticFallback,
-      meta: { usingStatic: true, reason: 'loading' },
-    })
+    expect(updates.at(-1)?.data).toEqual(staticFallback)
+    expect(updates.at(-1)?.meta).toEqual(
+      expect.objectContaining({ usingStatic: true, reason: 'loading' }),
+    )
   })
 
   it('loadWithStaticFallback treats empty 200 arrays as live success', async () => {
@@ -379,8 +408,90 @@ describe('api cache', () => {
 
     expect(updates.at(-1)).toEqual({
       data: [],
-      meta: { usingStatic: false },
+      meta: { usingStatic: false, live: true },
     })
     expect(readApiCache('/api/projects')).toEqual([])
+  })
+
+  it('keeps a payload stored while the API is starting instead of the bundled copy', async () => {
+    vi.useFakeTimers()
+    const updates: Array<{ data: unknown; meta: { usingStatic: boolean; reason?: string } }> = []
+    const bundled = [{ id: 0, name: 'bundled' }]
+    const stored = [{ id: 5, name: 'saved project' }]
+    let finishContent: (value: { ok: boolean; json: () => Promise<unknown> }) => void = () => {}
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input)
+        if (url.includes('/api/health')) {
+          return new Promise((_resolve, reject) => {
+            init?.signal?.addEventListener('abort', () => {
+              const err = new Error('Aborted')
+              err.name = 'AbortError'
+              reject(err)
+            })
+          })
+        }
+        return new Promise((resolve) => {
+          finishContent = resolve
+        })
+      }),
+    )
+
+    const pending = loadWithStaticFallback(
+      '/api/projects',
+      bundled,
+      (data, meta) => updates.push({ data, meta }),
+      { slowAfterMs: SLOW_FETCH_MS, healthProbeMs: HEALTH_PROBE_MS },
+    )
+
+    await vi.advanceTimersByTimeAsync(SLOW_FETCH_MS)
+    expect(updates[0]?.data).toEqual(bundled)
+    expect(updates[0]?.meta).toEqual(
+      expect.objectContaining({ usingStatic: true, reason: 'warming' }),
+    )
+
+    writeApiCache('/api/projects', stored)
+    await vi.advanceTimersByTimeAsync(HEALTH_PROBE_MS)
+
+    expect(updates.at(-1)?.data).toEqual(stored)
+    expect(updates.at(-1)?.meta).toEqual(
+      expect.objectContaining({ usingStatic: true, reason: 'loading' }),
+    )
+
+    finishContent({ ok: true, json: async () => stored })
+    await pending
+    expect(updates.at(-1)).toEqual({
+      data: stored,
+      meta: { usingStatic: false, live: true },
+    })
+  })
+
+  it('uses an empty 200 as the fallback when a later request cannot reach the API', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: RequestInfo | URL) => {
+        const url = String(input)
+        if (url.includes('/api/health')) {
+          return Promise.resolve({ ok: true, json: async () => ({ status: 'ok' }) })
+        }
+        return Promise.resolve({ ok: true, json: async () => [] })
+      }),
+    )
+    await loadWithStaticFallback('/api/experience', [{ id: 0, name: 'bundled' }], () => {})
+
+    const updates: Array<{ data: unknown; meta: { usingStatic: boolean; reason?: string } }> = []
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')))
+    await loadWithStaticFallback(
+      '/api/experience',
+      [{ id: 0, name: 'bundled' }],
+      (data, meta) => updates.push({ data, meta }),
+    )
+
+    expect(updates.at(-1)?.data).toEqual([])
+    expect(updates.at(-1)?.meta).toEqual(
+      expect.objectContaining({ usingStatic: true, reason: 'offline' }),
+    )
   })
 })

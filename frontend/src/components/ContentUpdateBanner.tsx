@@ -1,11 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import {
-  apiUrl,
-  fallbackReasonFromHealth,
-  probeApiHealth,
-} from '../api'
-import { reportApiDown, reportApiUp } from '../lib/apiBannerState'
+import { apiUrl, probeApiHealth } from '../api'
+import { getApiBannerEpoch, reportApiDown, reportApiUp } from '../lib/apiBannerState'
 import { useLocale } from '../i18n/LocaleContext'
 
 /** How often open tabs check for admin content changes. */
@@ -16,10 +12,11 @@ export const CONTENT_REVISION_POLL_MS = 20_000
  * this page view started. Does not auto-reload.
  *
  * Polling is public-site only: the admin route never hits `/api/content-revision`
- * (edits there would keep triggering the notice). Failed polls report the shared
- * offline API banner. A successful poll (HTTP 200) clears that banner —
- * including recovery after an earlier failure. Empty revision payloads stay quiet
- * for the update notice but still clear offline.
+ * (edits there would keep triggering the notice). A poll reports offline only
+ * after a 502, a connection failure, or a health check that came back down.
+ * A poll dropped because a later one started does not change the banner.
+ * A successful poll (HTTP 200) clears it, including after an earlier failure.
+ * Empty revision payloads stay quiet for the update notice but still clear offline.
  */
 export default function ContentUpdateBanner() {
   const { ui } = useLocale()
@@ -38,10 +35,12 @@ export default function ContentUpdateBanner() {
     let cancelled = false
     let pollSeq = 0
 
-    async function markUnreachable(seq: number) {
+    async function markUnreachable(seq: number, status: number | null) {
+      const seenEpoch = getApiBannerEpoch()
       const health = await probeApiHealth()
       if (cancelled || seq !== pollSeq) return
-      reportApiDown(fallbackReasonFromHealth(health))
+      const outage = status == null || status === 502
+      reportApiDown(outage || health === 'unreachable' ? 'offline' : 'loading', seenEpoch)
       setOutdated(false)
     }
 
@@ -51,7 +50,7 @@ export default function ContentUpdateBanner() {
         const res = await fetch(apiUrl('/api/content-revision'))
         if (cancelled || seq !== pollSeq) return
         if (!res.ok) {
-          await markUnreachable(seq)
+          await markUnreachable(seq, res.status)
           return
         }
         const data = (await res.json()) as { revision?: number }
@@ -73,7 +72,7 @@ export default function ContentUpdateBanner() {
         }
       } catch {
         if (!cancelled && seq === pollSeq) {
-          await markUnreachable(seq)
+          await markUnreachable(seq, null)
         }
       }
     }

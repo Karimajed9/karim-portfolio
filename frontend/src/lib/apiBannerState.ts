@@ -6,6 +6,7 @@ import type { ApiFallbackReason } from '../api'
  * agree: any successful live response clears offline; only a real failure sets it.
  */
 let reason: ApiFallbackReason | null = null
+let epoch = 0
 const listeners = new Set<() => void>()
 
 function emit() {
@@ -16,14 +17,21 @@ export function getApiBannerReason(): ApiFallbackReason | null {
   return reason
 }
 
-export function reportApiDown(next: ApiFallbackReason = 'offline') {
+/** Bumps on a live success so an older health probe cannot repaint the banner. */
+export function getApiBannerEpoch(): number {
+  return epoch
+}
+
+export function reportApiDown(next: ApiFallbackReason = 'offline', seenEpoch = epoch) {
+  if (seenEpoch !== epoch) return
   if (reason === next) return
   reason = next
   emit()
 }
 
-/** Successful content-revision or content fetch — clear warming/offline/loading. */
+/** Successful content fetch — clear warming/offline/loading and ignore older probes. */
 export function reportApiUp() {
+  epoch += 1
   if (reason == null) return
   reason = null
   emit()
@@ -39,6 +47,7 @@ export function subscribeApiBanner(onStoreChange: () => void) {
 /** Test helper. */
 export function resetApiBannerState() {
   reason = null
+  epoch = 0
   emit()
 }
 
