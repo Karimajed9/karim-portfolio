@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.List;
 import java.util.Map;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -73,6 +74,10 @@ public class AdminAuthController {
     }
 
     loginProtector.recordSuccess(clientKey);
+    // Drop a pre-login session id so a planted cookie cannot stay authenticated.
+    if (request.getSession(false) != null) {
+      request.changeSessionId();
+    }
 
     UsernamePasswordAuthenticationToken authentication =
         new UsernamePasswordAuthenticationToken(
@@ -88,10 +93,12 @@ public class AdminAuthController {
     CsrfToken csrf = csrfTokenRepository.generateToken(request);
     csrfTokenRepository.saveToken(csrf, request, response);
 
-    return ResponseEntity.ok(Map.of(
-        "status", "ok",
-        "csrfToken", csrf.getToken(),
-        "sessionToken", sessionTokens.issue()));
+    return ResponseEntity.ok()
+        .cacheControl(CacheControl.noStore())
+        .body(Map.of(
+            "status", "ok",
+            "csrfToken", csrf.getToken(),
+            "sessionToken", sessionTokens.issue()));
   }
 
   @PostMapping("/api/admin/logout")
@@ -104,11 +111,14 @@ public class AdminAuthController {
       session.invalidate();
     }
     csrfTokenRepository.saveToken(null, request, response);
-    return ResponseEntity.ok(Map.of("status", "ok"));
+    return ResponseEntity.ok()
+        .cacheControl(CacheControl.noStore())
+        .body(Map.of("status", "ok"));
   }
 
   private static ResponseEntity<Map<String, String>> authFailed() {
     return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+        .cacheControl(CacheControl.noStore())
         .body(Map.of("error", "Authentication failed"));
   }
 

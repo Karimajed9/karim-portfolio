@@ -43,10 +43,21 @@ public class ContactRateLimitFilter extends OncePerRequestFilter {
     filterChain.doFilter(request, response);
   }
 
+  /**
+   * Client address for login lockout and rate limits.
+   * A proxy appends the address it actually saw, so the rightmost hop is used.
+   * The leftmost value is client-supplied and must not pick a fresh bucket.
+   */
   static String clientKey(HttpServletRequest request) {
     String forwarded = request.getHeader("X-Forwarded-For");
     if (forwarded != null && !forwarded.isBlank()) {
-      return forwarded.split(",")[0].trim();
+      String[] parts = forwarded.split(",");
+      for (int i = parts.length - 1; i >= 0; i--) {
+        String hop = parts[i].trim();
+        if (!hop.isEmpty()) {
+          return hop;
+        }
+      }
     }
     String remote = request.getRemoteAddr();
     return remote == null || remote.isBlank() ? "unknown" : remote;
