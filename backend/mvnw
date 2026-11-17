@@ -191,13 +191,20 @@ case "${MVNW_PASSWORD:+has-password}" in
 has-password) [ -n "${MVNW_USERNAME-}" ] || MVNW_USERNAME='' MVNW_PASSWORD='' ;;
 esac
 
-if [ -z "${MVNW_USERNAME-}" ] && command -v wget >/dev/null; then
-  verbose "Found wget ... using wget"
-  wget ${__MVNW_QUIET_WGET:+"$__MVNW_QUIET_WGET"} "$distributionUrl" -O "$TMP_DOWNLOAD_DIR/$distributionUrlName" || die "wget: Failed to fetch $distributionUrl"
-elif [ -z "${MVNW_USERNAME-}" ] && command -v curl >/dev/null; then
-  verbose "Found curl ... using curl"
-  curl ${__MVNW_QUIET_CURL:+"$__MVNW_QUIET_CURL"} -f -L -o "$TMP_DOWNLOAD_DIR/$distributionUrlName" "$distributionUrl" || die "curl: Failed to fetch $distributionUrl"
-elif set_java_home; then
+# CI on main died here: wget failed at once and this script exited before curl.
+downloaded=false
+if [ -z "${MVNW_USERNAME-}" ]; then
+  # shellcheck disable=SC1091
+  . "$scriptDir/.mvn/wrapper/fetch-dist.sh"
+  [ "${MVNW_VERBOSE-}" = true ] || FETCH_DIST_QUIET=1
+  if fetch_dist "$distributionUrl" "$TMP_DOWNLOAD_DIR/$distributionUrlName"; then
+    verbose "Downloaded Maven distribution"
+    downloaded=true
+  else
+    verbose "wget and curl failed; trying Java"
+  fi
+fi
+if [ "$downloaded" != true ] && set_java_home; then
   verbose "Falling back to use Java to download"
   javaSource="$TMP_DOWNLOAD_DIR/Downloader.java"
   targetZip="$TMP_DOWNLOAD_DIR/$distributionUrlName"
@@ -219,8 +226,12 @@ elif set_java_home; then
   verbose " - Compiling Downloader.java ..."
   "$(native_path "$JAVACCMD")" "$(native_path "$javaSource")" || die "Failed to compile Downloader.java"
   verbose " - Running Downloader.java ..."
-  "$(native_path "$JAVACMD")" -cp "$(native_path "$TMP_DOWNLOAD_DIR")" Downloader "$distributionUrl" "$(native_path "$targetZip")"
+  "$(native_path "$JAVACMD")" -cp "$(native_path "$TMP_DOWNLOAD_DIR")" Downloader "$distributionUrl" "$(native_path "$targetZip")" || :
+  if [ -s "$TMP_DOWNLOAD_DIR/$distributionUrlName" ]; then
+    downloaded=true
+  fi
 fi
+[ "$downloaded" = true ] || die "Failed to fetch $distributionUrl"
 
 # If specified, validate the SHA-256 sum of the Maven distribution zip file
 if [ -n "${distributionSha256Sum-}" ]; then
