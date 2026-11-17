@@ -7,13 +7,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import jakarta.servlet.FilterChain;
 import java.time.Duration;
+import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockServletContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
 
 class AdminPhoneLoginTest {
 
@@ -72,6 +75,61 @@ class AdminPhoneLoginTest {
 		assertTrue(SecurityContextHolder.getContext().getAuthentication().isAuthenticated());
 		assertTrue(SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
 				.anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority())));
+	}
+
+	@Test
+	void loginRotatesAPlantedSessionAndDoesNotCacheTheBearer() {
+		AdminAuthController controller = loginController();
+		MockHttpServletRequest request = new MockHttpServletRequest();
+		String planted = request.getSession(true).getId();
+		MockHttpServletResponse response = new MockHttpServletResponse();
+
+		ResponseEntity<Map<String, String>> result = controller.login(
+				new AdminLoginRequest("admin", "test-admin-password"), request, response);
+
+		assertEquals(200, result.getStatusCode().value());
+		assertEquals("no-store", result.getHeaders().getCacheControl());
+		assertFalse(result.getBody().get("sessionToken").isBlank());
+		assertFalse(planted.equals(request.getSession(false).getId()));
+
+		MockHttpServletRequest fresh = new MockHttpServletRequest();
+		ResponseEntity<Map<String, String>> withoutCookie = controller.login(
+				new AdminLoginRequest("admin", "test-admin-password"), fresh, new MockHttpServletResponse());
+		assertEquals(200, withoutCookie.getStatusCode().value());
+		assertFalse(withoutCookie.getBody().get("sessionToken").isBlank());
+		assertEquals("no-store", withoutCookie.getHeaders().getCacheControl());
+	}
+
+	@Test
+	void failedLoginIsNotCachedAndKeepsThePhonePasswordTrim() {
+		AdminAuthController controller = loginController();
+		MockHttpServletRequest request = new MockHttpServletRequest();
+		ResponseEntity<Map<String, String>> result = controller.login(
+				new AdminLoginRequest("admin", " wrong-password "), request, new MockHttpServletResponse());
+
+		assertEquals(401, result.getStatusCode().value());
+		assertEquals("no-store", result.getHeaders().getCacheControl());
+		assertNull(result.getBody().get("sessionToken"));
+	}
+
+	@Test
+	void clientKeyUsesTheProxyAppendedAddress() {
+		MockHttpServletRequest single = new MockHttpServletRequest();
+		single.addHeader("X-Forwarded-For", "203.0.113.50");
+		assertEquals("203.0.113.50", ContactRateLimitFilter.clientKey(single));
+
+		MockHttpServletRequest spoofed = new MockHttpServletRequest();
+		spoofed.addHeader("X-Forwarded-For", "198.51.100.9, 203.0.113.50");
+		assertEquals("203.0.113.50", ContactRateLimitFilter.clientKey(spoofed));
+	}
+
+	private AdminAuthController loginController() {
+		return new AdminAuthController(
+				new AdminCredentials("admin", "test-admin-password", encoder),
+				encoder,
+				new AdminLoginProtector(5, 60_000),
+				new HttpSessionCsrfTokenRepository(),
+				new AdminSessionTokens(Duration.ofMinutes(30)));
 	}
 
 	@Test
