@@ -32,6 +32,13 @@ services:
         value: https://karimmajed.com,https://www.karimmajed.com,https://karimajed9.github.io,http://localhost:5173,http://localhost:3000
       - key: APP_STORAGE_MODE
         value: local
+      # Session cookie Secure. The app reads SESSION_COOKIE_SECURE into
+      # server.servlet.session.cookie.secure. HttpOnly stays on, SameSite stays lax.
+      # Do not set SESSION_COOKIE_SAME_SITE=none.
+      # A service created by hand will not pick this up until the blueprint is applied
+      # or the same variable is set in the Render dashboard.
+      - key: SESSION_COOKIE_SECURE
+        value: "true"
       # Optional: paste Azure Application Insights connection string in the dashboard (never commit it).
       - key: APPLICATIONINSIGHTS_CONNECTION_STRING
         sync: false

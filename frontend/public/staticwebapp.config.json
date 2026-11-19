@@ -1,4 +1,7 @@
 {
+  "globalHeaders": {
+    "Content-Security-Policy": "frame-ancestors 'self'"
+  },
   "navigationFallback": {
     "rewrite": "/index.html",
     "exclude": [

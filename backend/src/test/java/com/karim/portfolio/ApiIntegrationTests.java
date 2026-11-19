@@ -10,7 +10,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -24,7 +28,7 @@ import org.springframework.test.web.servlet.MvcResult;
  * Thin slice of end-to-end API checks against a real Postgres (Testcontainers).
  * Covers public routes and session-based admin auth.
  */
-@SpringBootTest
+@SpringBootTest(properties = "SESSION_COOKIE_SECURE=true")
 @AutoConfigureMockMvc
 @Import(PostgresTestcontainersConfig.class)
 class ApiIntegrationTests {
@@ -33,7 +37,20 @@ class ApiIntegrationTests {
 	MockMvc mockMvc;
 
 	@Autowired
+	Environment environment;
+
+	@Autowired
 	ContactMessageRepository contactMessages;
+
+	@Test
+	void sessionCookieIsSecureHttpOnlyAndLax() {
+		assertEquals("true", environment.getProperty("SESSION_COOKIE_SECURE"));
+		assertEquals("true", environment.getProperty("server.servlet.session.cookie.secure"));
+		assertEquals("true", environment.getProperty("server.servlet.session.cookie.http-only"));
+		String sameSite = environment.getProperty("server.servlet.session.cookie.same-site");
+		assertEquals("lax", sameSite);
+		assertNotEquals("none", sameSite);
+	}
 
 	@Test
 	void healthReturnsOk() throws Exception {

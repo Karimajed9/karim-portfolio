@@ -16,7 +16,9 @@ public class RequestLoggingConfig {
   CommonsRequestLoggingFilter requestLoggingFilter() {
     CommonsRequestLoggingFilter filter = new CommonsRequestLoggingFilter();
     filter.setIncludeQueryString(true);
-    filter.setIncludeClientInfo(true);
+    // Client info includes the session id. Leave it off so logs cannot replay a session.
+    filter.setIncludeClientInfo(false);
+    filter.setIncludeHeaders(false);
     filter.setIncludePayload(false);
     filter.setBeforeMessagePrefix("HTTP ");
     return filter;

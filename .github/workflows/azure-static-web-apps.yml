@@ -33,6 +33,9 @@ jobs:
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
           action: upload
+          # Oryx runs npm run build in app_location and uploads output_location.
+          # Vite copies frontend/public/ to the dist root. staticwebapp.config.json
+          # has to be in that root or Azure will not apply its headers or fallback.
           app_location: frontend
           api_location: ""
           output_location: dist
