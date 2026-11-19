@@ -1,6 +1,7 @@
-# Free static hosting: build the Vite SPA and publish to GitHub Pages.
-# Enable once: Repo Settings → Pages → Source = GitHub Actions.
-# Custom domain (preferred): https://karimmajed.com — Vite base defaults to "/".
+# Unused for production. karimmajed.com is Azure Static Web Apps
+# (.github/workflows/azure-static-web-apps.yml). This workflow can publish a Pages copy.
+# Enable only if you want that copy: Repo Settings → Pages → Source = GitHub Actions.
+# Vite base defaults to "/".
 # Optional repo Variables:
 #   VITE_API_BASE_URL = https://<your-render-api>.onrender.com
 #   VITE_BASE_PATH    = /karim-portfolio/   # only if you need github.io/project path without CNAME
@@ -49,6 +50,9 @@ jobs:
           # Empty → relative /api/... (fails until Render is wired; SPA falls back to static site.ts)
           VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
 
+      # Unused for production. Pages cannot set Content-Security-Policy.
+      # Production frame-ancestors is in frontend/public/staticwebapp.config.json,
+      # which the Vite build copies to dist/ for the Azure Static Web Apps upload.
       # Client-side routes (e.g. /about) need a 404.html that serves the SPA shell.
       - name: Add SPA 404 fallback
         run: cp dist/index.html dist/404.html
