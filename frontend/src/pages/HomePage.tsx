@@ -18,6 +18,7 @@ import {
 } from '../lib/contentApi'
 import { cvEnPath, cvFrPath } from '../lib/cv'
 import { publicAssetUrl } from '../lib/publicAsset'
+import { HOME_DESCRIPTION, HOME_TITLE, useDocumentSeo } from '../lib/siteSeo'
 import { useStaticApiResource } from '../lib/useStaticApiResource'
 
 const SECTION_IDS = [
@@ -34,6 +35,12 @@ type SectionId = (typeof SECTION_IDS)[number]
 
 export default function HomePage() {
   const { locale, site, ui } = useLocale()
+  useDocumentSeo({
+    title: HOME_TITLE,
+    description: HOME_DESCRIPTION,
+    path: '/',
+    index: true,
+  })
   const [active, setActive] = useState<SectionId>('profile')
   const [copied, setCopied] = useState(false)
 

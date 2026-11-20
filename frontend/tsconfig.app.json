@@ -23,5 +23,5 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": ["src"],
-  "exclude": ["src/mavenWrapperFetch.test.ts", "src/spaFrameAncestors.test.ts"]
+  "exclude": ["src/mavenWrapperFetch.test.ts", "src/spaFrameAncestors.test.ts", "src/seo.test.ts"]
 }

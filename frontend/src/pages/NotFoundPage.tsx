@@ -1,9 +1,17 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import SectionHeading from '../components/SectionHeading'
 import { useLocale } from '../i18n/LocaleContext'
+import { useDocumentSeo } from '../lib/siteSeo'
 
 export default function NotFoundPage() {
-  const { ui } = useLocale()
+  const { site, ui } = useLocale()
+  const { pathname } = useLocation()
+  useDocumentSeo({
+    title: `${ui.notFound.title} | ${site.name}`,
+    description: ui.notFound.subtitle,
+    path: pathname,
+    index: false,
+  })
 
   return (
     <section className="page-wrap">
