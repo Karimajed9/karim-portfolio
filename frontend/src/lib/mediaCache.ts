@@ -43,7 +43,9 @@ async function putBlob(src: string, blob: Blob, contentType?: string): Promise<v
   if (!cache) return
   const headers = new Headers()
   if (contentType) headers.set('Content-Type', contentType)
-  const response = new Response(blob, { status: 200, headers })
+  // ArrayBuffer, not the Blob. jsdom's Blob has no stream(), and Node's Response rejects it.
+  const bytes = await blob.arrayBuffer()
+  const response = new Response(bytes, { status: 200, headers })
   for (const key of lookupKeys(src)) {
     try {
       await cache.put(key, response.clone())
