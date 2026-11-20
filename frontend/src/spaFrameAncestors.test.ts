@@ -9,7 +9,7 @@ const repoRoot = resolve(frontendRoot, '..')
 type StaticHostConfig = {
   globalHeaders?: Record<string, string>
   navigationFallback?: { rewrite?: string; exclude?: string[] }
-  routes?: { route?: string; headers?: Record<string, string> }[]
+  routes?: { route?: string; rewrite?: string; headers?: Record<string, string> }[]
 }
 
 function frameAncestorSources(csp: string): string[] {
@@ -30,12 +30,16 @@ describe('SPA frame ancestors', () => {
     expect(sources).toEqual(["'self'"])
     expect(sources).not.toContain('*')
     expect(sources).not.toContain('https://evil.example')
-    expect(config.navigationFallback?.rewrite).toBe('/index.html')
-    expect(exclude).not.toContain('/')
-    expect(exclude).not.toContain('/admin')
-    expect(exclude).not.toContain('/index.html')
+    expect(config.globalHeaders?.['X-Robots-Tag']).toBeUndefined()
+    expect(config.navigationFallback).toBeUndefined()
+    expect(exclude).toEqual([])
+    const admin = config.routes?.find((route) => route.route === '/admin')
+    expect(admin?.rewrite).toBe('/admin/index.html')
+    expect(admin?.headers?.['X-Robots-Tag']).toBe('noindex')
     for (const route of config.routes ?? []) {
       expect(route.headers?.['Content-Security-Policy']).toBeUndefined()
+      expect(route.route).not.toBe('*')
+      expect(route.route?.includes('*')).toBe(false)
     }
 
     const viteConfig = readFileSync(resolve(frontendRoot, 'vite.config.ts'), 'utf8')

@@ -2,9 +2,16 @@ import ContactForm from '../components/ContactForm'
 import SectionHeading from '../components/SectionHeading'
 import { useLocale } from '../i18n/LocaleContext'
 import { cvEnPath, cvFrPath } from '../lib/cv'
+import { useDocumentSeo } from '../lib/siteSeo'
 
 export default function ContactPage() {
   const { site, ui } = useLocale()
+  useDocumentSeo({
+    title: `${ui.contact.title} | ${site.name}`,
+    description: site.contact.blurb,
+    path: '/contact',
+    index: true,
+  })
 
   return (
     <section className="page-wrap">

@@ -11,6 +11,7 @@ import {
   toProjectViews,
 } from '../lib/contentApi'
 import { publicAssetUrl } from '../lib/publicAsset'
+import { useDocumentSeo } from '../lib/siteSeo'
 import { useStaticApiResource } from '../lib/useStaticApiResource'
 
 const SECTIONS = [
@@ -114,6 +115,12 @@ export default function ProjectCaseStudyPage() {
   )
   const project = findProjectBySlug(projects, slug)
   const following = project ? nextProject(projects, project.slug) : undefined
+  useDocumentSeo({
+    title: project ? `${project.name} | ${site.name}` : `${ui.notFound.title} | ${site.name}`,
+    description: project?.summary || project?.overview || ui.caseStudy.notFound,
+    path: `/projects/${slug ?? ''}`,
+    index: Boolean(project),
+  })
 
   const sectionLabels: Record<SectionId, string> = {
     overview: ui.caseStudy.overview,

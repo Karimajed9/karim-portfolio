@@ -7,6 +7,7 @@ import AdminContentEditors, {
 import SectionHeading from '../components/SectionHeading'
 import StatusBanner from '../components/StatusBanner'
 import { useLocale } from '../i18n/LocaleContext'
+import { useDocumentSeo } from '../lib/siteSeo'
 
 type ContactMessage = {
   id: number
@@ -29,7 +30,13 @@ type AdminTab = 'messages' | AdminEditorPanel
 const MESSAGES_PAGE_SIZE = 20
 
 export default function AdminPage() {
-  const { locale, ui } = useLocale()
+  const { locale, site, ui } = useLocale()
+  useDocumentSeo({
+    title: `${ui.admin.title} | ${site.name}`,
+    description: ui.admin.signedOut,
+    path: '/admin',
+    index: false,
+  })
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [authenticated, setAuthenticated] = useState(false)
