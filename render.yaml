@@ -4,8 +4,9 @@
 #
 # Caveats (free):
 # - Web Service sleeps after ~15 min idle; first request can take 30–60s.
-# - Free Postgres may be unavailable or expire; if so, use Neon free Postgres and
-#   paste JDBC env vars manually (see docs/DEPLOY-FREE.md).
+# - The API uses the migrated Neon Postgres. Set SPRING_DATASOURCE_URL,
+#   SPRING_DATASOURCE_USERNAME, and DB_PASSWORD in the dashboard (sync: false).
+#   The JDBC URL must include sslmode=require. karim-portfolio-db stays declared.
 # - Do NOT upgrade to paid plans for this portfolio unless you opt in.
 
 databases:
@@ -42,23 +43,11 @@ services:
       # Optional: paste Azure Application Insights connection string in the dashboard (never commit it).
       - key: APPLICATIONINSIGHTS_CONNECTION_STRING
         sync: false
-      - key: DB_HOST
-        fromDatabase:
-          name: karim-portfolio-db
-          property: host
-      - key: DB_PORT
-        fromDatabase:
-          name: karim-portfolio-db
-          property: port
-      - key: DB_NAME
-        fromDatabase:
-          name: karim-portfolio-db
-          property: database
+      # Existing Blueprint: sync: false is ignored on update, so set these in the dashboard.
+      # Do not put the Neon URL or password in this file.
+      - key: SPRING_DATASOURCE_URL
+        sync: false
       - key: SPRING_DATASOURCE_USERNAME
-        fromDatabase:
-          name: karim-portfolio-db
-          property: user
+        sync: false
       - key: DB_PASSWORD
-        fromDatabase:
-          name: karim-portfolio-db
-          property: password
+        sync: false
