@@ -44,6 +44,8 @@ public class MediaController {
         .contentType(mediaType)
         .contentLength(content.contentLength())
         .header(HttpHeaders.CACHE_CONTROL, "public, max-age=300")
+        // Public images. The SPA fetches them to keep a copy when this API is down.
+        .header(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*")
         .body(new InputStreamResource(content.stream()));
   }
 }

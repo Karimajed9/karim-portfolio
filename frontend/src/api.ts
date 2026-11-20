@@ -1,4 +1,9 @@
-import { getApiBannerEpoch } from './lib/apiBannerState'
+import {
+  beginContentRequest,
+  endContentRequest,
+  getApiBannerEpoch,
+} from './lib/apiBannerState'
+import { rememberPayloadMedia } from './lib/mediaCache'
 
 /**
  * API origin for fetch calls.
@@ -221,6 +226,8 @@ function reasonAfterHealth(
   contentFailed: boolean,
   failureStatus: number | null,
 ): ApiFallbackReason {
+  // Timer abort and an external abort are not a confirmed outage.
+  if (health === 'cancelled' || health === 'timeout') return 'loading'
   if (health === 'unreachable') return 'offline'
   if (contentFailed && (failureStatus == null || failureStatus === 502)) return 'offline'
   return 'loading'
@@ -271,6 +278,7 @@ export async function fetchJsonCached<T>(
     }
     const data = (await res.json()) as T
     writeApiCache(path, data)
+    rememberPayloadMedia(data)
     onData(data, 'network')
   } catch (err) {
     if (err instanceof ContentRequestError) throw err
@@ -306,6 +314,9 @@ export async function loadWithStaticFallback<T>(
 ): Promise<void> {
   const healthProbeMs = options?.healthProbeMs ?? HEALTH_PROBE_MS
   let networkSucceeded = false
+  // First visit has no cache, so the slow timer never gets a chance to run
+  // before a normal response. Show loading for the whole in-flight request.
+  beginContentRequest()
 
   const publishFallback = async (
     preliminary: ApiFallbackReason,
@@ -351,6 +362,8 @@ export async function loadWithStaticFallback<T>(
   } catch (err) {
     const status = err instanceof ContentRequestError ? err.status : null
     await publishFallback('offline', true, status)
+  } finally {
+    endContentRequest(networkSucceeded)
   }
 }
 

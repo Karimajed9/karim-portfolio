@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { apiUrl } from '../api'
 import { adminAuthHeaders } from '../lib/adminSession'
 import { useLocale } from '../i18n/LocaleContext'
+import { rememberUploadedMedia } from '../lib/mediaCache'
 import { preferredImageUrl, publicAssetUrl } from '../lib/publicAsset'
 import StatusBanner from './StatusBanner'
 
@@ -419,6 +420,7 @@ export default function AdminContentEditors({
       setProjects((rows) =>
         rows.map((item, i) => (i === index ? { ...item, coverImageUrl: url } : item)),
       )
+      rememberUploadedMedia(url, file)
       setStatus(ui.admin.coverImageSaved)
     } catch {
       setError(ui.admin.unreachable)
