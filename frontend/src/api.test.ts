@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { getApiBannerReason, reportApiUp, resetApiBannerState } from './lib/apiBannerState'
 import {
   apiBase,
   apiUrl,
@@ -44,6 +45,7 @@ describe('api cache', () => {
     localStorage.clear()
     sessionStorage.clear()
     resetHealthProbeCache()
+    resetApiBannerState()
     vi.restoreAllMocks()
   })
 
@@ -274,7 +276,32 @@ describe('api cache', () => {
     expect(readApiCache('/api/skills')).toEqual([{ id: 9, name: 'live' }])
   })
 
-  it('loadWithStaticFallback marks offline when health probe is cancelled', async () => {
+  it('loadWithStaticFallback shows loading while the first request is in flight', async () => {
+    let resolveSkills!: (value: { ok: boolean; json: () => Promise<unknown> }) => void
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        () =>
+          new Promise((resolve) => {
+            resolveSkills = resolve
+          }),
+      ),
+    )
+
+    const pending = loadWithStaticFallback('/api/skills', [{ id: 0, name: 'static' }], () => {})
+    expect(getApiBannerReason()).toBe('loading')
+    reportApiUp()
+    expect(getApiBannerReason()).toBe('loading')
+
+    resolveSkills({
+      ok: true,
+      json: async () => [{ id: 9, name: 'live' }],
+    })
+    await pending
+    expect(getApiBannerReason()).toBeNull()
+  })
+
+  it('loadWithStaticFallback keeps loading when the health probe is cancelled', async () => {
     vi.useFakeTimers()
     const updates: Array<{ data: unknown; meta: { usingStatic: boolean; reason?: string } }> = []
     const staticFallback = [{ id: 0, name: 'static' }]
@@ -308,7 +335,7 @@ describe('api cache', () => {
 
     expect(updates.at(-1)?.data).toEqual(staticFallback)
     expect(updates.at(-1)?.meta).toEqual(
-      expect.objectContaining({ usingStatic: true, reason: 'offline' }),
+      expect.objectContaining({ usingStatic: true, reason: 'loading' }),
     )
   })
 

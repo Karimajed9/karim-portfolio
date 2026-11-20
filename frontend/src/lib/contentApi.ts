@@ -114,6 +114,8 @@ export type ProjectView = {
   category: string
   status: string
   coverImageUrl: string
+  /** Shown only if the primary cover URL cannot be loaded. */
+  coverFallbackUrl: string
   liveDemoUrl: string
   role: string
   overview: string
@@ -383,6 +385,9 @@ export function toProjectViews(
       // A real cover wins over a picture buried in markdown. If the payload
       // only has markdown, or omits the cover, keep a picture on the card.
       const coverImageUrl = explicitCover || markdownCover || bundledCover
+      const alternate = markdownCover || bundledCover
+      const coverFallbackUrl =
+        explicitCover && alternate && alternate !== explicitCover ? alternate : ''
       return {
         id: row.id,
         slug,
@@ -394,6 +399,7 @@ export function toProjectViews(
         category: pickLocalized(row.categoryEn, row.categoryFr, locale),
         status: pickLocalized(row.statusEn, row.statusFr, locale),
         coverImageUrl,
+        coverFallbackUrl,
         liveDemoUrl: (row.liveDemoUrl ?? '').trim(),
         role: pickLocalized(row.roleEn, row.roleFr, locale),
         overview,

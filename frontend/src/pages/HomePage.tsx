@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import ContactForm from '../components/ContactForm'
+import StableCoverImage from '../components/StableCoverImage'
 import DeparturesBoard from '../components/DeparturesBoard'
 import FlipDigits from '../components/FlipDigits'
 import SectionHeading from '../components/SectionHeading'
@@ -226,9 +227,13 @@ export default function HomePage() {
                 <article key={project.id} className="project-card">
                   <div className="project-card-visual project-card-visual--cover">
                     {project.coverImageUrl ? (
-                      <img
+                      <StableCoverImage
                         src={publicAssetUrl(project.coverImageUrl)}
-                        alt=""
+                        fallbackSrc={
+                          project.coverFallbackUrl
+                            ? publicAssetUrl(project.coverFallbackUrl)
+                            : ''
+                        }
                         className="project-card-cover"
                       />
                     ) : null}

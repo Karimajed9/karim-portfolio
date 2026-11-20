@@ -75,6 +75,33 @@ describe('contentApi adapters', () => {
       'en',
     )
     expect(view?.coverImageUrl).toBe('https://cdn.example.com/cover.png')
+    expect(view?.coverFallbackUrl).toBe('https://cdn.example.com/from-markdown.png')
+  })
+
+  it('keeps an uploaded media cover ahead of markdown when the API payload is stored', () => {
+    const [view] = toProjectViews(
+      [
+        {
+          id: 11,
+          slug: 'uploaded',
+          nameEn: 'Uploaded',
+          nameFr: '',
+          summaryEn: '',
+          summaryFr: '',
+          tagsEn: '',
+          tagsFr: '',
+          href: '',
+          coverImageUrl: '/media/uploads/cover.png',
+          overviewEn: 'See ![shot](https://cdn.example.com/from-markdown.png)',
+          overviewFr: '',
+          sortOrder: 1,
+        },
+      ],
+      [],
+      'en',
+    )
+    expect(view?.coverImageUrl).toBe('/media/uploads/cover.png')
+    expect(view?.coverFallbackUrl).toBe('https://cdn.example.com/from-markdown.png')
   })
 
   it('promotes a markdown image when the cover field is empty', () => {

@@ -1,11 +1,20 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { apiUrl, probeApiHealth } from '../api'
+import { apiUrl, probeApiHealth, type HealthProbeResult } from '../api'
 import { getApiBannerEpoch, reportApiDown, reportApiUp } from '../lib/apiBannerState'
 import { useLocale } from '../i18n/LocaleContext'
 
 /** How often open tabs check for admin content changes. */
 export const CONTENT_REVISION_POLL_MS = 20_000
+
+function pollFailureReason(
+  status: number | null,
+  health: HealthProbeResult,
+): 'offline' | 'loading' {
+  if (health === 'cancelled' || health === 'timeout') return 'loading'
+  if (health === 'unreachable' || status == null || status === 502) return 'offline'
+  return 'loading'
+}
 
 /**
  * Dismissible “refresh for latest” notice when admin content changed after
@@ -39,8 +48,7 @@ export default function ContentUpdateBanner() {
       const seenEpoch = getApiBannerEpoch()
       const health = await probeApiHealth()
       if (cancelled || seq !== pollSeq) return
-      const outage = status == null || status === 502
-      reportApiDown(outage || health === 'unreachable' ? 'offline' : 'loading', seenEpoch)
+      reportApiDown(pollFailureReason(status, health), seenEpoch)
       setOutdated(false)
     }
 

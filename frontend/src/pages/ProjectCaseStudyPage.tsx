@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import ArchitectureDiagram from '../components/ArchitectureDiagram'
+import StableCoverImage from '../components/StableCoverImage'
 import SectionHeading from '../components/SectionHeading'
 import { useLocale } from '../i18n/LocaleContext'
 import {
@@ -30,14 +31,16 @@ type SectionId = (typeof SECTIONS)[number]
 
 function Cover({
   src,
+  fallbackSrc,
   mark,
   missingLabel,
 }: {
   src: string
+  fallbackSrc: string
   mark: string
   missingLabel: string
 }) {
-  if (!src) {
+  if (!src && !fallbackSrc) {
     return (
       <div className="case-hero-visual case-hero-visual--fallback" role="img" aria-label={missingLabel}>
         <div className="project-card-mark">
@@ -49,18 +52,30 @@ function Cover({
   }
   return (
     <div className="case-hero-visual">
-      <img src={src} alt="" className="case-hero-image" />
+      <StableCoverImage
+        src={src || fallbackSrc}
+        fallbackSrc={src ? fallbackSrc : ''}
+        className="case-hero-image"
+      />
     </div>
   )
 }
 
-function GalleryImage({ src, missingLabel }: { src: string; missingLabel: string }) {
+function GalleryImage({
+  src,
+  fallbackSrc = '',
+  missingLabel,
+}: {
+  src: string
+  fallbackSrc?: string
+  missingLabel: string
+}) {
   const [failed, setFailed] = useState(false)
   useEffect(() => {
     setFailed(false)
   }, [src])
 
-  if (failed) {
+  if (failed && !fallbackSrc) {
     return (
       <div className="case-gallery-item case-gallery-item--fallback" role="img" aria-label={missingLabel}>
         <span>{missingLabel}</span>
@@ -69,7 +84,13 @@ function GalleryImage({ src, missingLabel }: { src: string; missingLabel: string
   }
   return (
     <div className="case-gallery-item">
-      <img src={src} alt="" onError={() => setFailed(true)} />
+      <StableCoverImage
+        src={src}
+        fallbackSrc={fallbackSrc}
+        onUnavailable={() => {
+          if (!fallbackSrc) setFailed(true)
+        }}
+      />
     </div>
   )
 }
@@ -209,6 +230,9 @@ export default function ProjectCaseStudyPage() {
             {project.summary ? <p className="case-lede">{project.summary}</p> : null}
             <Cover
               src={coverSrc}
+              fallbackSrc={
+                project.coverFallbackUrl ? publicAssetUrl(project.coverFallbackUrl) : ''
+              }
               mark={project.mark}
               missingLabel={ui.caseStudy.missingCover}
             />
