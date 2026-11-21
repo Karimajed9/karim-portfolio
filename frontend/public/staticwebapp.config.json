@@ -8,10 +8,6 @@
       "rewrite": "/projects/personal-portfolio-platform/index.html"
     },
     {
-      "route": "/projects/personal-portfolio-platform/",
-      "rewrite": "/projects/personal-portfolio-platform/index.html"
-    },
-    {
       "route": "/projects",
       "rewrite": "/index.html"
     },
