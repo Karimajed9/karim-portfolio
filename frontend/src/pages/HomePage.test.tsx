@@ -254,7 +254,7 @@ describe('HomePage', () => {
 
     expect(screen.getByText(siteEn.experience[0]!.company)).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: siteEn.projects.items[0]!.name })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Explore Case Study/i })).toHaveAttribute(
+    expect(screen.getAllByRole('link', { name: /Explore Case Study/i })[0]).toHaveAttribute(
       'href',
       `/projects/${siteEn.projects.items[0]!.slug}`,
     )

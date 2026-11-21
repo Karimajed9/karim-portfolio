@@ -43,10 +43,12 @@ describe('indexable SEO files', () => {
     expect(sitemap).toContain(
       '<loc>https://karimmajed.com/projects/personal-portfolio-platform</loc>',
     )
+    expect(sitemap).toContain('<loc>https://karimmajed.com/projects/flowforge</loc>')
+    expect(sitemap).toContain('<loc>https://karimmajed.com/projects/eva</loc>')
     expect(sitemap).not.toContain('/admin')
     expect(sitemap).not.toContain('/api')
     expect(sitemap).not.toContain('<lastmod>')
-    expect(sitemap.match(/<loc>/g)).toHaveLength(3)
+    expect(sitemap.match(/<loc>/g)).toHaveLength(5)
   })
 
   it('allows crawling and does not hide admin only in robots.txt', () => {
@@ -98,6 +100,8 @@ describe('indexable SEO files', () => {
       '/',
       '/contact',
       '/projects/personal-portfolio-platform',
+      '/projects/flowforge',
+      '/projects/eva',
     ])
     for (const route of indexable) {
       const html = renderRouteHtml(template, route)
@@ -114,7 +118,7 @@ describe('indexable SEO files', () => {
     const admin = pages[pages.length - 1] ?? ''
     expect(admin).toContain('noindex, follow')
     expect(admin).not.toContain('rel="canonical"')
-    expect(new Set(indexable.map((route) => canonicalUrl(route.path))).size).toBe(3)
+    expect(new Set(indexable.map((route) => canonicalUrl(route.path))).size).toBe(5)
   })
 
   it('does not duplicate canonical or robots tags when a route changes', () => {

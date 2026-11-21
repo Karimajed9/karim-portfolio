@@ -1,3 +1,4 @@
+import { evaCaseStudyFr, flowforgeCaseStudyFr } from '../lib/databaseCaseStudies'
 import { portfolioCaseStudyFr } from '../lib/portfolioCaseStudy'
 import type { SiteContent, UiCopy } from './types'
 
@@ -57,30 +58,44 @@ export const siteFr: SiteContent = {
   languages: ['Anglais', 'Français', 'Arabe'],
   skills: [
     {
-      category: 'Backend et données',
-      items: ['C#', '.NET Framework', 'ASP.NET', 'SQL Server', 'Procédures stockées', 'API REST', 'Java'],
-    },
-    {
-      category: 'Azure et intégrations',
+      category: 'Azure & Integration',
       items: [
         'Azure Functions',
-        'Azure Logic Apps',
+        'Logic Apps',
         'Azure Web Apps',
-        'Azure Blob Storage',
-        'Azure Key Vault',
-        'Application Insights',
-        'Files',
-        'API Sage',
+        'Blob Storage',
+        'Message queues',
         'SFTP',
+        'API Sage',
       ],
     },
     {
-      category: 'Fiabilité et livraison',
-      items: ['Idempotence', 'ETL CSV/Excel', 'Datadog', 'Git', 'Jenkins', 'Jira'],
+      category: 'Data & Reliability',
+      items: [
+        'SQL Server',
+        'Procédures stockées',
+        'ETL CSV/Excel',
+        'Idempotence',
+        'Application Insights',
+        'Datadog',
+      ],
     },
     {
-      category: 'Projets personnels',
-      items: ['React', 'TypeScript', 'Spring Boot', 'PostgreSQL', 'JavaScript'],
+      category: 'Languages & Backend',
+      items: ['C#', 'SQL', 'Java', 'ASP.NET', '.NET Framework', 'API REST', 'Spring Boot'],
+    },
+    {
+      category: 'Other',
+      items: [
+        'JavaScript',
+        'Git',
+        'Jenkins',
+        'Jira',
+        'Azure Key Vault',
+        'React',
+        'TypeScript',
+        'PostgreSQL',
+      ],
     },
   ],
   experience: [
@@ -118,6 +133,12 @@ export const siteFr: SiteContent = {
     items: [
       {
         ...portfolioCaseStudyFr,
+      },
+      {
+        ...flowforgeCaseStudyFr,
+      },
+      {
+        ...evaCaseStudyFr,
       },
     ],
   },
