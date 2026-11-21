@@ -3,17 +3,17 @@ package com.karim.portfolio.storage;
 import com.azure.identity.DefaultAzureCredentialBuilder;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
-import java.nio.file.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
- * Picks local filesystem vs Azure Blob based on {@code app.storage.mode}
- * and whether Azure credentials are present. Default is safe for local/Docker:
- * no Azure resources required.
+ * Picks Postgres vs Azure Blob based on {@code app.storage.mode} and whether
+ * Azure credentials are present. Without Azure, bytes go in {@code stored_blob}
+ * so a Render restart does not 404 {@code /media/uploads/...}.
  */
 @Configuration
 @EnableConfigurationProperties(BlobStorageProperties.class)
@@ -22,7 +22,7 @@ public class BlobStorageConfig {
   private static final Logger log = LoggerFactory.getLogger(BlobStorageConfig.class);
 
   @Bean
-  BlobStorage blobStorage(BlobStorageProperties props) {
+  BlobStorage blobStorage(BlobStorageProperties props, JdbcTemplate jdbc) {
     String mode = props.getMode() == null ? "auto" : props.getMode().trim().toLowerCase();
     boolean wantAzure = switch (mode) {
       case "azure" -> true;
@@ -40,9 +40,8 @@ public class BlobStorageConfig {
       return new AzureBlobStorage(buildContainer(props));
     }
 
-    Path root = Path.of(props.getLocalDir()).toAbsolutePath().normalize();
-    log.info("BlobStorage: using local directory {}", root);
-    return new LocalBlobStorage(root);
+    log.info("BlobStorage: using database table stored_blob");
+    return new DatabaseBlobStorage(jdbc);
   }
 
   private static BlobContainerClient buildContainer(BlobStorageProperties props) {
