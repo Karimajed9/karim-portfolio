@@ -10,6 +10,17 @@ build/
 .env.*
 !.env.example
 
+# Local Spring overrides and private key material
+application-local.properties
+application-local.yml
+application-local.yaml
+*.pem
+*.p12
+*.pfx
+*.jks
+id_rsa
+id_ed25519
+
 # Logs
 *.log
 
