@@ -10,7 +10,13 @@ export const HOME_DESCRIPTION =
 
 export type PrerenderRoute = {
   /** URL path. Only these files are written. */
-  path: '/' | '/contact' | '/projects/personal-portfolio-platform' | '/admin'
+  path:
+    | '/'
+    | '/contact'
+    | '/projects/personal-portfolio-platform'
+    | '/projects/flowforge'
+    | '/projects/eva'
+    | '/admin'
   file: string
   title: string
   description: string
@@ -39,6 +45,22 @@ export const PRERENDER_ROUTES: readonly PrerenderRoute[] = [
     title: 'Personal Portfolio Platform | Karim Majed',
     description:
       'Full-stack portfolio SPA on Azure Static Web Apps with a Spring Boot API and PostgreSQL on Render, plus admin editing and static-first fallbacks.',
+    index: true,
+  },
+  {
+    path: '/projects/flowforge',
+    file: 'projects/flowforge/index.html',
+    title: 'FlowForge | Karim Majed',
+    description:
+      'A workflow automation app built with Spring Boot, React, PostgreSQL, and RabbitMQ. It lets users create workflows triggered by webhooks, run tasks in the background, and track their results.',
+    index: true,
+  },
+  {
+    path: '/projects/eva',
+    file: 'projects/eva/index.html',
+    title: 'EVA — Personal AI Assistant | Karim Majed',
+    description:
+      'A futuristic personal AI assistant designed to hold natural voice conversations, perform tasks on your computer, and help manage everyday activities while keeping you in control of your personal data.',
     index: true,
   },
   {

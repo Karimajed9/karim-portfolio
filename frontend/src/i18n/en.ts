@@ -1,3 +1,4 @@
+import { evaCaseStudyEn, flowforgeCaseStudyEn } from '../lib/databaseCaseStudies'
 import { portfolioCaseStudyEn } from '../lib/portfolioCaseStudy'
 import type { SiteContent, UiCopy } from './types'
 
@@ -57,30 +58,44 @@ export const siteEn: SiteContent = {
   languages: ['English', 'French', 'Arabic'],
   skills: [
     {
-      category: 'Backend & Data',
-      items: ['C#', '.NET Framework', 'ASP.NET', 'SQL Server', 'Stored procedures', 'REST APIs', 'Java'],
-    },
-    {
-      category: 'Azure & Integrations',
+      category: 'Azure & Integration',
       items: [
         'Azure Functions',
-        'Azure Logic Apps',
+        'Logic Apps',
         'Azure Web Apps',
-        'Azure Blob Storage',
-        'Azure Key Vault',
-        'Application Insights',
-        'Queues',
-        'Sage APIs',
+        'Blob Storage',
+        'Message queues',
         'SFTP',
+        'Sage APIs',
       ],
     },
     {
-      category: 'Reliability & Delivery',
-      items: ['Idempotency', 'CSV/Excel ETL', 'Datadog', 'Git', 'Jenkins', 'Jira'],
+      category: 'Data & Reliability',
+      items: [
+        'SQL Server',
+        'Stored procedures',
+        'CSV/Excel ETL',
+        'Idempotency',
+        'Application Insights',
+        'Datadog',
+      ],
     },
     {
-      category: 'Personal projects',
-      items: ['React', 'TypeScript', 'Spring Boot', 'PostgreSQL', 'JavaScript'],
+      category: 'Languages & Backend',
+      items: ['C#', 'SQL', 'Java', 'ASP.NET', '.NET Framework', 'REST APIs', 'Spring Boot'],
+    },
+    {
+      category: 'Other',
+      items: [
+        'JavaScript',
+        'Git',
+        'Jenkins',
+        'Jira',
+        'Azure Key Vault',
+        'React',
+        'TypeScript',
+        'PostgreSQL',
+      ],
     },
   ],
   experience: [
@@ -89,22 +104,22 @@ export const siteEn: SiteContent = {
       role: 'Software Developer',
       startDate: 'November 2022',
       endDate: 'Present',
-      location: 'Montréal, Canada',
+      location: 'Montréal, QC, Canada',
       highlights: [
-        'Built a reusable C#/.NET due-date framework with configurable deadlines and compliance rules. Short custom-event handlers are still needed per record or datalist.',
+        'Built a reusable C#/.NET due-date framework with configurable deadlines and compliance rules.',
         'Implemented caregiver disbursement calculations from placement history, child ages, care levels, service types, and rate schedules.',
-        'Developed Azure Functions integrating case-management and Sage APIs—nightly batches, HTTP-triggered queue workflows, and unique transaction IDs for idempotent sync and reconciliation.',
+        'Developed Azure Functions integrating case-management and Sage APIs—nightly batches, HTTP-triggered queue workflows, and unique transaction IDs for idempotent sync.',
         'Added retries, Blob Storage recovery, Application Insights monitoring, and targeted failure notifications.',
         'Rebuilt deprecated Logic Apps migration workflows processing millions of records with SQL, stored procedures, CSV/Excel, validation, deduplication, and error reports.',
-        'Optimized C# event handlers by removing redundant processing; nightly API-to-SFTP government reporting exports (thousands of records).',
+        'Optimized C# event handlers and nightly API-to-SFTP government reporting exports (thousands of records).',
       ],
     },
     {
-      company: 'Wiley Edge, assigned to National Bank of Canada',
+      company: 'Wiley Edge / National Bank of Canada',
       role: 'Java Developer',
       startDate: 'September 2021',
       endDate: 'September 2022',
-      location: 'Montréal, Canada',
+      location: 'Montréal, QC, Canada',
       highlights: [
         'Delivered 50+ Java features and extensions for an internal customer-service system used by 100+ bank employees.',
         'Resolved 100+ functional and UI defects.',
@@ -118,6 +133,12 @@ export const siteEn: SiteContent = {
     items: [
       {
         ...portfolioCaseStudyEn,
+      },
+      {
+        ...flowforgeCaseStudyEn,
+      },
+      {
+        ...evaCaseStudyEn,
       },
     ],
   },

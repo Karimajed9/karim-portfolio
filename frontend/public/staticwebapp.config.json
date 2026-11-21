@@ -8,6 +8,14 @@
       "rewrite": "/projects/personal-portfolio-platform/index.html"
     },
     {
+      "route": "/projects/flowforge",
+      "rewrite": "/projects/flowforge/index.html"
+    },
+    {
+      "route": "/projects/eva",
+      "rewrite": "/projects/eva/index.html"
+    },
+    {
       "route": "/projects",
       "rewrite": "/index.html"
     },
