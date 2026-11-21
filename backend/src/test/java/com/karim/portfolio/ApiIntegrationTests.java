@@ -9,12 +9,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.jayway.jsonpath.JsonPath;
+import com.karim.portfolio.storage.BlobStorageProperties;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -41,6 +47,12 @@ class ApiIntegrationTests {
 
 	@Autowired
 	ContactMessageRepository contactMessages;
+
+	@Autowired
+	JdbcTemplate jdbc;
+
+	@Autowired
+	BlobStorageProperties storageProperties;
 
 	@Test
 	void sessionCookieIsSecureHttpOnlyAndLax() {
@@ -201,10 +213,21 @@ class ApiIntegrationTests {
 		org.junit.jupiter.api.Assertions.assertTrue(
 				url.startsWith("/media/uploads/"),
 				() -> "expected /media/uploads/ URL, got " + url);
+		String key = url.substring("/media/".length());
+
+		byte[] stored = jdbc.queryForObject(
+				"SELECT payload FROM stored_blob WHERE storage_key = ?",
+				byte[].class,
+				key);
+		assertArrayEquals(png, stored);
+
+		Path localFile = Path.of(storageProperties.getLocalDir()).toAbsolutePath().normalize().resolve(key);
+		assertFalse(Files.exists(localFile), () -> "cover must not be on disk: " + localFile);
 
 		mockMvc.perform(get(url))
 				.andExpect(status().isOk())
-				.andExpect(content().contentTypeCompatibleWith(MediaType.IMAGE_PNG));
+				.andExpect(content().contentTypeCompatibleWith(MediaType.IMAGE_PNG))
+				.andExpect(content().bytes(png));
 	}
 
 	@Test

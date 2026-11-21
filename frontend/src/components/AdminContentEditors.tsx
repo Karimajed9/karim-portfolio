@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { apiUrl } from '../api'
+import { apiUrl, writeApiCache } from '../api'
 import { adminAuthHeaders } from '../lib/adminSession'
 import { useLocale } from '../i18n/LocaleContext'
-import { rememberUploadedMedia } from '../lib/mediaCache'
+import { rememberPayloadMedia, rememberUploadedMedia } from '../lib/mediaCache'
 import { preferredImageUrl, publicAssetUrl } from '../lib/publicAsset'
 import StatusBanner from './StatusBanner'
 
@@ -221,6 +221,10 @@ export default function AdminContentEditors({
       readJson<SkillItem[]>('/api/skills'),
       readJson<{ education: EducationItem[] }>('/api/about'),
     ])
+    // Public pages read this cache before the API wakes. The editor shape
+    // rewrites highlights into lines, so the cache keeps the API payload.
+    writeApiCache('/api/projects', projectRows)
+    rememberPayloadMedia(projectRows)
     setExperience(
       experienceRows.map((row) => ({
         ...row,
