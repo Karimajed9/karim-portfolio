@@ -12,15 +12,7 @@
       "rewrite": "/index.html"
     },
     {
-      "route": "/projects/",
-      "rewrite": "/index.html"
-    },
-    {
       "route": "/contact",
-      "rewrite": "/contact/index.html"
-    },
-    {
-      "route": "/contact/",
       "rewrite": "/contact/index.html"
     },
     {
@@ -28,15 +20,7 @@
       "rewrite": "/index.html"
     },
     {
-      "route": "/about/",
-      "rewrite": "/index.html"
-    },
-    {
       "route": "/skills",
-      "rewrite": "/index.html"
-    },
-    {
-      "route": "/skills/",
       "rewrite": "/index.html"
     },
     {
@@ -44,18 +28,7 @@
       "rewrite": "/index.html"
     },
     {
-      "route": "/experience/",
-      "rewrite": "/index.html"
-    },
-    {
       "route": "/admin",
-      "rewrite": "/admin/index.html",
-      "headers": {
-        "X-Robots-Tag": "noindex"
-      }
-    },
-    {
-      "route": "/admin/",
       "rewrite": "/admin/index.html",
       "headers": {
         "X-Robots-Tag": "noindex"
