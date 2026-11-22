@@ -41,7 +41,7 @@ karim-portfolio/
 ├── docs/DEPLOY-FREE.md           # GitHub Pages + Render click-through guide
 ├── docs/application-insights.md  # Azure App Insights portal + env wiring
 ├── render.yaml            # Render Blueprint (free web + Postgres)
-├── .github/workflows/     # CI + Deploy GitHub Pages
+├── .github/workflows/     # CI, Gitleaks, and Deploy GitHub Pages
 ├── docker-compose.yml     # Postgres + backend + frontend
 ├── .env.example           # Copy to .env for Compose secrets/ports
 └── README.md
@@ -137,6 +137,29 @@ npm test
 
 On every push and pull request to `main`, [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs frontend `npm ci` → `npm test` → `npm run build` and backend `./mvnw test`. No Azure login.
 
+### Secret scanning
+
+[`.github/workflows/gitleaks.yml`](.github/workflows/gitleaks.yml) runs [Gitleaks](https://github.com/gitleaks/gitleaks) 8.30.1 on pull requests to `main`, pushes to `main`, and when started by hand. It checks out the full Git history, scans every commit, and fails the job if a potential secret is found. Matches are redacted in the log. The job permission is `contents: read` only.
+
+A local pre-commit scan is optional and does nothing until you opt in. It does not change `core.hooksPath`.
+
+```powershell
+$env:GITLEAKS_PRE_COMMIT = "1"
+powershell -NoProfile -File scripts/gitleaks-pre-commit.ps1
+```
+
+```bash
+GITLEAKS_PRE_COMMIT=1 scripts/gitleaks-pre-commit.sh
+```
+
+Gitleaks 8.30.1 must be on `PATH` when the variable is set. To run it on every commit, call that script from the pre-commit hook you already use. Leave `core.hooksPath` unchanged. With `GITLEAKS_PRE_COMMIT` unset, the script exits successfully and does not scan, so the extra call does not block commits.
+
+The same history scan as CI:
+
+```bash
+gitleaks detect --source . --redact --log-opts="--all"
+```
+
 ### Public URL (free)
 
 1. Enable **Settings → Pages → Source = GitHub Actions**.
@@ -175,7 +198,8 @@ Leave Azure env vars unset: uploads go under `./data/uploads`, secrets stay in `
 
 - Never commit `.env` or real passwords / connection strings.
 - Prefer placeholders in `.env.example` only.
-- Admin Basic auth: username `admin`, password from `ADMIN_PASSWORD` (default `password` if unset).
+- Admin Basic auth: username `admin`, password from `ADMIN_PASSWORD`. The API refuses to start if that variable is unset.
+- Gitleaks scans Git history in CI. Keep real passwords in `.env` or the host dashboard, not in commits.
 
 ---
 
