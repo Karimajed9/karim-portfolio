@@ -114,6 +114,9 @@ describe('AdminContentEditors', () => {
       coverImageUrl: '/media/uploads/second.png',
       sortOrder: 1,
     }
+    const experienceAfter = [{ id: 3, companyEn: 'After Save', companyFr: '' }]
+    const skillsAfter = [{ id: 4, nameEn: 'Java', nameFr: '' }]
+    const aboutAfter = { education: [{ id: 5, schoolEn: 'School', schoolFr: '' }] }
     let saved = false
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input)
@@ -122,10 +125,16 @@ describe('AdminContentEditors', () => {
         saved = true
         return json({ id: savedProject.id }, true)
       }
+      if (method === 'GET' && url.includes('/api/experience')) {
+        return json(saved ? experienceAfter : [])
+      }
       if (method === 'GET' && url.includes('/api/projects')) {
         return json(saved ? [savedProject] : [])
       }
-      if (url.includes('/api/about')) return json({ education: [] })
+      if (method === 'GET' && url.includes('/api/skills')) {
+        return json(saved ? skillsAfter : [])
+      }
+      if (url.includes('/api/about')) return json(saved ? aboutAfter : { education: [] })
       return json([])
     })
     vi.stubGlobal('fetch', fetchMock)
@@ -139,6 +148,9 @@ describe('AdminContentEditors', () => {
 
     await waitFor(() => {
       expect(readApiCache('/api/projects')).toEqual([])
+      expect(readApiCache('/api/experience')).toEqual([])
+      expect(readApiCache('/api/skills')).toEqual([])
+      expect(readApiCache('/api/about')).toEqual({ education: [] })
     })
 
     fireEvent.click(screen.getByRole('button', { name: 'Add' }))
@@ -152,7 +164,10 @@ describe('AdminContentEditors', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Save' }))
 
     await waitFor(() => {
+      expect(readApiCache('/api/experience')).toEqual(experienceAfter)
       expect(readApiCache('/api/projects')).toEqual([savedProject])
+      expect(readApiCache('/api/skills')).toEqual(skillsAfter)
+      expect(readApiCache('/api/about')).toEqual(aboutAfter)
     })
     const post = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST')
     expect(JSON.parse(String(post?.[1]?.body)).coverImageUrl).toBe(savedProject.coverImageUrl)

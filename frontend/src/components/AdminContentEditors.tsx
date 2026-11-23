@@ -223,7 +223,10 @@ export default function AdminContentEditors({
     ])
     // Public pages read this cache before the API wakes. The editor shape
     // rewrites highlights into lines, so the cache keeps the API payload.
+    writeApiCache('/api/experience', experienceRows)
     writeApiCache('/api/projects', projectRows)
+    writeApiCache('/api/skills', skillRows)
+    writeApiCache('/api/about', about)
     rememberPayloadMedia(projectRows)
     setExperience(
       experienceRows.map((row) => ({

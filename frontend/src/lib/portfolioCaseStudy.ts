@@ -23,7 +23,7 @@ export const portfolioCaseStudyEn = {
     'I needed one codebase that stays useful while a free API host sleeps, lets me edit portfolio content without a rebuild, and documents real deploy choices instead of a marketing mockup.',
   architectureImageUrl: '',
   architectureCaption:
-    'The Vite React SPA calls Spring Boot REST endpoints. Flyway manages PostgreSQL schema. Docker Compose runs Postgres, the API, and an nginx frontend locally. GitHub Actions builds and deploys the SPA to Azure Static Web Apps (GitHub Pages remains as a backup workflow). The API is defined in render.yaml as a Docker web service with Postgres. Optional Azure Blob Storage and Application Insights are wired in code with local/no-op fallbacks; Render is configured with APP_STORAGE_MODE=local.',
+    'The Vite React SPA calls Spring Boot REST endpoints. Flyway manages PostgreSQL schema. Docker Compose runs Postgres, the API, and an nginx frontend locally. GitHub Actions builds and deploys the SPA to Azure Static Web Apps (GitHub Pages remains as a backup workflow). The API is defined in render.yaml as a Docker web service with Postgres. Optional Azure Blob Storage and Application Insights are wired in code. Without Azure credentials, upload bytes go in Postgres stored_blob and Application Insights stays off. Render is configured with APP_STORAGE_MODE=local.',
   features: [
     'React 19 + TypeScript + Vite SPA with Tailwind and React Router',
     'Spring Boot REST APIs for about, skills, experience, projects, contact, uploads, and content revision',
@@ -33,13 +33,13 @@ export const portfolioCaseStudyEn = {
     'Project case-study pages with slug routes and admin-editable sections',
     'Contact form with honeypot and per-IP rate limiting',
     'Static-first public content with localStorage cache when the API is slow or down',
-    'CV PDF slots via BlobStorage (local filesystem or Azure Blob when configured)',
+    'CV PDF slots via BlobStorage (Postgres stored_blob, or Azure Blob when configured)',
     'Docker Compose for local Postgres + API + nginx frontend',
   ],
   tradeoffs: [
     'Static-first fallback keeps pages readable when Render sleeps, at the cost of temporarily stale API copy until refresh',
     'Render free web services cold-start after idle time; the SPA shows warming/offline banners instead of failing blank',
-    'Azure Blob and Application Insights stay optional — production Render uses local upload storage unless Azure credentials are set',
+    'Azure Blob and Application Insights stay optional — production Render stores uploads in Postgres stored_blob unless Azure credentials are set',
   ],
   challenges: [
     'Keeping EN and FR content editable without duplicating the whole UI stack',
@@ -76,7 +76,7 @@ export const portfolioCaseStudyFr = {
     'Il me fallait une base de code utile pendant qu’une API gratuite dort, éditable sans rebuild, et qui documente de vrais choix de déploiement plutôt qu’une maquette marketing.',
   architectureImageUrl: '',
   architectureCaption:
-    'La SPA Vite/React appelle les endpoints REST Spring Boot. Flyway gère le schéma PostgreSQL. Docker Compose lance Postgres, l’API et un frontend nginx en local. GitHub Actions construit et déploie la SPA sur Azure Static Web Apps (GitHub Pages reste un workflow de secours). L’API est définie dans render.yaml comme service Docker avec Postgres. Azure Blob Storage et Application Insights sont optionnels dans le code, avec replis locaux ; Render est configuré avec APP_STORAGE_MODE=local.',
+    'La SPA Vite/React appelle les endpoints REST Spring Boot. Flyway gère le schéma PostgreSQL. Docker Compose lance Postgres, l’API et un frontend nginx en local. GitHub Actions construit et déploie la SPA sur Azure Static Web Apps (GitHub Pages reste un workflow de secours). L’API est définie dans render.yaml comme service Docker avec Postgres. Azure Blob Storage et Application Insights sont optionnels dans le code. Sans identifiants Azure, les fichiers envoyés vont dans Postgres stored_blob et Application Insights reste inactif. Render est configuré avec APP_STORAGE_MODE=local.',
   features: [
     'SPA React 19 + TypeScript + Vite avec Tailwind et React Router',
     'API REST Spring Boot pour à propos, compétences, expérience, projets, contact, uploads et révision de contenu',
@@ -86,13 +86,13 @@ export const portfolioCaseStudyFr = {
     'Pages d’étude de cas projets avec routes par slug et sections éditables en admin',
     'Formulaire de contact avec honeypot et limite par IP',
     'Contenu public statique d’abord avec cache localStorage si l’API est lente ou indisponible',
-    'Emplacements CV PDF via BlobStorage (disque local ou Azure Blob si configuré)',
+    'Emplacements CV PDF via BlobStorage (Postgres stored_blob, ou Azure Blob si configuré)',
     'Docker Compose pour Postgres + API + frontend nginx en local',
   ],
   tradeoffs: [
     'Le repli statique garde les pages lisibles quand Render dort, au prix d’une copie API temporairement périmée jusqu’au rafraîchissement',
     'Les services web Render gratuits redémarrent après inactivité ; la SPA affiche des bannières warming/offline plutôt qu’une page vide',
-    'Azure Blob et Application Insights restent optionnels — en production Render utilise le stockage local des uploads sauf credentials Azure',
+    'Azure Blob et Application Insights restent optionnels — en production Render enregistre les fichiers envoyés dans Postgres stored_blob sauf credentials Azure',
   ],
   challenges: [
     'Garder EN et FR éditables sans dupliquer toute la stack UI',

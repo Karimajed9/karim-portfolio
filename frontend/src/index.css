@@ -1280,7 +1280,13 @@
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
+    position: sticky;
+    top: var(--nav-h);
+    z-index: 40;
     margin: 0 0 28px;
+    padding: 10px 0;
+    background: color-mix(in srgb, var(--color-bg) 92%, transparent);
+    backdrop-filter: blur(10px);
     font-family: var(--font-mono);
     font-size: 12px;
     letter-spacing: 0.08em;
@@ -1523,7 +1529,7 @@
     .case-nav {
       display: block;
       position: sticky;
-      top: calc(var(--nav-h) + 20px);
+      top: calc(var(--nav-h) + 52px);
       align-self: start;
     }
 

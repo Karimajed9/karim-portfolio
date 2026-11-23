@@ -24,7 +24,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       DB_PASSWORD: ${DB_PASSWORD}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
-      # Optional Azure wiring (unset = local filesystem uploads + no App Insights)
+      # Optional Azure wiring. Unset stores uploads in Postgres stored_blob, not on disk, and leaves App Insights off.
       APP_STORAGE_MODE: ${APP_STORAGE_MODE:-auto}
       APP_STORAGE_LOCAL_DIR: ${APP_STORAGE_LOCAL_DIR:-./data/uploads}
       AZURE_STORAGE_CONNECTION_STRING: ${AZURE_STORAGE_CONNECTION_STRING:-}
