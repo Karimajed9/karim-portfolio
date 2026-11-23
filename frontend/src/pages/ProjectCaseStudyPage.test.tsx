@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -172,4 +174,127 @@ describe('ProjectCaseStudyPage', () => {
       '/#projects',
     )
   })
+
+  it('builds each project stack diagram from its tags', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => Promise.resolve({ ok: false, status: 503, json: async () => ({}) })),
+    )
+
+    const flowforge = renderCase('flowforge')
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'FlowForge' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Architecture/i })).toBeInTheDocument()
+    expect(stackKickers()).toEqual(['Frontend', 'API', 'Data', 'Tooling'])
+    expect(stackBoxTitles()).toEqual([
+      'React / TypeScript',
+      'Spring Boot',
+      'PostgreSQL',
+      'Docker',
+    ])
+    expect(stackDetails()).toEqual(['Tailwind CSS', 'Java · REST API', 'Testcontainers'])
+    expect(stackArrows()).toEqual(['↓', '↓'])
+    expect(document.querySelector('.case-arch-node--optional .case-arch-kicker')?.textContent).toBe(
+      'Tooling',
+    )
+    expect(document.querySelector('.case-arch-board')?.textContent).not.toContain('RabbitMQ')
+    expect(screen.getByText(/queued through RabbitMQ/i)).toBeInTheDocument()
+    expect(screen.getByText(/Webhooks are received by Spring Boot/i)).toBeInTheDocument()
+    expect(screen.queryByText('Azure Static Web Apps')).not.toBeInTheDocument()
+    flowforge.unmount()
+
+    renderCase('eva')
+
+    expect(await screen.findByRole('heading', { level: 1, name: /EVA/ })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Architecture/i })).toBeInTheDocument()
+    expect(stackKickers()).toEqual(['Frontend', 'API', 'Tooling'])
+    expect(stackBoxTitles()).toEqual(['React / TypeScript / Vite', 'Spring Boot', 'Maven'])
+    expect(stackDetails()).toEqual(['Tailwind CSS · Electron', 'Java', 'GitHub Actions'])
+    expect(stackArrows()).toEqual(['↓'])
+    expect(document.querySelector('.case-arch-node--optional .case-arch-kicker')?.textContent).toBe(
+      'Tooling',
+    )
+    expect(screen.queryByText('Azure Static Web Apps')).not.toBeInTheDocument()
+    expect(screen.queryByText('Data')).not.toBeInTheDocument()
+  })
+
+  it('keeps the project breadcrumb sticky and points PROJECTS at the projects section', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => Promise.resolve({ ok: false, status: 503, json: async () => ({}) })),
+    )
+
+    renderCase('flowforge')
+
+    const crumb = await screen.findByRole('navigation', { name: 'Breadcrumb' })
+    expect(crumb).toHaveClass('case-breadcrumb')
+    expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/')
+    expect(screen.getByRole('link', { name: 'Projects' })).toHaveAttribute('href', '/#projects')
+
+    const css = readFileSync(resolve(process.cwd(), 'src/index.css'), 'utf8')
+    const rule = css.match(/\.case-breadcrumb\s*\{[^}]+\}/)?.[0] ?? ''
+    expect(rule).toMatch(/position:\s*sticky/)
+    expect(rule).toMatch(/top:\s*var\(--nav-h\)/)
+    expect(rule).toMatch(/z-index:\s*40/)
+  })
+
+  it('shows an architecture image instead of generated boxes', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input)
+        if (url.includes('/api/projects')) {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => [
+              {
+                id: 9,
+                slug: 'diagram-image',
+                nameEn: 'Diagram Image',
+                nameFr: '',
+                summaryEn: 'Summary',
+                summaryFr: '',
+                tagsEn: 'React,PostgreSQL',
+                tagsFr: '',
+                architectureImageUrl: 'https://cdn.example.com/architecture.png',
+                architectureCaptionEn: 'Stored caption',
+                architectureCaptionFr: '',
+                sortOrder: 1,
+              },
+            ],
+          }
+        }
+        return { ok: false, status: 404, json: async () => ({}) }
+      }),
+    )
+
+    renderCase('diagram-image')
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Diagram Image' })).toBeInTheDocument()
+    expect(document.querySelector('.case-gallery-item img')).toHaveAttribute(
+      'src',
+      'https://cdn.example.com/architecture.png',
+    )
+    expect(stackBoxTitles()).toEqual([])
+    expect(screen.getByText('Stored caption')).toBeInTheDocument()
+  })
 })
+
+function stackKickers(): string[] {
+  return [...document.querySelectorAll('.case-arch-kicker')].map((node) => node.textContent ?? '')
+}
+
+function stackBoxTitles(): string[] {
+  return [...document.querySelectorAll('.case-arch-node strong')].map((node) => node.textContent ?? '')
+}
+
+function stackDetails(): string[] {
+  return [...document.querySelectorAll('.case-arch-node span:not(.case-arch-kicker)')].map(
+    (node) => node.textContent ?? '',
+  )
+}
+
+function stackArrows(): string[] {
+  return [...document.querySelectorAll('.case-arch-arrow')].map((node) => node.textContent ?? '')
+}

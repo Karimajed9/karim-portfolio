@@ -10,6 +10,7 @@ import {
   nextProject,
   toProjectViews,
 } from '../lib/contentApi'
+import { PORTFOLIO_SLUG } from '../lib/portfolioCaseStudy'
 import { publicAssetUrl } from '../lib/publicAsset'
 import { useDocumentSeo } from '../lib/siteSeo'
 import { useStaticApiResource } from '../lib/useStaticApiResource'
@@ -29,6 +30,25 @@ const SECTIONS = [
 ] as const
 
 type SectionId = (typeof SECTIONS)[number]
+
+function stackTags(tags: string[]): string[] {
+  return tags.map((tag) => tag.trim()).filter(Boolean)
+}
+
+/** Portfolio keeps its diagram. Other projects use an image, their tags, or a caption. */
+function projectHasArchitecture(project: {
+  slug: string
+  architectureImageUrl: string
+  architectureCaption: string
+  tags: string[]
+}): boolean {
+  return (
+    project.slug === PORTFOLIO_SLUG ||
+    Boolean(project.architectureImageUrl.trim()) ||
+    stackTags(project.tags).length > 0 ||
+    Boolean(project.architectureCaption.trim())
+  )
+}
 
 function Cover({
   src,
@@ -146,6 +166,7 @@ export default function ProjectCaseStudyPage() {
     if (id === 'testing') return Boolean(project.testing)
     if (id === 'problem') return Boolean(project.problem)
     if (id === 'overview') return Boolean(project.overview)
+    if (id === 'architecture') return projectHasArchitecture(project)
     return true
   })
 
@@ -303,20 +324,29 @@ export default function ProjectCaseStudyPage() {
             </section>
           ) : null}
 
-          <section id="architecture" className="case-section">
-            <SectionHeading title={ui.caseStudy.architecture} index="04" />
-            {architectureSrc ? (
-              <GalleryImage
-                src={architectureSrc}
-                missingLabel={ui.caseStudy.missingImage}
-              />
-            ) : (
-              <ArchitectureDiagram caption={project.architectureCaption} />
-            )}
-            {architectureSrc && project.architectureCaption ? (
-              <p className="case-arch-caption">{project.architectureCaption}</p>
-            ) : null}
-          </section>
+          {projectHasArchitecture(project) ? (
+            <section id="architecture" className="case-section">
+              <SectionHeading title={ui.caseStudy.architecture} index="04" />
+              {architectureSrc ? (
+                <GalleryImage
+                  src={architectureSrc}
+                  missingLabel={ui.caseStudy.missingImage}
+                />
+              ) : project.slug === PORTFOLIO_SLUG ? (
+                <ArchitectureDiagram caption={project.architectureCaption} />
+              ) : stackTags(project.tags).length > 0 ? (
+                <ArchitectureDiagram
+                  caption={project.architectureCaption}
+                  nodes={stackTags(project.tags)}
+                />
+              ) : project.architectureCaption ? (
+                <p className="case-arch-caption">{project.architectureCaption}</p>
+              ) : null}
+              {architectureSrc && project.architectureCaption ? (
+                <p className="case-arch-caption">{project.architectureCaption}</p>
+              ) : null}
+            </section>
+          ) : null}
 
           {project.features.length > 0 ? (
             <section id="features" className="case-section">

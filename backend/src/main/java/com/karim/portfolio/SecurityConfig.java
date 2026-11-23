@@ -75,7 +75,10 @@ public class SecurityConfig {
         .csrf(csrf -> csrf
             .csrfTokenRepository(csrfTokenRepository)
             .csrfTokenRequestHandler(csrfHandler)
-            .ignoringRequestMatchers("/api/admin/login", "/api/admin/logout")
+            // Login and logout have no token yet. Contact is a public cross-origin
+            // POST from the SPA, which cannot send the API session token.
+            // Honeypot and the per-IP rate limit still apply.
+            .ignoringRequestMatchers("/api/admin/login", "/api/admin/logout", "/api/contact")
             // A bearer is not sent automatically, so CSRF does not apply. This is
             // what lets phone admin writes succeed after Safari drops the cookie.
             .ignoringRequestMatchers(request ->

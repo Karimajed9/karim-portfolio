@@ -188,7 +188,7 @@ Restart the backend after changing `ADMIN_PASSWORD` (BCrypt-encoded at startup).
 
 ## Azure (deferred deploy)
 
-Leave Azure env vars unset: uploads go under `./data/uploads`, secrets stay in `.env`, App Insights does not attach. Production profile hints live in `backend/src/main/resources/application-prod.properties`. Prefer free GitHub Pages + Render for a public recruiter URL; provision Azure only when you opt in to spend.
+Leave Azure env vars unset: uploads are stored in Postgres (`stored_blob`), secrets stay in `.env`, App Insights does not attach. Production profile hints live in `backend/src/main/resources/application-prod.properties`. Prefer free GitHub Pages + Render for a public recruiter URL; provision Azure only when you opt in to spend.
 
 **Application Insights (optional):** backend Java agent + sampling — set `APPLICATIONINSIGHTS_CONNECTION_STRING` on Render or locally. Portal steps: [docs/application-insights.md](docs/application-insights.md). No browser SDK.
 
