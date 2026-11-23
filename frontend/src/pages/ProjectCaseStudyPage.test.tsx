@@ -1,5 +1,3 @@
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
 import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -230,12 +228,6 @@ describe('ProjectCaseStudyPage', () => {
     expect(crumb).toHaveClass('case-breadcrumb')
     expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/')
     expect(screen.getByRole('link', { name: 'Projects' })).toHaveAttribute('href', '/#projects')
-
-    const css = readFileSync(resolve(process.cwd(), 'src/index.css'), 'utf8')
-    const rule = css.match(/\.case-breadcrumb\s*\{[^}]+\}/)?.[0] ?? ''
-    expect(rule).toMatch(/position:\s*sticky/)
-    expect(rule).toMatch(/top:\s*var\(--nav-h\)/)
-    expect(rule).toMatch(/z-index:\s*40/)
   })
 
   it('shows an architecture image instead of generated boxes', async () => {

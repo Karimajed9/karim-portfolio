@@ -50,7 +50,10 @@ describe('SPA frame ancestors', () => {
       resolve(repoRoot, '.github/workflows/azure-static-web-apps.yml'),
       'utf8',
     )
-    expect(workflow).toContain('uses: Azure/static-web-apps-deploy@v1')
+    expect(workflow).toContain('# Azure/static-web-apps-deploy v1')
+    expect(workflow).toContain(
+      'uses: Azure/static-web-apps-deploy@1a947af9992250f3bc2e68ad0754c0b0c11566c9',
+    )
     expect(workflow).toContain('app_location: frontend')
     expect(workflow).toContain('output_location: dist')
     expect(workflow).not.toMatch(/skip_app_build:\s*true/)
